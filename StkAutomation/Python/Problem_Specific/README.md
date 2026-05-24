@@ -1,0 +1,319 @@
+# Python Problem Specific Samples
+
+## [AnnotationsOnAVehicle2D.py](AnnotationsOnAVehicle2D.py)
+
+This script allows you to add a series of annotations to the path of a moving STK object. The user specifies an STK version, the desired object name and type, the accuracy of the annotations (defined by time step), the event times in UTCG, the event titles, and the event colors. These are all located in "Main" at the bottom of the script.
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf)
+* Other Scripts: N/A
+* Scenario: N/A
+
+---
+
+## [ChainTimingDelay.py](ChainTimingDelay.py)
+
+Made with [Python API](https://help.agi.com/stkdevkit/index.htm#python/pythonGettingStarted.htm?) available in STK 12.1+
+
+Complete chain access in STK means that each link in the chain simultaneously has access. This script allows a maximum delay between target/asset access and the rest of the chain. This is useful for scenarios such as an imaging system with onboard storage, where a target can be imaged, then downlinked at a later time specified by the maximum delay.
+
+To use the script, just modify the user inputs then run.
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf)
+* Other Scripts: N/A
+* Scenario: N/A
+
+---
+
+## [DutyCycleMultiSat.py](DutyCycleMultiSat.py)
+
+Made with [Python API](https://help.agi.com/stkdevkit/index.htm#python/pythonGettingStarted.htm) available in STK 12.1+
+
+This script utilizes a Duty Cycle allotment (a total pointing time limitation) per orbit to determine access times to area targets. Sensors are utilized for spatial awareness purposes. The script can utilize a named "special" target as a primary target for one of the satellites in the scenario. The satellite will use as much time as possible on this target. The remaining allotted time on each satellite will be split evenly amongst the remaining targets.
+The user specifies the names of the satellites, the names of the sensors on the satellites, the primary targets, then the time allotment for each of the satellites.
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf)
+* Other Scripts: N/A
+* Scenario: N/A
+
+---
+
+## [EditIntervalFile.py](EditIntervalFile.py)
+
+Allows the user to take an interval file ([.int](https://help.agi.com/stk/index.htm#stk/importfiles-04.htm)) from STK and insert time gaps between the defined intervals that have "Show on default attributes" as the setting. The name of the initial interval file and the path to its containing folder are required in the beginning of the script, and the scenario start and stop times are required further down. This script is useful when loading an interval file that does not cover the whole time span of the object it is made for, as it prohibits any gaps in the trajectory.
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf)
+* Other Scripts: N/A
+* Scenario: N/A
+
+---
+
+## [ExternalWindModel](ExternalWindModel)
+
+This code example shows how to integrate external wind models for use with STK. This script uses the [Horizontal Wind Model 93](https://ccmc.gsfc.nasa.gov/modelweb/atmos/hwm.html) in STK scenarios. HWM93 is a popular empirical wind model based on satellite and ground-based instrument data.
+
+Step 1. Install the HWM93 model from [PyPi](https://pypi.org/project/hwm93/) or [Github](https://github.com/space-physics/hwm93)
+Step 2. Explore the sample code in HWM93STKpy notebook. Filepaths will need to be changed to run the example.
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf)
+* Other Scripts: N/A
+* Scenario: N/A
+
+---
+
+## [EOIRTrackingInTheLoop](EOIRTrackingInTheLoop)
+
+Made with [Python API](https://help.agi.com/stkdevkit/index.htm#python/pythonGettingStarted.htm) available in STK 12.1+
+
+Notebooks and libraries to automate STK, take EOIR images, process images, generate measurements, update pointing direction and optionally run ODTK in the loop. Additionally includes a tool to help convert images into reflectance, emissivitiy and temperature maps to use with EOIR.
+
+### Dependencies
+
+* Licenses: [STK Premium Space](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-premium-space-brochure.pdf) or [STK Premium Air](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-premium-air-brochure.pdf)
+* Other Scripts: N/A
+* Scenario: N/A
+* Third-Party Libraries: numpy, pandas, cv2, shutil, imageio, matplotlib, sklearn, skimage, scipy, astropy, PIL
+
+---
+
+## [LKtoFFDConverter](LKtoFFDConverter)
+
+Two scripts: 1. A converter that takes in two LK files, one representing magnitude and one representing phase, and combining and converting the data into a single FFD file with a specified polarization (through command line arguments). Allows STK import into an antenna that will consider both magnitude and phase of an LK file. 2. A generator script to generate test LK files using a specified random distribution.
+
+### Dependencies
+
+* Licenses: N/A
+* Other Scripts: N/A
+* Scenario: N/A
+
+---
+
+## [LoadCDM](LoadCDM)
+
+Loads a CDM into STK. Place all 3 files into same folder, edit header of LoadCDM.py to point to your cdm file, run LoadCDM.py
+
+### Dependencies
+
+* Licenses: N/A
+* Other Scripts: N/A
+* Scenario: N/A
+* Third-Party Libraries: STK python API, xml
+
+---
+
+
+## [SatelliteConflictFreePassesUsingIntervalTree](SatelliteConflictFreePassesUsingIntervalTree)
+
+This script was used in a specific case for a customer: there is a ground facility that is attempting to calculate line of sight access to a constellation of satellites. The customer wants all the passes (pass number, time intervals, satellite name) that are "conflict free", the definition of conflict free being so:
+    - A pass is conflict free if for the entire pass through the ground facility's line of sight access no other satellite enters that line of sight access region of the ground facility such that the facility now has line of sight access to two satellites. Even if a satellite is halfway through its pass without conflict, the moment another satellite enters the region, BOTH PASSES ARE REMOVED.
+    - We are not looking for non-conflicting time intervals. We are looking for PASSES. For example, for a satellite that is halfway through its pass before another satellite enters the region, we do not care about the time interval such that it was the only satellite in the region. We will delete the entire pass including the time interval where it was initially unconflicted. We only keep time intervals and pass data in which the ENTIRE pass was valid and unconflicted.
+    - If the region is unsymmetrical, generating reports on STK will recognize them as two different accesses even if they were on the same pass. We will merge any two accesses that are a part of the same pass as such.
+    - The time between the valid pass of one satellite and the valid pass of the next valid satellite must be at least 3 minutes or else both will also be invalid.
+
+This script implements an "Interval Tree" as a data structure to use to mark and remove conflicting intervals of times. It can be used to check for conflicts between intervals in logarithmic O(logn) time, which is especially important since the customer generated reports on a whole constellation of satellites, leading to huge amounts of access intervals in the resulting generated reports. As such, we needed an efficient way to find conflicts. We use the Object Model to pull in generated access report data, populate data structures, and add them to an interval tree. We then linearly iterate through all intervals and mark each as conflicted or not, and then delete conflicted intervals.
+
+This script was utilized for a very specific case, but many elements of this can definitely be reused for any conflict-resolution type case that requires an efficient way to remove conflicts with similar guidelines (especially with cases that are more concerned about entire full passes of a satellite rather than just valid time intervals).
+
+### Dependencies
+
+* Licenses: N/A
+* Other Scripts: N/A
+* Scenario: N/A
+* Third-Party Libraries: numpy
+
+---
+
+## [ConstellationWizard](ConstellationWizard)
+
+Python code and a user inteface to allow subsets of large satellite constellations to quickly be built and loaded into STK, perform analysis, and then unloaded. In this way analysis at different times or with different constellations can be performed without loading in thousands of satellites. The readme within the project folder contains specific requirements for using the tool, as well as explanations for each of the notebooks and how the tool generally works.
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf)
+* Other Scripts: N/A
+* Scenario: N/A
+
+---
+
+## [DeckAccess](DeckAccess)
+
+When the question comes up "What satellites can I see?", STK has a tool to answer this question called Deck Access. Deck Access can be accesses through the GUI or scripted via Connect Command to consider access to a list of many objects. This Jupyter notebook builds a scenario, creates an observer with a constraint and then runs deck access to the TLE satellite database at the current time. Then the subset of visible satellites are imported into STK as an MTO object for visualization and further investigation of the deck access report and TLE data is done with Python.
+
+Rerunning the script will update the current time and the set of visible satellites will be updated.
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf)
+* Other Scripts: N/A
+* Scenario: N/A
+
+---
+
+## [TargetedSensorPointingClosestFacility.py](TargetedSensorPointingClosestFacility.py)
+
+This script computes access between a series of sensors on satellites and place objects and creates a pointing algorithm based on the place object that is the closest to the satellite at a given time. The script uses satellite names, place names and a time step for the algorithm to use as inputs. It also assumes that a scenario with these places and satellites already exists and that the satellites already have sensor objects.
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf)
+* Other Scripts: N/A
+* Scenario: N/A
+
+---
+
+
+## [createCovariancePoints.py](createCovariancePoints.py)
+
+This script will take the prinicple axes of a covariance matrix and turn it into point. These can be used for access computations to determine when a satellite may be visible accounting for the orbit uncertainty. It will write 6 ephemris file and add points and satellites for the positive and negative direction of the major, intermediate and minor axis.
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf)
+* Other Scripts: N/A
+* Scenario: N/A
+* Third-Party Libraries: numpy
+
+---
+
+## [NumberOfPassesUntilRepeatGroundTrace.ipynb](NumberOfPassesUntilRepeatGroundTrace.ipynb)
+
+Determine the number of passes until the satellite repeats its ground trace. Definiton of pass break should be defined in the satellite's properties; whether it is ascending or descending at the equator. This script loads the Passes data provider. This data provider gives the pass number, latitude at pass break and longitude at pass break, as well as the start and stop times of each pass interval. The latitude at the pass break is ~zero, since the pass break is defined at the equator. Whether the pass break is defined as ascending or descending only depends on the users prefered convention, as the data provider provides passes only at the node where the break is defined. This means that the latitude and longitude rates do not have to be checked for matching direction of pass. The logic implemented checks for a repeating longitude at pass break value. 
+
+User inputs:
+
+The user has to input the name of the satellite, as well as the reference pass number to begin the search from. A reference data frame is displayed so that the user can pick a pass number without having to generate a custom report inside of STK.
+
+Authors:
+
+Sasha Carrico
+Louise Dupont
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf)
+* Other Scripts: N/A
+* Scenario: N/A
+* Third-Party Libraries: numpy, pandas
+
+---
+
+## [EOIRTextureMaps](EOIRTextureMaps)
+
+This folder contains examples of converting NASA Earthdata HDF4 and HDF5 files into a format that can be imported into STK as a texture map. This contains examples of navigating the HDF standard format to locate corner point metadata required by STK and as well as detailing the conversion of data to usable information. This information is then written to a csv file that can be natively read by STK's EOIR capability. Check out [this FAQ](https://analyticalgraphics.force.com/faqs/articles/Knowledge/Loading-EOIR-Texture-Maps-From-NASA-s-Earthdata) for more detailed workflow information.
+
+### Dependencies
+
+* Licenses: N/A
+* Other Scripts: N/A
+* Scenario: N/A
+* Third-Party Libraries: numpy, pyhdf, h5py, matplotlib
+
+---
+
+## [solisRealtimeExample.py](solisRealtimeExample.py)
+
+This script is an example of decoding a notional telemetry packet defined in the SOLIS framer format. Additionally, the script includes an example of creating a notional commanding packet defined in the SOLIS framer format. This script could be augmented with a connection to SOLIS through a TCP/IP stream to provide real-time telemetry and commanding.
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf) and [STK SOLIS] (https://www.agi.com/products/stk-solis)
+* Other Scripts: N/A
+* Scenario: N/A
+* Third-Party Libraries: N/A
+
+---
+
+## [CalcSensorFootprintWidthAndHeight.py](CalcSensorFootprintWidthAndHeight.py)
+
+This script calculates the width and height of a satellite sensor footprint on the central body, throughout the analysis period. Analysis Workbench is used to create points of the top, bottom, left, and right extremes, show these points on the sensor footprint, and then calculate the width and height betweeen these points. The output is generated to an user specified text file at an user specified timestep.
+
+User inputs: Name of the satellite, name of the sensor, report time step, and output file path.
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf)
+* Other Scripts: N/A
+* Scenario: N/A
+
+---
+
+## [ChainIntervalFile.py]
+
+The Optimal Strands by Time report generated from a Chain object in STK provides information regarding the optimal strand at each time specific time step. This script parses a saved Optimal Strands by Time report and generates an interval file with facility start, stop times and facility names for targeted sensor pointing. The resulting interval file can be loaded into an STK sensor > Pointing > Pointing Type: Targeted > Target Times... >  Scheduled Times.
+
+User inputs: Input file path and output file path.
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf)
+* Other Scripts: N/A
+* Scenario: N/A
+
+---
+
+## [MonteCarloStateGenerator.py]
+
+This script takes probability disctributions for an aircraft's state: position(within a bounding region), altitude, roll, pitch and heading and uses numpy to write generated monte carlo states to an output file. The python script, STKAircraftMonteCarlo, reads this output file and orchestrates STK with these values.
+
+User inputs: 
+- "NUM_TRIALS" number of desired monte carlo trials
+- "LAT_MIN" minimum latitude of the aircraft's flight region in degrees
+- "LAT_MAX" maximum latitude of the aircraft's flight region in degrees
+- "LON_MIN" minimum longitude of the aircraft's flight region in degrees
+- "LON_MAX" maximum longitude of the aircraft's flight region in degrees
+- "ALT_MIN" minimum flight altitude in feet
+- "ALT_MAX" maximum flight altitude in feet
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf)
+* Other Scripts: STKAircraftMonteCarlo.py
+* Scenario: N/A
+
+---
+
+## [STKAircraftMonteCarlo.py]
+
+This script reads the output file generated by MonteCarlowStateGenerator.py and orchestrates monte carlo trials within STK. This script changes:
+- aircraft's position, alatiude, roll, pitch, heading
+- scenario time
+- generates a link budget between the aircraft and the Iridium satellite constellation 
+- writes to an output file the monte carlo state and corresponding Carrier to Noise ratio for each trial
+
+Since the monte carlo state time for each trial is randomly selected in MonteCarloStateGenerator.py, creating and using a satellite look up table significantly improves the runtime of the script. Given any scenario time within 48 hours, the table is used to find which Iridium satellite will be closest to the flight area. 
+
+User inputs:
+- "NUM_TRIALS" number of desired Monte Caro simulaiton trials
+- "TABLE_CSV" contains a time ordered list of which Iridium satellite is closest to the flight region 
+- "SAVE_LOOKUP_CSV" If set to true, the script with generate a satellite look up table
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf)
+* Other Scripts: MonteCarloStateGenerator.py, SatelliteLookUpTable.py
+* Scenario: AircraftMonteCarlo.vdf
+
+---
+
+## [SatelliteLookUpTable.py]
+
+This script generates a time-ordered list of which Iridium communication satellite is closest to an area defined in STK, over 48 hours of the STK scenario.
+
+User inputs: N/A
+
+### Dependencies
+
+* Licenses: [STK Pro](https://www.ansys.com/content/dam/amp/2022/june/webpage-requests/stk-product-page/brochures/stk-pro-brochure.pdf)
+* Other Scripts: N/A
+* Scenario: AircraftMonteCarlo.vdf
+
+---
