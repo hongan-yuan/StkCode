@@ -6,6 +6,116 @@ import random
 from .config import SimulationConfig
 
 
+def _sample_from_distribution(
+    rng: random.Random, distribution: dict[str, float], fallback: str
+) -> str:
+    total = sum(max(0.0, float(weight)) for weight in distribution.values())
+    if total <= 0.0:
+        return fallback
+    threshold = rng.random() * total
+    running = 0.0
+    for key, weight in distribution.items():
+        running += max(0.0, float(weight))
+        if threshold <= running:
+            return key
+    return fallback
+
+
+def _state_range(
+    ranges: dict[str, tuple[float, float]], state: str, default: tuple[float, float]
+) -> tuple[float, float]:
+    low, high = ranges.get(state, default)
+    return min(low, high), max(low, high)
+
+
+def generate_markov_compute_load_tables(
+    rng: random.Random,
+    slot_count: int,
+    slot_duration: float,
+    satellite_resources: dict,
+    config: SimulationConfig,
+) -> dict[str, dict]:
+    """Generate slot-correlated background compute load with a Markov state model.
+
+    The returned derived tables keep the older execution interface intact:
+    ``discount_table`` provides the per-slot effective CPU discount and
+    ``queue_delay_table`` provides the pre-execution waiting time. Additional
+    state/utilization tables are available for diagnostics and GNN features.
+    """
+
+    states = config.compute_load_states
+    fallback_state = states[0] if states else "Idle"
+    state_table: dict[int, dict[int, str]] = {}
+    utilization_table: dict[int, dict[int, float]] = {}
+    background_cycles_table: dict[int, dict[int, float]] = {}
+    discount_table: dict[int, dict[int, float]] = {}
+    queue_delay_table: dict[int, dict[int, float]] = {}
+
+    current_state_by_node = {
+        node_id: _sample_from_distribution(
+            rng, config.compute_load_initial_distribution, fallback_state
+        )
+        for node_id in range(1, config.total_sats + 1)
+    }
+
+    for slot in range(slot_count):
+        state_table[slot] = {}
+        utilization_table[slot] = {}
+        background_cycles_table[slot] = {}
+        discount_table[slot] = {}
+        queue_delay_table[slot] = {}
+
+        for node_id in range(1, config.total_sats + 1):
+            state = current_state_by_node[node_id]
+            resource = satellite_resources[node_id]
+            lambda_per_slot = config.compute_load_lambda_per_slot.get(state, 0.0)
+            request_count = _poisson_sample(rng, lambda_per_slot)
+            background_cycles = 0.0
+            for _ in range(request_count):
+                sample = rng.expovariate(
+                    1.0 / max(config.background_compute_cycles_mean, 1.0e-9)
+                )
+                background_cycles += max(config.background_compute_cycles_min, sample)
+
+            nominal_cycles = max(1.0e-9, resource.base_freq_hz * slot_duration)
+            raw_rho = min(background_cycles / nominal_cycles, config.background_compute_rho_max)
+            rho_low, rho_high = _state_range(
+                config.compute_load_utilization_ranges, state, (0.0, config.background_compute_rho_max)
+            )
+            rho = min(
+                config.background_compute_rho_max,
+                max(rho_low, min(rho_high, raw_rho)),
+            )
+            discount_low, discount_high = _state_range(
+                config.compute_load_discount_ranges, state, config.cpu_discount_range
+            )
+            discount = rng.uniform(discount_low, discount_high)
+            queue_delay = (
+                config.background_compute_queue_base_s
+                * rho
+                / (1.0 - rho + config.background_epsilon)
+            )
+
+            state_table[slot][node_id] = state
+            utilization_table[slot][node_id] = rho
+            background_cycles_table[slot][node_id] = background_cycles
+            discount_table[slot][node_id] = discount
+            queue_delay_table[slot][node_id] = queue_delay
+
+            transition = config.compute_load_transition_matrix.get(state, {})
+            current_state_by_node[node_id] = _sample_from_distribution(
+                rng, transition, state
+            )
+
+    return {
+        "compute_load_state_table": state_table,
+        "compute_utilization_table": utilization_table,
+        "compute_background_cycles_table": background_cycles_table,
+        "discount_table": discount_table,
+        "queue_delay_table": queue_delay_table,
+    }
+
+
 def generate_cpu_discount_table(
     rng: random.Random, slot_count: int, config: SimulationConfig
 ) -> dict[int, dict[int, float]]:

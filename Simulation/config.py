@@ -28,6 +28,51 @@ class SimulationConfig:
     cpu_discount_range: tuple[float, float] = (0.7, 1.0)
     queue_zero_probability: float = 0.20
     queue_max_fraction_of_slot: float = 0.50
+    compute_load_states: tuple[str, ...] = ("Idle", "Light", "Medium", "Heavy")
+    compute_load_initial_distribution: dict[str, float] = field(
+        default_factory=lambda: {
+            "Idle": 0.35,
+            "Light": 0.35,
+            "Medium": 0.20,
+            "Heavy": 0.10,
+        }
+    )
+    compute_load_transition_matrix: dict[str, dict[str, float]] = field(
+        default_factory=lambda: {
+            "Idle": {"Idle": 0.70, "Light": 0.25, "Medium": 0.04, "Heavy": 0.01},
+            "Light": {"Idle": 0.20, "Light": 0.55, "Medium": 0.20, "Heavy": 0.05},
+            "Medium": {"Idle": 0.05, "Light": 0.25, "Medium": 0.50, "Heavy": 0.20},
+            "Heavy": {"Idle": 0.02, "Light": 0.08, "Medium": 0.30, "Heavy": 0.60},
+        }
+    )
+    compute_load_lambda_per_slot: dict[str, float] = field(
+        default_factory=lambda: {
+            "Idle": 0.05,
+            "Light": 0.20,
+            "Medium": 0.65,
+            "Heavy": 1.40,
+        }
+    )
+    compute_load_utilization_ranges: dict[str, tuple[float, float]] = field(
+        default_factory=lambda: {
+            "Idle": (0.00, 0.20),
+            "Light": (0.20, 0.45),
+            "Medium": (0.45, 0.70),
+            "Heavy": (0.70, 0.95),
+        }
+    )
+    compute_load_discount_ranges: dict[str, tuple[float, float]] = field(
+        default_factory=lambda: {
+            "Idle": (0.80, 1.00),
+            "Light": (0.60, 0.80),
+            "Medium": (0.40, 0.60),
+            "Heavy": (0.20, 0.40),
+        }
+    )
+    background_compute_cycles_mean: float = 2.0e9
+    background_compute_cycles_min: float = 1.0e8
+    background_compute_rho_max: float = 0.95
+    background_compute_queue_base_s: float = 0.05
 
     satellite_storage_capacity_gb: float = 12.0
     default_tx_power_w: float = 1.0
@@ -86,6 +131,7 @@ class SimulationConfig:
     ppo_clip_epsilon: float = 0.2
     ppo_gamma: float = 0.99
     ppo_learning_rate: float = 3.0e-4
+    ppo_batch_size: int = 64
 
     output_dir: Path = ROOT_DIR / "Simulation" / "outputs"
 

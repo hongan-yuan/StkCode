@@ -34,10 +34,17 @@ except Exception:  # pragma: no cover - optional runtime dependency
 
 @dataclass
 class PPOTransition:
-    log_prob: object
-    value: object
+    node_features: object
+    adjacency: list[list[int]]
+    chain_features: object
+    current_index: int
+    destination_index: int
+    candidate_indices: list[int]
+    candidate_extra_features: object
+    action_index: int
+    old_log_prob: object
+    old_value: object
     reward: float
-    entropy: object
     done: bool
 
 
@@ -138,11 +145,12 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
         self.device = None
         self.policy = None
         self.optimizer = None
+        self.training_rng = random.Random(config.random_seed + 1_337)
         if torch is not None:
             if device is None or device == "auto":
                 device = "cuda" if torch.cuda.is_available() else "cpu"
             self.device = torch.device(device)
-            self.policy = CandidateMaskedPolicy(9, 6, hidden_dim).to(self.device)
+            self.policy = CandidateMaskedPolicy(12, 6, hidden_dim).to(self.device)
             self.optimizer = torch.optim.Adam(
                 self.policy.parameters(), lr=config.ppo_learning_rate
             )
@@ -256,7 +264,18 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
             route_estimate=selected["route"],
             compute_estimate=selected["compute"],
             candidate_scores=candidate_records,
-            metadata={"log_prob": log_prob, "value": value, "entropy": entropy},
+            metadata={
+                "node_features": node_tensor.detach().cpu(),
+                "adjacency": adjacency,
+                "chain_features": chain_tensor.detach().cpu(),
+                "current_index": node_to_index[current_node],
+                "destination_index": node_to_index[request.destination_node],
+                "candidate_indices": list(candidate_indices),
+                "candidate_extra_features": candidate_extra.detach().cpu(),
+                "action_index": action_idx,
+                "old_log_prob": log_prob.detach().cpu(),
+                "old_value": value.detach().cpu(),
+            },
         )
 
     def _select_with_fallback_gnn(
@@ -396,13 +415,52 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
             return
         self.transitions.append(
             PPOTransition(
-                log_prob=decision.metadata["log_prob"],
-                value=decision.metadata["value"],
+                node_features=decision.metadata["node_features"],
+                adjacency=decision.metadata["adjacency"],
+                chain_features=decision.metadata["chain_features"],
+                current_index=decision.metadata["current_index"],
+                destination_index=decision.metadata["destination_index"],
+                candidate_indices=decision.metadata["candidate_indices"],
+                candidate_extra_features=decision.metadata["candidate_extra_features"],
+                action_index=decision.metadata["action_index"],
+                old_log_prob=decision.metadata["old_log_prob"],
+                old_value=decision.metadata["old_value"],
                 reward=reward,
-                entropy=decision.metadata["entropy"],
                 done=done,
             )
         )
+
+    def _discounted_returns(
+            self, transitions: list[PPOTransition], gamma: float
+    ) -> list[float]:
+        returns = []
+        running = 0.0
+        for transition in reversed(transitions):
+            running = transition.reward + gamma * running * (
+                0.0 if transition.done else 1.0
+            )
+            returns.append(running)
+        returns.reverse()
+        return returns
+
+    def _evaluate_transition(self, transition: PPOTransition):
+        node_features = transition.node_features.to(self.device)
+        chain_features = transition.chain_features.to(self.device)
+        candidate_extra = transition.candidate_extra_features.to(self.device)
+        logits, value = self.policy(
+            node_features,
+            transition.adjacency,
+            chain_features,
+            transition.current_index,
+            transition.destination_index,
+            transition.candidate_indices,
+            candidate_extra,
+        )
+        dist = torch.distributions.Categorical(logits=logits)
+        action_tensor = torch.tensor(
+            int(transition.action_index), dtype=torch.long, device=self.device
+        )
+        return dist.log_prob(action_tensor), value, dist.entropy()
 
     def ppo_update(
             self,
@@ -410,32 +468,53 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
             clip_epsilon: float = 0.2,
             gamma: float = 0.99,
             epochs: int = 1,
+            batch_size: int | None = None,
     ) -> dict:
         if not self.training_available:
             raise RuntimeError("PyTorch is required for PPO training.")
-        transitions = transitions if transitions is not None else self.transitions
-        if not transitions:
+        transition_pool = transitions if transitions is not None else self.transitions
+        if not transition_pool:
             return {"updated": False, "loss": 0.0, "transition_count": 0}
 
-        rewards = [transition.reward for transition in transitions]
-        returns = []
-        running = 0.0
-        for transition in reversed(transitions):
-            running = transition.reward + gamma * running * (0.0 if transition.done else 1.0)
-            returns.append(running)
-        returns.reverse()
+        batch_size = batch_size or self.config.ppo_batch_size
+        batch_size = max(1, int(batch_size))
+        if len(transition_pool) < batch_size:
+            return {
+                "updated": False,
+                "loss": 0.0,
+                "transition_count": len(transition_pool),
+                "batch_size": batch_size,
+                "reason": f"waiting for at least {batch_size} transitions",
+            }
 
-        values = torch.stack([transition.value for transition in transitions])
-        log_probs = torch.stack([transition.log_prob for transition in transitions])
-        old_log_probs = log_probs.detach()
-        entropies = torch.stack([transition.entropy for transition in transitions])
-        returns_t = torch.tensor(returns, dtype=torch.float32, device=self.device)
-        advantages = returns_t - values.detach()
+        returns = self._discounted_returns(transition_pool, gamma)
+        sampled = self.training_rng.sample(
+            list(enumerate(transition_pool)), batch_size
+        )
+        sampled_indices = [index for index, _ in sampled]
+        batch = [transition for _, transition in sampled]
+
+        old_values = torch.stack(
+            [transition.old_value.to(self.device).reshape(()) for transition in batch]
+        ).detach()
+        old_log_probs = torch.stack(
+            [transition.old_log_prob.to(self.device).reshape(()) for transition in batch]
+        ).detach()
+        returns_t = torch.tensor(
+            [returns[index] for index in sampled_indices],
+            dtype=torch.float32,
+            device=self.device,
+        )
+        advantages = returns_t - old_values
         if advantages.numel() > 1:
             advantages = (advantages - advantages.mean()) / (advantages.std() + 1.0e-8)
 
         last_stats = {}
         for _ in range(epochs):
+            evaluated = [self._evaluate_transition(transition) for transition in batch]
+            log_probs = torch.stack([item[0] for item in evaluated])
+            values = torch.stack([item[1] for item in evaluated])
+            entropies = torch.stack([item[2] for item in evaluated])
             ratio = torch.exp(log_probs - old_log_probs)
             unclipped = ratio * advantages
             clipped = torch.clamp(ratio, 1.0 - clip_epsilon, 1.0 + clip_epsilon) * advantages
@@ -444,7 +523,7 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
             entropy_bonus = entropies.mean()
             loss = policy_loss + 0.5 * value_loss - 0.01 * entropy_bonus
             self.optimizer.zero_grad()
-            loss.backward(retain_graph=_ < epochs - 1)
+            loss.backward()
             nn.utils.clip_grad_norm_(self.policy.parameters(), 0.5)
             self.optimizer.step()
             last_stats = {
@@ -453,10 +532,13 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
                 "policy_loss": float(policy_loss.detach().cpu()),
                 "value_loss": float(value_loss.detach().cpu()),
                 "entropy": float(entropy_bonus.detach().cpu()),
-                "transition_count": len(transitions),
+                "transition_count": len(transition_pool),
+                "batch_size": batch_size,
+                "sampled_transition_count": len(batch),
             }
-        if transitions is self.transitions:
-            self.transitions.clear()
+        if transition_pool is self.transitions:
+            for index in sorted(sampled_indices, reverse=True):
+                del self.transitions[index]
         return last_stats
 
     def save(self, path: str | Path) -> None:

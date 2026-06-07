@@ -89,6 +89,7 @@ def training_summary_row(
             else model_dir / "ppo_gnn_latest.json"
         ),
         "ppo_update_slots": args.ppo_update_slots,
+        "ppo_batch_size": base_config.ppo_batch_size,
         "bandit_period_slots": args.bandit_period_slots,
         "route_horizon_slots": args.route_horizon_slots,
         "arrival_lambda_per_pattern_per_slot": args.arrival_lambda,
@@ -351,6 +352,9 @@ def main() -> None:
             "ppo_value_loss": update_stats.get("value_loss", ""),
             "ppo_entropy": update_stats.get("entropy", ""),
             "ppo_transition_count": update_stats.get("transition_count", 0),
+            "ppo_batch_size": update_stats.get("batch_size", base_config.ppo_batch_size),
+            "ppo_sampled_transition_count": update_stats.get("sampled_transition_count", 0),
+            "ppo_update_reason": update_stats.get("reason", ""),
             "ppo_device": str(agent.device) if agent.device is not None else "fallback",
             "bandit_updated": bandit_updated,
             "bandit_action_count": len(migration_actions),

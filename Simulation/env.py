@@ -9,9 +9,8 @@ from .execution_agent import ServiceExecutionAgent, CandidateDecision
 from .migration import ReplicaPlacementMigrationAgent
 from .ppo_gnn_agent import PPOGNNExecutionAgent
 from .queue import (
-    generate_cpu_discount_table,
     generate_link_background_table,
-    generate_queue_delay_table,
+    generate_markov_compute_load_tables,
 )
 from .request import SFCRequest, generate_sfc_requests
 from .routing import build_routing_cache, route_data
@@ -59,6 +58,9 @@ class SimulationEnvironment:
         microservices = self.initial_microservices or generate_microservice_catalog(
             self.rng, self.config
         )
+        compute_load_tables = generate_markov_compute_load_tables(
+            self.rng, slot_count, slot_duration, satellite_resources, self.config
+        )
         self.context = {
             "config": self.config,
             "snapshots": snapshots,
@@ -67,10 +69,7 @@ class SimulationEnvironment:
             "slot_count": slot_count,
             "time_utc_by_slot": time_utc,
             "satellite_resources": satellite_resources,
-            "discount_table": generate_cpu_discount_table(self.rng, slot_count, self.config),
-            "queue_delay_table": generate_queue_delay_table(
-                self.rng, slot_count, slot_duration, self.config
-            ),
+            **compute_load_tables,
             "link_background_table": generate_link_background_table(
                 self.rng, snapshots, slot_duration, self.config
             ),

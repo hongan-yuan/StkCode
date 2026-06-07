@@ -17,12 +17,23 @@ def encode_satellite_graph(
     resources = context["satellite_resources"]
     deployment_by_node = context["deployment_by_node"]
     queue_delay_table = context["queue_delay_table"]
+    discount_table = context.get("discount_table", {})
+    utilization_table = context.get("compute_utilization_table", {})
+    state_table = context.get("compute_load_state_table", {})
     slot = graph.graph.get("time_slot", 0)
+    state_index = {
+        state: idx / max(1, len(config.compute_load_states) - 1)
+        for idx, state in enumerate(config.compute_load_states)
+    }
+    fallback_state = config.compute_load_states[0] if config.compute_load_states else "Idle"
 
     features: dict[int, list[float]] = {}
     for node_id in graph.nodes:
         resource = resources[int(node_id)]
         deployed = deployment_by_node.get(int(node_id), set())
+        cpu_discount = float(discount_table.get(slot, {}).get(int(node_id), 1.0))
+        utilization = float(utilization_table.get(slot, {}).get(int(node_id), 0.0))
+        load_state = state_table.get(slot, {}).get(int(node_id), fallback_state)
         has_service = (
             1.0 if current_service_id is not None and current_service_id in deployed else 0.0
         )
@@ -36,5 +47,8 @@ def encode_satellite_graph(
             1.0 if int(node_id) == destination_node else 0.0,
             has_service,
             graph.degree[int(node_id)] / 4.0,
+            utilization,
+            cpu_discount,
+            state_index.get(load_state, 0.0),
         ]
     return features

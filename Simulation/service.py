@@ -96,12 +96,16 @@ def compute_service_execution(
     resources: dict[int, SatelliteResource] = context["satellite_resources"]
     discount_table = context["discount_table"]
     queue_delay_table = context["queue_delay_table"]
+    state_table = context.get("compute_load_state_table", {})
+    utilization_table = context.get("compute_utilization_table", {})
     microservices: dict[int, Microservice] = context["microservices"]
 
     service = microservices[service_id]
     resource = resources[node_id]
     _, queue_slot_mod = slot_from_time(arrival_time, slot_duration, slot_count)
     queue_delay = queue_delay_table[queue_slot_mod][node_id]
+    queue_load_state = state_table.get(queue_slot_mod, {}).get(node_id, "")
+    queue_compute_utilization = utilization_table.get(queue_slot_mod, {}).get(node_id, 0.0)
     compute_start = arrival_time + queue_delay
 
     current_time = compute_start
@@ -115,6 +119,8 @@ def compute_service_execution(
         next_slot_time = (abs_slot + 1) * slot_duration
         available_time = max(1.0e-9, next_slot_time - current_time)
         discount = discount_table[slot_mod][node_id]
+        compute_load_state = state_table.get(slot_mod, {}).get(node_id, "")
+        compute_utilization = utilization_table.get(slot_mod, {}).get(node_id, 0.0)
         effective_freq_hz = resource.base_freq_hz * discount
         cycles_until_next_slot = effective_freq_hz * available_time
 
@@ -133,6 +139,8 @@ def compute_service_execution(
                 "start_time_s": current_time,
                 "duration_s": segment_duration,
                 "discount": discount,
+                "compute_load_state": compute_load_state,
+                "compute_utilization": compute_utilization,
                 "effective_freq_ghz": effective_freq_hz / 1.0e9,
                 "cycles": segment_cycles,
             }
@@ -150,6 +158,8 @@ def compute_service_execution(
     return {
         "arrival_time_s": arrival_time,
         "queue_slot_mod": queue_slot_mod,
+        "queue_compute_load_state": queue_load_state,
+        "queue_compute_utilization": queue_compute_utilization,
         "queue_delay_s": queue_delay,
         "compute_start_s": compute_start,
         "compute_finish_s": current_time,
@@ -160,4 +170,3 @@ def compute_service_execution(
         "compute_energy_j": compute_energy,
         "segments": compute_segments,
     }
-
