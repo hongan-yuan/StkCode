@@ -1,2 +1,0 @@
-﻿arrival_lambda_per_pattern_per_slot,bandit_period_slots,checkpoint_policy,completed_epochs,constellation_cycles,deployment_reset_each_cycle,epochs,log_every,model_dir,model_file,output_granularity,ppo_batch_size,ppo_device,ppo_update_slots,route_horizon_slots,slot_count,slot_duration_s,status,training_available
-0.35,10,save final trained model only,6060,10.0,False,6060,500,/home/yhg/StkCode/Simulation/dyn_train_data_260605,/home/yhg/StkCode/Simulation/dyn_train_data_260605/ppo_gnn_latest.pth,CSV/JSON outputs flushed every 500 epochs.,64,cuda,5,3,606,10.0,complete,True

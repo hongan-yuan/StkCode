@@ -103,7 +103,13 @@ class SimulationConfig:
     # Parameter Sensitivity
     route_horizon_slots: int = 3
     future_link_horizon_slots: int = 3
-    min_cost_flow_max_augmentations_per_slot: int = 10
+    min_cost_flow_max_augmentations_per_slot: int = 5
+    service_pressure_delay_scale_s: float = 10.0
+    service_pressure_route_delay_weight: float = 0.20
+    service_pressure_compute_wait_weight: float = 0.20
+    service_pressure_route_failure_weight: float = 1.00
+    service_pressure_p95_delay_weight: float = 0.10
+    service_pressure_replica_imbalance_weight: float = 0.50
     switch_penalty_s: float = 0.02
     candidate_bottleneck_shortage_penalty_weight: float = 2.0
     candidate_egress_shortage_penalty_weight: float = 2.0
@@ -130,8 +136,15 @@ class SimulationConfig:
     ppo_hidden_dim: int = 128
     ppo_clip_epsilon: float = 0.2
     ppo_gamma: float = 0.99
+    ppo_gae_lambda: float = 0.95
     ppo_learning_rate: float = 3.0e-4
     ppo_batch_size: int = 64
+    ppo_rollout_buffer_size: int = 256
+    ppo_terminal_reward_weight: float = 0.20
+    ppo_terminal_reward_scale: float = 0.01
+    ppo_terminal_reward_clip: float = 100.0
+    ppo_normalize_value_targets: bool = True
+    reward_chain_length_alpha: float = 0.50
 
     output_dir: Path = ROOT_DIR / "Simulation" / "outputs"
 

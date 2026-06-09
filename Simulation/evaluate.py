@@ -8,13 +8,13 @@ import random
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
 
+from .agents.migration import ReplicaPlacementMigrationAgent
+from .agents.ppo_gnn_agent import PPOGNNExecutionAgent
 from .config import SimulationConfig
-from .constellation import node_id_to_sat_name
-from .env import SimulationEnvironment
-from .metrics import summarize_results
-from .migration import ReplicaPlacementMigrationAgent
-from .ppo_gnn_agent import PPOGNNExecutionAgent
-from .request import generate_slot_arrivals, load_request_templates
+from .core.env import SimulationEnvironment
+from .core.metrics import summarize_results
+from .domain.constellation import node_id_to_sat_name
+from .domain.request import generate_slot_arrivals, load_request_templates
 
 
 DEFAULT_MODEL_DIR = SimulationConfig().output_dir.parent / "fix_rep_pattern_train_data"
@@ -235,6 +235,8 @@ def main() -> None:
                 bandit_agent.observe_execution_feedback(
                     pending_migration_actions, bandit_feedback_results
                 )
+            else:
+                bandit_agent.observe_service_pressure_feedback(bandit_feedback_results)
             migration_actions = env.apply_migration(bandit_window_requests)
             pending_migration_actions = migration_actions
             bandit_feedback_results = []

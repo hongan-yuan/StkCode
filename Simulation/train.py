@@ -9,11 +9,11 @@ from dataclasses import asdict
 from pathlib import Path
 
 from .config import SimulationConfig
-from .env import SimulationEnvironment
-from .metrics import summarize_results
-from .migration import ReplicaPlacementMigrationAgent
-from .ppo_gnn_agent import PPOGNNExecutionAgent
-from .request import generate_request_templates, generate_slot_arrivals
+from .agents.migration import ReplicaPlacementMigrationAgent
+from .agents.ppo_gnn_agent import PPOGNNExecutionAgent
+from .core.env import SimulationEnvironment
+from .core.metrics import summarize_results
+from .domain.request import generate_request_templates, generate_slot_arrivals
 
 
 def jsonable(value):
@@ -90,6 +90,13 @@ def training_summary_row(
         ),
         "ppo_update_slots": args.ppo_update_slots,
         "ppo_batch_size": base_config.ppo_batch_size,
+        "ppo_rollout_buffer_size": base_config.ppo_rollout_buffer_size,
+        "ppo_gae_lambda": base_config.ppo_gae_lambda,
+        "ppo_terminal_reward_weight": base_config.ppo_terminal_reward_weight,
+        "ppo_terminal_reward_scale": base_config.ppo_terminal_reward_scale,
+        "ppo_terminal_reward_clip": base_config.ppo_terminal_reward_clip,
+        "ppo_normalize_value_targets": base_config.ppo_normalize_value_targets,
+        "reward_chain_length_alpha": base_config.reward_chain_length_alpha,
         "bandit_period_slots": args.bandit_period_slots,
         "route_horizon_slots": args.route_horizon_slots,
         "arrival_lambda_per_pattern_per_slot": args.arrival_lambda,
@@ -187,6 +194,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--ppo-update-slots", type=int, default=5,
         help="Run one PPO update after collecting this many time slots.",
     )
+    parser.add_argument("--ppo-rollout-buffer-size", type=int,
+        default=SimulationConfig().ppo_rollout_buffer_size,
+        help="Keep only the most recent N PPO transitions for online updates.",
+    )
+    parser.add_argument("--reward-chain-length-alpha", type=float,
+        default=SimulationConfig().reward_chain_length_alpha,
+        help=(
+            "Exponent used to log chain-length-normalized reward: "
+            "normalized_reward = reward / chain_length ** alpha."
+        ),
+    )
     parser.add_argument("--bandit-period-slots", type=int, default=10,
         help="Run the Bandit placement/migration layer every N time slots.",
     )
@@ -204,6 +222,7 @@ def main() -> None:
     args = parse_args()
     args.log_every = max(1, args.log_every)
     args.ppo_update_slots = max(1, args.ppo_update_slots)
+    args.ppo_rollout_buffer_size = max(1, args.ppo_rollout_buffer_size)
     args.bandit_period_slots = max(1, args.bandit_period_slots)
     args.route_horizon_slots = max(1, args.route_horizon_slots)
     model_dir: Path = args.model_dir
@@ -223,6 +242,8 @@ def main() -> None:
         process_single_request=False,
         request_arrival_lambda_per_pattern_per_slot=args.arrival_lambda,
         route_horizon_slots=args.route_horizon_slots,
+        ppo_rollout_buffer_size=args.ppo_rollout_buffer_size,
+        reward_chain_length_alpha=max(0.0, args.reward_chain_length_alpha),
         output_dir=model_dir,
     )
     agent = PPOGNNExecutionAgent(
@@ -283,6 +304,7 @@ def main() -> None:
             update_stats = agent.ppo_update(
                 clip_epsilon=base_config.ppo_clip_epsilon,
                 gamma=base_config.ppo_gamma,
+                gae_lambda=base_config.ppo_gae_lambda,
                 epochs=1,
             )
         elif not agent.training_available:
@@ -300,6 +322,8 @@ def main() -> None:
                 bandit_agent.observe_execution_feedback(
                     pending_migration_actions, bandit_feedback_results
                 )
+            else:
+                bandit_agent.observe_service_pressure_feedback(bandit_feedback_results)
             migration_actions = env.apply_migration(bandit_window_requests)
             pending_migration_actions = migration_actions
             bandit_feedback_results = []
@@ -317,11 +341,27 @@ def main() -> None:
 
         payload = env.payload_for_results(arrivals, results, agent, migration_actions)
         total_reward = sum(result.get("reward", 0.0) for result in results)
+        chain_length_alpha = max(0.0, base_config.reward_chain_length_alpha)
+        chain_lengths = [
+            max(1, len((result.get("request") or {}).get("services", [])))
+            for result in results
+        ]
+        total_chain_length_normalized_reward = sum(
+            result.get("reward", 0.0) / (chain_length ** chain_length_alpha)
+            for result, chain_length in zip(results, chain_lengths)
+        )
         processed_request_count = payload["request_count"]
         completed_hop_count = sum(len(result.get("execution_plan", [])) for result in results)
         route_record_count = sum(len(result.get("route_details", [])) for result in results)
         average_reward_per_request = (
             total_reward / processed_request_count if processed_request_count else None
+        )
+        average_chain_length = (
+            sum(chain_lengths) / len(chain_lengths) if chain_lengths else None
+        )
+        average_chain_length_normalized_reward_per_request = (
+            total_chain_length_normalized_reward / processed_request_count
+            if processed_request_count else None
         )
         average_reward_per_hop = (
             total_reward / completed_hop_count if completed_hop_count else None
@@ -344,6 +384,12 @@ def main() -> None:
             "selected_request_ids": json.dumps(payload["selected_request_ids"]),
             "total_reward": total_reward,
             "average_reward_per_request": average_reward_per_request,
+            "reward_chain_length_alpha": chain_length_alpha,
+            "average_chain_length": average_chain_length,
+            "total_chain_length_normalized_reward": total_chain_length_normalized_reward,
+            "average_chain_length_normalized_reward_per_request": (
+                average_chain_length_normalized_reward_per_request
+            ),
             "average_reward_per_hop": average_reward_per_hop,
             **summary,
             "ppo_updated": update_stats.get("updated", False),
@@ -351,8 +397,14 @@ def main() -> None:
             "ppo_policy_loss": update_stats.get("policy_loss", ""),
             "ppo_value_loss": update_stats.get("value_loss", ""),
             "ppo_entropy": update_stats.get("entropy", ""),
+            "ppo_gae_lambda": update_stats.get("gae_lambda", base_config.ppo_gae_lambda),
+            "ppo_value_target_mean": update_stats.get("value_target_mean", ""),
+            "ppo_value_target_std": update_stats.get("value_target_std", ""),
             "ppo_transition_count": update_stats.get("transition_count", 0),
             "ppo_batch_size": update_stats.get("batch_size", base_config.ppo_batch_size),
+            "ppo_rollout_buffer_size": update_stats.get(
+                "rollout_buffer_size", base_config.ppo_rollout_buffer_size
+            ),
             "ppo_sampled_transition_count": update_stats.get("sampled_transition_count", 0),
             "ppo_update_reason": update_stats.get("reason", ""),
             "ppo_device": str(agent.device) if agent.device is not None else "fallback",
