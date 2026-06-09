@@ -135,7 +135,7 @@ class SimulationConfig:
     delay_weight: float = 0.4
     energy_weight: float = 0.6
     migration_weight: float = 0.15
-    failure_penalty: float = 1_000_000.0
+    failure_penalty: float = 100.0
     slot_switch_penalty_weight: float = 1.0
     route_failure_risk_weight: float = 1.0
 

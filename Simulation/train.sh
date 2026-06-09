@@ -20,6 +20,7 @@ ROUTE_ESTIMATE_TIME_BUCKET_S="${ROUTE_ESTIMATE_TIME_BUCKET_S:-1.0}"
 ROUTE_ESTIMATE_DATA_BUCKET_GB="${ROUTE_ESTIMATE_DATA_BUCKET_GB:-0.25}"
 PPO_ROLLOUT_BUFFER_SIZE="${PPO_ROLLOUT_BUFFER_SIZE:-256}"
 REWARD_CHAIN_LENGTH_ALPHA="${REWARD_CHAIN_LENGTH_ALPHA:-0.5}"
+FAILURE_PENALTY="${FAILURE_PENALTY:-100.0}"
 LOG_EVERY="${LOG_EVERY:-500}"
 MODEL_ROOT="${MODEL_ROOT:-${SCRIPT_DIR}/multi_seed_runs}"
 
@@ -68,6 +69,7 @@ for index in "${!SEED_ARRAY[@]}"; do
       --route-estimate-data-bucket-gb "${ROUTE_ESTIMATE_DATA_BUCKET_GB}" \
       --ppo-rollout-buffer-size "${PPO_ROLLOUT_BUFFER_SIZE}" \
       --reward-chain-length-alpha "${REWARD_CHAIN_LENGTH_ALPHA}" \
+      --failure-penalty "${FAILURE_PENALTY}" \
       --log-every "${LOG_EVERY}" \
       --model-dir "${model_dir}" \
       --device cuda \

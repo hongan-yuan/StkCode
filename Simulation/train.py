@@ -181,6 +181,7 @@ def training_summary_row(
         "ppo_terminal_reward_clip": base_config.ppo_terminal_reward_clip,
         "ppo_normalize_value_targets": base_config.ppo_normalize_value_targets,
         "reward_chain_length_alpha": base_config.reward_chain_length_alpha,
+        "failure_penalty": base_config.failure_penalty,
         "bandit_period_slots": args.bandit_period_slots,
         "route_horizon_slots": args.route_horizon_slots,
         "max_candidate_replicas": base_config.max_candidate_replicas,
@@ -304,6 +305,13 @@ def parse_args() -> argparse.Namespace:
             "normalized_reward = reward / chain_length ** alpha."
         ),
     )
+    parser.add_argument("--failure-penalty", type=float,
+        default=SimulationConfig().failure_penalty,
+        help=(
+            "Terminal reward penalty for a failed request chain. Keep this near "
+            "normal request-cost scale to avoid unstable PPO targets."
+        ),
+    )
     parser.add_argument("--bandit-period-slots", type=int, default=10,
         help="Run the Bandit placement/migration layer every N time slots.",
     )
@@ -353,6 +361,7 @@ def main() -> None:
     args.bandit_target_top_n_planes = max(1, args.bandit_target_top_n_planes)
     args.route_estimate_time_bucket_s = max(0.0, args.route_estimate_time_bucket_s)
     args.route_estimate_data_bucket_gb = max(0.0, args.route_estimate_data_bucket_gb)
+    args.failure_penalty = max(0.0, args.failure_penalty)
     model_dir: Path = args.model_dir
     model_dir.mkdir(parents=True, exist_ok=True)
     for stale_checkpoint in model_dir.glob("ppo_gnn_epoch_*.pth"):
@@ -378,6 +387,7 @@ def main() -> None:
         route_estimate_data_bucket_gb=args.route_estimate_data_bucket_gb,
         ppo_rollout_buffer_size=args.ppo_rollout_buffer_size,
         reward_chain_length_alpha=max(0.0, args.reward_chain_length_alpha),
+        failure_penalty=args.failure_penalty,
         output_dir=model_dir,
     )
     agent = PPOGNNExecutionAgent(
