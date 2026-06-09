@@ -12,7 +12,8 @@ def encode_satellite_graph(
     destination_node: int | None = None,
     current_service_id: int | None = None,
 ) -> dict[int, list[float]]:
-    """Lightweight feature encoder used by heuristic and future GNN agents."""
+    """Lightweight feature encoder used by heuristic and future GNN agents.
+    """
     config: SimulationConfig = context["config"]
     resources = context["satellite_resources"]
     deployment_by_node = context["deployment_by_node"]
