@@ -11,7 +11,6 @@ from ..domain.request import SFCRequest
 from ..domain.service import compute_service_execution
 from ..encoding.chain_encoder import encode_service_chain
 from ..encoding.graph_encoder import encode_satellite_graph
-from ..network.routing import route_data
 from ..network.topology import slot_from_time
 from .execution_agent import CandidateDecision, ServiceExecutionAgent
 
@@ -48,6 +47,7 @@ class PPOTransition:
     done: bool
     local_reward: float = 0.0
     terminal_reward_share: float = 0.0
+    graph_cache_key: tuple | None = None
 
 
 # if torch is not None:
@@ -96,17 +96,24 @@ class CandidateMaskedPolicy(nn.Module):
             nn.Linear(hidden_dim, 1),
         )
 
-    def forward(
-            self,
-            node_features,
-            adjacency,
-            chain_features,
-            current_index: int,
-            destination_index: int,
-            candidate_indices,
-            candidate_extra_features,
+    def encode_graph_state(
+        self,
+        node_features,
+        adjacency,
     ):
         h = self.gnn(node_features, adjacency)
+        return h
+
+    def score_from_embeddings(
+        self,
+        node_embeddings,
+        chain_features,
+        current_index: int,
+        destination_index: int,
+        candidate_indices,
+        candidate_extra_features,
+    ):
+        h = node_embeddings
         z_chain = F.relu(self.chain_proj(chain_features))
         current_h = h[current_index]
         dest_h = h[destination_index]
@@ -121,6 +128,26 @@ class CandidateMaskedPolicy(nn.Module):
         global_state = torch.cat([current_h, dest_h, z_chain], dim=-1)
         value = self.value_head(global_state).squeeze(-1)
         return logits, value
+
+    def forward(
+            self,
+            node_features,
+            adjacency,
+            chain_features,
+            current_index: int,
+            destination_index: int,
+            candidate_indices,
+            candidate_extra_features,
+    ):
+        h = self.encode_graph_state(node_features, adjacency)
+        return self.score_from_embeddings(
+            h,
+            chain_features,
+            current_index,
+            destination_index,
+            candidate_indices,
+            candidate_extra_features,
+        )
 
 
 class PPOGNNExecutionAgent(ServiceExecutionAgent):
@@ -190,13 +217,27 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
             context: dict,
     ) -> CandidateDecision:
         service_id = request.services[service_index]
-        candidates = context["microservices"][service_id].replicas
+        candidates = self._select_candidate_subset(
+            context["microservices"][service_id].replicas,
+            current_node,
+            current_time,
+            context,
+        )
         abs_slot, slot_mod = slot_from_time(
             current_time, context["slot_duration"], context["slot_count"]
         )
         graph = context["snapshots"][slot_mod]
         node_ids = sorted(graph.nodes)
         node_to_index = {node_id: idx for idx, node_id in enumerate(node_ids)}
+        deployment_by_node = context["deployment_by_node"]
+        deployment_signature = tuple(
+            (
+                int(node_id),
+                len(deployment_by_node.get(int(node_id), set())),
+                1 if service_id in deployment_by_node.get(int(node_id), set()) else 0,
+            )
+            for node_id in node_ids
+        )
         node_features = encode_satellite_graph(
             graph, context, current_node, request.destination_node, service_id
         )
@@ -257,6 +298,14 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
         selected = reachable[action_idx]
         selected["policy_probability"] = float(probs[action_idx].detach().cpu())
         selected["value_estimate"] = float(value.detach().cpu())
+        selected_route, selected_compute = self._exact_execution_estimates(
+            service_id,
+            current_node,
+            selected["node_id"],
+            data_gb,
+            current_time,
+            context,
+        )
 
         # print(f"CandidateDecision: \nservice_id={service_id}, \nselected_node={selected['node_id']}, "
         #       f"")
@@ -265,8 +314,8 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
             service_id=service_id,
             selected_node=selected["node_id"],
             score=-selected["policy_probability"],
-            route_estimate=selected["route"],
-            compute_estimate=selected["compute"],
+            route_estimate=selected_route,
+            compute_estimate=selected_compute,
             candidate_scores=candidate_records,
             metadata={
                 "node_features": node_tensor.detach().cpu(),
@@ -279,6 +328,13 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
                 "action_index": action_idx,
                 "old_log_prob": log_prob.detach().cpu(),
                 "old_value": value.detach().cpu(),
+                "graph_cache_key": (
+                    int(slot_mod),
+                    int(service_id),
+                    int(current_node),
+                    int(request.destination_node),
+                    deployment_signature,
+                ),
             },
         )
 
@@ -292,7 +348,12 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
             context: dict,
     ) -> CandidateDecision:
         service_id = request.services[service_index]
-        candidates = context["microservices"][service_id].replicas
+        candidates = self._select_candidate_subset(
+            context["microservices"][service_id].replicas,
+            current_node,
+            current_time,
+            context,
+        )
         records = self._candidate_records(
             request, service_index, candidates, current_node, current_time, data_gb, service_id, context
         )
@@ -308,12 +369,20 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
         for record, exp_value in zip(reachable, exp_values):
             record["policy_probability"] = exp_value / denom if denom > 0 else 0.0
         selected = max(reachable, key=lambda item: item["policy_probability"])
+        selected_route, selected_compute = self._exact_execution_estimates(
+            service_id,
+            current_node,
+            selected["node_id"],
+            data_gb,
+            current_time,
+            context,
+        )
         return CandidateDecision(
             service_id=service_id,
             selected_node=selected["node_id"],
             score=selected["score"],
-            route_estimate=selected["route"],
-            compute_estimate=selected["compute"],
+            route_estimate=selected_route,
+            compute_estimate=selected_compute,
             candidate_scores=records,
         )
 
@@ -330,7 +399,7 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
     ) -> list[dict]:
         records = []
         for node_id in candidates:
-            route = route_data(current_node, node_id, data_gb, current_time, context)
+            route = self._cached_route_data(current_node, node_id, data_gb, current_time, context)
             if not route["reachable"]:
                 records.append(
                     {
@@ -431,6 +500,7 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
             reward=reward,
             done=done,
             local_reward=reward,
+            graph_cache_key=decision.metadata.get("graph_cache_key"),
         )
         self.transitions.append(transition)
         self.pending_episode_transitions.append(transition)
@@ -534,6 +604,51 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
         )
         return dist.log_prob(action_tensor), value, dist.entropy()
 
+    def _evaluate_transition_with_embeddings(self, transition: PPOTransition, node_embeddings):
+        chain_features = transition.chain_features.to(self.device)
+        candidate_extra = transition.candidate_extra_features.to(self.device)
+        logits, value = self.policy.score_from_embeddings(
+            node_embeddings,
+            chain_features,
+            transition.current_index,
+            transition.destination_index,
+            transition.candidate_indices,
+            candidate_extra,
+        )
+        dist = torch.distributions.Categorical(logits=logits)
+        action_tensor = torch.tensor(
+            int(transition.action_index), dtype=torch.long, device=self.device
+        )
+        return dist.log_prob(action_tensor), value, dist.entropy()
+
+    def _evaluate_transition_batch(self, transitions: list[PPOTransition]):
+        groups: dict[tuple, list[tuple[int, PPOTransition]]] = {}
+        singles: list[tuple[int, PPOTransition]] = []
+        for index, transition in enumerate(transitions):
+            if transition.graph_cache_key is None:
+                singles.append((index, transition))
+            else:
+                groups.setdefault(transition.graph_cache_key, []).append((index, transition))
+
+        evaluated = [None for _ in transitions]
+        for index, transition in singles:
+            evaluated[index] = self._evaluate_transition(transition)
+        for group in groups.values():
+            if len(group) == 1:
+                index, transition = group[0]
+                evaluated[index] = self._evaluate_transition(transition)
+                continue
+            _, first_transition = group[0]
+            node_features = first_transition.node_features.to(self.device)
+            node_embeddings = self.policy.encode_graph_state(
+                node_features, first_transition.adjacency
+            )
+            for index, transition in group:
+                evaluated[index] = self._evaluate_transition_with_embeddings(
+                    transition, node_embeddings
+                )
+        return evaluated
+
     def ppo_update(
             self,
             transitions: list[PPOTransition] | None = None,
@@ -598,7 +713,7 @@ class PPOGNNExecutionAgent(ServiceExecutionAgent):
 
         last_stats = {}
         for _ in range(epochs):
-            evaluated = [self._evaluate_transition(transition) for transition in batch]
+            evaluated = self._evaluate_transition_batch(batch)
             log_probs = torch.stack([item[0] for item in evaluated])
             values = torch.stack([item[1] for item in evaluated])
             entropies = torch.stack([item[2] for item in evaluated])

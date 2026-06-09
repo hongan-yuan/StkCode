@@ -5,6 +5,8 @@ import csv
 import json
 import math
 import random
+import sys
+import time
 from dataclasses import asdict
 from pathlib import Path
 
@@ -41,6 +43,88 @@ def write_csv(path: Path, rows: list[dict]) -> None:
         writer.writeheader()
         for row in rows:
             writer.writerow({key: jsonable(row.get(key, "")) for key in fieldnames})
+
+
+def format_duration(seconds: float | None) -> str:
+    if seconds is None or not math.isfinite(seconds) or seconds < 0:
+        return "--:--"
+    seconds = int(round(seconds))
+    hours, remainder = divmod(seconds, 3600)
+    minutes, secs = divmod(remainder, 60)
+    if hours:
+        return f"{hours:d}:{minutes:02d}:{secs:02d}"
+    return f"{minutes:02d}:{secs:02d}"
+
+
+class TrainingProgress:
+    def __init__(
+            self,
+            total_epochs: int,
+            enabled: bool = True,
+            update_interval_epochs: int = 1,
+            min_update_seconds: float = 1.0,
+    ):
+        self.total_epochs = max(1, int(total_epochs))
+        self.enabled = enabled
+        self.update_interval_epochs = max(1, int(update_interval_epochs))
+        self.min_update_seconds = max(0.0, float(min_update_seconds))
+        self.started_at = time.monotonic()
+        self.last_update_at = 0.0
+        self.last_line_length = 0
+        self.is_tty = sys.stderr.isatty()
+
+    def update(self, epoch: int, row: dict) -> None:
+        if not self.enabled:
+            return
+        now = time.monotonic()
+        is_final = epoch >= self.total_epochs
+        if not is_final and epoch % self.update_interval_epochs != 0:
+            return
+        if (
+                not is_final
+                and self.last_update_at
+                and now - self.last_update_at < self.min_update_seconds
+        ):
+            return
+        self.last_update_at = now
+        line = self._line(epoch, row, now)
+        if self.is_tty:
+            padding = " " * max(0, self.last_line_length - len(line))
+            sys.stderr.write("\r" + line + padding)
+            sys.stderr.flush()
+            self.last_line_length = len(line)
+            if is_final:
+                sys.stderr.write("\n")
+                sys.stderr.flush()
+                self.last_line_length = 0
+        else:
+            print(line, file=sys.stderr, flush=True)
+
+    def close(self) -> None:
+        if self.enabled and self.is_tty and self.last_line_length:
+            sys.stderr.write("\n")
+            sys.stderr.flush()
+            self.last_line_length = 0
+
+    def _line(self, epoch: int, row: dict, now: float) -> str:
+        progress = min(1.0, max(0.0, epoch / self.total_epochs))
+        elapsed = now - self.started_at
+        eta = elapsed * (1.0 - progress) / progress if progress > 0 else None
+        bar_width = 28
+        filled = int(round(progress * bar_width))
+        bar = "#" * filled + "-" * (bar_width - filled)
+        reward = row.get("average_reward_per_request")
+        loss = row.get("ppo_loss")
+        success = row.get("success_rate")
+        reward_text = f"{reward:.3f}" if isinstance(reward, (float, int)) else "n/a"
+        loss_text = f"{loss:.3f}" if isinstance(loss, (float, int)) else "n/a"
+        success_text = f"{success:.3f}" if isinstance(success, (float, int)) else "n/a"
+        return (
+            f"[{bar}] {progress * 100:6.2f}% "
+            f"{epoch}/{self.total_epochs} "
+            f"elapsed={format_duration(elapsed)} eta={format_duration(eta)} "
+            f"reward={reward_text} loss={loss_text} success={success_text}"
+        )
 
 
 def request_template_rows(templates) -> list[dict]:
@@ -99,6 +183,12 @@ def training_summary_row(
         "reward_chain_length_alpha": base_config.reward_chain_length_alpha,
         "bandit_period_slots": args.bandit_period_slots,
         "route_horizon_slots": args.route_horizon_slots,
+        "max_candidate_replicas": base_config.max_candidate_replicas,
+        "bandit_pressure_top_k_services": base_config.bandit_pressure_top_k_services,
+        "bandit_target_top_n_planes": base_config.bandit_target_top_n_planes,
+        "route_estimate_cache_enabled": base_config.route_estimate_cache_enabled,
+        "route_estimate_time_bucket_s": base_config.route_estimate_time_bucket_s,
+        "route_estimate_data_bucket_gb": base_config.route_estimate_data_bucket_gb,
         "arrival_lambda_per_pattern_per_slot": args.arrival_lambda,
         "output_granularity": f"CSV/JSON outputs flushed every {args.log_every} epochs.",
         "deployment_reset_each_cycle": False,
@@ -186,7 +276,16 @@ def parse_args() -> argparse.Namespace:
         help="Directory for checkpoints and training logs.",
     )
     parser.add_argument("--log-every", type=int, default=500,
-        help="Flush training CSV files every N epochs; console logging still runs every epoch.",
+        help="Flush training CSV/JSON output files every N epochs.",
+    )
+    parser.add_argument("--progress-every", type=int, default=1,
+        help="Refresh the progress indicator every N epochs.",
+    )
+    parser.add_argument("--no-progress", action="store_true",
+        help="Disable the training progress indicator.",
+    )
+    parser.add_argument("--print-epoch-json", action="store_true",
+        help="Print the full per-epoch JSON row to stdout, matching the legacy behavior.",
     )
     parser.add_argument("--single-request-debug", action="store_true",
         help="Legacy debug flag; slot-arrival training ignores it.",
@@ -215,16 +314,45 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--route-horizon-slots", type=int, default=3,
         help="Maximum number of future time slots a route may use before failing.",
     )
+    parser.add_argument("--max-candidate-replicas", type=int,
+        default=SimulationConfig().max_candidate_replicas,
+        help="Evaluate at most this many candidate replicas for each PPO step.",
+    )
+    parser.add_argument("--bandit-pressure-top-k-services", type=int,
+        default=SimulationConfig().bandit_pressure_top_k_services,
+        help="Let each Bandit round consider only the Top-K services by pressure.",
+    )
+    parser.add_argument("--bandit-target-top-n-planes", type=int,
+        default=SimulationConfig().bandit_target_top_n_planes,
+        help="For each pressured service, evaluate only the Top-N target planes.",
+    )
+    parser.add_argument("--route-estimate-time-bucket-s", type=float,
+        default=SimulationConfig().route_estimate_time_bucket_s,
+        help="Time bucket in seconds for route-estimate cache keys.",
+    )
+    parser.add_argument("--route-estimate-data-bucket-gb", type=float,
+        default=SimulationConfig().route_estimate_data_bucket_gb,
+        help="Data-size bucket in GB for route-estimate cache keys.",
+    )
+    parser.add_argument("--disable-route-estimate-cache", action="store_true",
+        help="Disable the lightweight candidate route-estimate cache.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     args.log_every = max(1, args.log_every)
+    args.progress_every = max(1, args.progress_every)
     args.ppo_update_slots = max(1, args.ppo_update_slots)
     args.ppo_rollout_buffer_size = max(1, args.ppo_rollout_buffer_size)
     args.bandit_period_slots = max(1, args.bandit_period_slots)
     args.route_horizon_slots = max(1, args.route_horizon_slots)
+    args.max_candidate_replicas = max(1, args.max_candidate_replicas)
+    args.bandit_pressure_top_k_services = max(1, args.bandit_pressure_top_k_services)
+    args.bandit_target_top_n_planes = max(1, args.bandit_target_top_n_planes)
+    args.route_estimate_time_bucket_s = max(0.0, args.route_estimate_time_bucket_s)
+    args.route_estimate_data_bucket_gb = max(0.0, args.route_estimate_data_bucket_gb)
     model_dir: Path = args.model_dir
     model_dir.mkdir(parents=True, exist_ok=True)
     for stale_checkpoint in model_dir.glob("ppo_gnn_epoch_*.pth"):
@@ -242,6 +370,12 @@ def main() -> None:
         process_single_request=False,
         request_arrival_lambda_per_pattern_per_slot=args.arrival_lambda,
         route_horizon_slots=args.route_horizon_slots,
+        max_candidate_replicas=args.max_candidate_replicas,
+        bandit_pressure_top_k_services=args.bandit_pressure_top_k_services,
+        bandit_target_top_n_planes=args.bandit_target_top_n_planes,
+        route_estimate_cache_enabled=not args.disable_route_estimate_cache,
+        route_estimate_time_bucket_s=args.route_estimate_time_bucket_s,
+        route_estimate_data_bucket_gb=args.route_estimate_data_bucket_gb,
         ppo_rollout_buffer_size=args.ppo_rollout_buffer_size,
         reward_chain_length_alpha=max(0.0, args.reward_chain_length_alpha),
         output_dir=model_dir,
@@ -275,6 +409,11 @@ def main() -> None:
     bandit_feedback_results = []
     pending_migration_actions = []
     completed_epochs = 0
+    progress = TrainingProgress(
+        args.epochs,
+        enabled=not args.no_progress,
+        update_interval_epochs=args.progress_every,
+    )
 
     for epoch in range(1, args.epochs + 1):
         completed_epochs = epoch
@@ -412,6 +551,10 @@ def main() -> None:
             "bandit_action_count": len(migration_actions),
             **{f"bandit_{k}": v for k, v in payload["bandit_summary"].items()},
             **{f"routing_{k}": v for k, v in payload["routing_cache_summary"].items()},
+            **{
+                f"route_estimate_cache_{k}": v
+                for k, v in payload["route_estimate_cache_summary"].items()
+            },
         }
         training_rows.append(row)
 
@@ -471,9 +614,14 @@ def main() -> None:
                 ),
             )
 
-        print(json.dumps(jsonable(row), ensure_ascii=False))
+        if args.print_epoch_json:
+            progress.close()
+            print(json.dumps(jsonable(row), ensure_ascii=False))
+        progress.update(epoch, row)
         env.context["routing_cache"]["route_results"].clear()
+        env.context.get("route_estimate_cache", {}).clear()
 
+    progress.close()
     agent.save(model_dir / "ppo_gnn_latest.pth")
     final_summary = training_summary_row(
         args,

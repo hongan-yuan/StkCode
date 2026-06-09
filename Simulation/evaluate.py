@@ -291,6 +291,7 @@ def main() -> None:
 
         print(json.dumps(make_jsonable(row), ensure_ascii=False))
         env.context["routing_cache"]["route_results"].clear()
+        env.context.get("route_estimate_cache", {}).clear()
 
     if pending_migration_actions and bandit_feedback_results:
         bandit_agent.observe_execution_feedback(pending_migration_actions, bandit_feedback_results)

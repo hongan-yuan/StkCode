@@ -76,6 +76,8 @@ class SimulationEnvironment:
             "microservices": microservices,
             "deployment_by_node": deployment_matrix(microservices),
             "routing_cache": build_routing_cache(snapshots, self.config),
+            "route_estimate_cache": {},
+            "route_estimate_cache_stats": {"hits": 0, "misses": 0},
         }
         if self.auto_generate_requests:
             self.request_pool = generate_sfc_requests(self.rng, self.context)
@@ -131,6 +133,9 @@ class SimulationEnvironment:
             "migration_actions": [asdict(action) for action in self.migration_actions],
             "bandit_summary": self.migration_agent.summary(),
             "routing_cache_summary": dict(self.context["routing_cache"]["stats"]),
+            "route_estimate_cache_summary": dict(
+                self.context.get("route_estimate_cache_stats", {})
+            ),
             "results": results,
         }
 
@@ -169,6 +174,9 @@ class SimulationEnvironment:
             "migration_actions": [asdict(action) for action in migration_actions],
             "bandit_summary": self.migration_agent.summary(),
             "routing_cache_summary": dict(self.context["routing_cache"]["stats"]),
+            "route_estimate_cache_summary": dict(
+                self.context.get("route_estimate_cache_stats", {})
+            ),
             "results": results,
         }
 

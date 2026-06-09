@@ -104,6 +104,12 @@ class SimulationConfig:
     route_horizon_slots: int = 3
     future_link_horizon_slots: int = 3
     min_cost_flow_max_augmentations_per_slot: int = 5
+    max_candidate_replicas: int = 4
+    bandit_pressure_top_k_services: int = 8
+    bandit_target_top_n_planes: int = 3
+    route_estimate_cache_enabled: bool = True
+    route_estimate_time_bucket_s: float = 1.0
+    route_estimate_data_bucket_gb: float = 0.25
     service_pressure_delay_scale_s: float = 10.0
     service_pressure_route_delay_weight: float = 0.20
     service_pressure_compute_wait_weight: float = 0.20

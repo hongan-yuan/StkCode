@@ -228,14 +228,18 @@ class ReplicaPlacementMigrationAgent:
             key=lambda service_id: self._service_pressure_score(service_pressure[service_id]),
             reverse=True,
         )
-        for service_id in ranked_services[: self.config.num_microservices]:
+        service_limit = max(1, int(self.config.bandit_pressure_top_k_services))
+        for service_id in ranked_services[:service_limit]:
             if service_id not in microservices:
                 continue
             service = microservices[service_id]
             replica_planes = sorted(
                 {orbit_plane(node_id, self.config) for node_id in service.replicas}
             )
-            for target_plane in spare_planes:
+            target_planes = self._target_planes_for_service(
+                service, spare_planes, service_count_by_node
+            )
+            for target_plane in target_planes:
                 if (
                     len(service.replicas) < self.config.replica_count_range[1]
                     and self._plane_has_target(service, target_plane, service_count_by_node)
@@ -244,12 +248,55 @@ class ReplicaPlacementMigrationAgent:
             for source_plane in replica_planes:
                 if len(service.replicas) > self.config.replica_count_range[0]:
                     candidates.append(("remove", service_id, source_plane, None))
-                for target_plane in spare_planes:
+                for target_plane in target_planes:
                     if target_plane != source_plane and self._plane_has_target(
                         service, target_plane, service_count_by_node
                     ):
                         candidates.append(("move", service_id, source_plane, target_plane))
         return candidates
+
+    def _target_planes_for_service(
+        self,
+        service: Microservice,
+        spare_planes: list[int],
+        service_count_by_node: dict[int, int],
+    ) -> list[int]:
+        limit = max(1, int(self.config.bandit_target_top_n_planes))
+        planes = [
+            plane
+            for plane in spare_planes
+            if self._plane_has_target(service, plane, service_count_by_node)
+        ]
+        planes.sort(
+            key=lambda plane: self._target_plane_score(
+                service, plane, service_count_by_node
+            )
+        )
+        return planes[:limit]
+
+    def _target_plane_score(
+        self,
+        service: Microservice,
+        target_plane: int,
+        service_count_by_node: dict[int, int],
+    ) -> tuple[float, float, int]:
+        plane_nodes = [
+            node_id
+            for node_id, count in service_count_by_node.items()
+            if orbit_plane(node_id, self.config) == target_plane
+            and node_id not in service.replicas
+            and count < self.config.max_services_per_satellite
+        ]
+        if not plane_nodes:
+            return (math.inf, math.inf, target_plane)
+        existing_replica_penalty = (
+            1.0
+            if any(orbit_plane(node_id, self.config) == target_plane for node_id in service.replicas)
+            else 0.0
+        )
+        min_count = min(service_count_by_node[node_id] for node_id in plane_nodes)
+        avg_count = sum(service_count_by_node[node_id] for node_id in plane_nodes) / len(plane_nodes)
+        return (existing_replica_penalty, min_count + avg_count * 0.01, target_plane)
 
     def _rank_candidates(
         self,

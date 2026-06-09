@@ -7,6 +7,7 @@ from ..config import SimulationConfig
 from ..domain.request import SFCRequest
 from ..domain.service import compute_service_execution
 from ..network.routing import route_data
+from ..network.topology import slot_from_time
 
 
 @dataclass
@@ -37,6 +38,119 @@ class ServiceExecutionAgent:
         bottleneck_gb = float(route.get("bottleneck_capacity_gb", 0.0))
         return max(0.0, 1.0 - min(1.0, bottleneck_gb / data_gb))
 
+    def _bucket_float(self, value: float, bucket_size: float) -> float:
+        bucket_size = float(bucket_size)
+        if bucket_size <= 0.0:
+            return round(float(value), 9)
+        return round(round(float(value) / bucket_size) * bucket_size, 9)
+
+    def _cached_route_data(
+        self,
+        source: int,
+        target: int,
+        data_gb: float,
+        start_time: float,
+        context: dict,
+    ) -> dict:
+        if not self.config.route_estimate_cache_enabled:
+            return route_data(source, target, data_gb, start_time, context)
+        cache = context.setdefault("route_estimate_cache", {})
+        stats = context.setdefault(
+            "route_estimate_cache_stats", {"hits": 0, "misses": 0}
+        )
+        _, slot_mod = slot_from_time(
+            start_time, context["slot_duration"], context["slot_count"]
+        )
+        key = (
+            int(slot_mod),
+            int(source),
+            int(target),
+            self._bucket_float(data_gb, self.config.route_estimate_data_bucket_gb),
+            self._bucket_float(start_time, self.config.route_estimate_time_bucket_s),
+        )
+        if key in cache:
+            stats["hits"] += 1
+            return cache[key]
+        stats["misses"] += 1
+        route = route_data(source, target, data_gb, start_time, context)
+        cache[key] = route
+        return route
+
+    def _candidate_hop_distance(
+        self,
+        source: int,
+        target: int,
+        current_time: float,
+        context: dict,
+    ) -> int:
+        if source == target:
+            return 0
+        _, slot_mod = slot_from_time(
+            current_time, context["slot_duration"], context["slot_count"]
+        )
+        graph = context["snapshots"][slot_mod]
+        visited = {source}
+        frontier = [(source, 0)]
+        while frontier:
+            node_id, distance = frontier.pop(0)
+            for neighbor in graph.neighbors(node_id):
+                if neighbor == target:
+                    return distance + 1
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    frontier.append((neighbor, distance + 1))
+        return self.config.total_sats + 1
+
+    def _candidate_queue_delay(
+        self,
+        node_id: int,
+        current_time: float,
+        context: dict,
+    ) -> float:
+        _, slot_mod = slot_from_time(
+            current_time, context["slot_duration"], context["slot_count"]
+        )
+        table = context.get("queue_delay_table", {})
+        slot_table = table.get(slot_mod, {}) if isinstance(table, dict) else {}
+        return float(slot_table.get(node_id, 0.0))
+
+    def _select_candidate_subset(
+        self,
+        candidates: list[int],
+        current_node: int,
+        current_time: float,
+        context: dict,
+    ) -> list[int]:
+        max_candidates = int(self.config.max_candidate_replicas)
+        if max_candidates <= 0 or len(candidates) <= max_candidates:
+            return list(candidates)
+        ranked = sorted(
+            candidates,
+            key=lambda node_id: (
+                self._candidate_hop_distance(current_node, node_id, current_time, context),
+                self._candidate_queue_delay(node_id, current_time, context),
+                node_id,
+            ),
+        )
+        return ranked[:max_candidates]
+
+    def _exact_execution_estimates(
+        self,
+        service_id: int,
+        source_node: int,
+        selected_node: int,
+        data_gb: float,
+        current_time: float,
+        context: dict,
+    ) -> tuple[dict, dict | None]:
+        route = route_data(source_node, selected_node, data_gb, current_time, context)
+        if not route["reachable"]:
+            return route, None
+        compute = compute_service_execution(
+            service_id, selected_node, route["arrival_time"], context
+        )
+        return route, compute
+
     def _estimate_egress_capacity(
         self,
         request: SFCRequest,
@@ -56,8 +170,13 @@ class ServiceExecutionAgent:
 
         best: dict | None = None
         failure_reasons: dict[str, int] = {}
+        target_nodes = self._select_candidate_subset(
+            list(target_nodes), candidate_node, egress_start_time, context
+        )
         for target_node in target_nodes:
-            route = route_data(candidate_node, target_node, egress_data_gb, egress_start_time, context)
+            route = self._cached_route_data(
+                candidate_node, target_node, egress_data_gb, egress_start_time, context
+            )
             if not route["reachable"]:
                 reason = route.get("failure_reason", "route_failed")
                 failure_reasons[reason] = failure_reasons.get(reason, 0) + 1
@@ -106,11 +225,16 @@ class ServiceExecutionAgent:
     ) -> CandidateDecision:
 
         service_id = request.services[service_index]
-        candidates = context["microservices"][service_id].replicas
+        candidates = self._select_candidate_subset(
+            context["microservices"][service_id].replicas,
+            current_node,
+            current_time,
+            context,
+        )
         candidate_scores: list[dict] = []
 
         for node_id in candidates:
-            route = route_data(current_node, node_id, data_gb, current_time, context)
+            route = self._cached_route_data(current_node, node_id, data_gb, current_time, context)
             if not route["reachable"]:
                 candidate_scores.append(
                     {
@@ -174,11 +298,14 @@ class ServiceExecutionAgent:
             return CandidateDecision(service_id, None, math.inf, None, None, candidate_scores)
 
         best = min(reachable, key=lambda item: item["score"])
+        selected_route, selected_compute = self._exact_execution_estimates(
+            service_id, current_node, best["node_id"], data_gb, current_time, context
+        )
         return CandidateDecision(
             service_id=service_id,
             selected_node=best["node_id"],
             score=best["score"],
-            route_estimate=best["route"],
-            compute_estimate=best["compute"],
+            route_estimate=selected_route,
+            compute_estimate=selected_compute,
             candidate_scores=candidate_scores,
         )
