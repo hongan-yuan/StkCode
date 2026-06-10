@@ -1,0 +1,11 @@
+Launching 4 training job(s) over 4 GPU(s): 0 1 2 3
+Launching seed=42 on GPU=0; output=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_42; log=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_42.log
+Launching seed=43 on GPU=1; output=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_43; log=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_43.log
+Launching seed=44 on GPU=2; output=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_44; log=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_44.log
+Launching seed=45 on GPU=3; output=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_45; log=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_45.log
+Launching 4 training job(s) over 4 GPU(s): 0 1 2 3
+Launching seed=42 on GPU=0; output=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_42; log=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_42.log
+Launching seed=43 on GPU=1; output=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_43; log=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_43.log
+Launching seed=44 on GPU=2; output=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_44; log=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_44.log
+Launching seed=45 on GPU=3; output=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_45; log=/home/yhg/StkCode/Simulation/multi_seed_runs/seed_45.log
+All 4 training job(s) completed. Outputs are under /home/yhg/StkCode/Simulation/multi_seed_runs.

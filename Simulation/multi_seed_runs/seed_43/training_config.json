@@ -1,0 +1,206 @@
+{
+  "random_seed": 43,
+  "num_planes": 10,
+  "sats_per_plane": 18,
+  "num_microservices": 30,
+  "replica_count_range": [
+    5,
+    10
+  ],
+  "max_services_per_satellite": 3,
+  "microservice_workload_range_cycles": [
+    1000000000.0,
+    10000000000.0
+  ],
+  "microservice_image_size_range_gb": [
+    0.2,
+    1.2
+  ],
+  "microservice_storage_range_gb": [
+    1.0,
+    4.0
+  ],
+  "cpu_freq_choices_ghz": [
+    1.0,
+    2.0,
+    3.0,
+    4.0
+  ],
+  "cpu_power_by_freq_w": {
+    "1.0": 50.0,
+    "2.0": 60.0,
+    "3.0": 70.0,
+    "4.0": 80.0
+  },
+  "cpu_discount_range": [
+    0.7,
+    1.0
+  ],
+  "queue_zero_probability": 0.2,
+  "queue_max_fraction_of_slot": 0.5,
+  "compute_load_states": [
+    "Idle",
+    "Light",
+    "Medium",
+    "Heavy"
+  ],
+  "compute_load_initial_distribution": {
+    "Idle": 0.35,
+    "Light": 0.35,
+    "Medium": 0.2,
+    "Heavy": 0.1
+  },
+  "compute_load_transition_matrix": {
+    "Idle": {
+      "Idle": 0.7,
+      "Light": 0.25,
+      "Medium": 0.04,
+      "Heavy": 0.01
+    },
+    "Light": {
+      "Idle": 0.2,
+      "Light": 0.55,
+      "Medium": 0.2,
+      "Heavy": 0.05
+    },
+    "Medium": {
+      "Idle": 0.05,
+      "Light": 0.25,
+      "Medium": 0.5,
+      "Heavy": 0.2
+    },
+    "Heavy": {
+      "Idle": 0.02,
+      "Light": 0.08,
+      "Medium": 0.3,
+      "Heavy": 0.6
+    }
+  },
+  "compute_load_lambda_per_slot": {
+    "Idle": 0.05,
+    "Light": 0.2,
+    "Medium": 0.65,
+    "Heavy": 1.4
+  },
+  "compute_load_utilization_ranges": {
+    "Idle": [
+      0.0,
+      0.2
+    ],
+    "Light": [
+      0.2,
+      0.45
+    ],
+    "Medium": [
+      0.45,
+      0.7
+    ],
+    "Heavy": [
+      0.7,
+      0.95
+    ]
+  },
+  "compute_load_discount_ranges": {
+    "Idle": [
+      0.8,
+      1.0
+    ],
+    "Light": [
+      0.6,
+      0.8
+    ],
+    "Medium": [
+      0.4,
+      0.6
+    ],
+    "Heavy": [
+      0.2,
+      0.4
+    ]
+  },
+  "background_compute_cycles_mean": 2000000000.0,
+  "background_compute_cycles_min": 100000000.0,
+  "background_compute_rho_max": 0.95,
+  "background_compute_queue_base_s": 0.05,
+  "satellite_storage_capacity_gb": 12.0,
+  "default_tx_power_w": 1.0,
+  "speed_of_light_m_per_s": 299792458.0,
+  "isl_log_csv": "/home/yhg/StkCode/WalkerDeltaConstellationSimu/Walker_Delta_ISL_Simu.csv",
+  "max_slots_to_load": 606,
+  "slot_duration_override_s": 10.0,
+  "request_chain_plan": [
+    [
+      8,
+      5
+    ],
+    [
+      4,
+      10
+    ],
+    [
+      2,
+      15
+    ]
+  ],
+  "process_single_request": false,
+  "selected_request_id": null,
+  "single_request_start_time": 0.0,
+  "request_arrival_lambda_per_slot": 0.35,
+  "request_arrival_lambda_per_pattern_per_slot": 0.35,
+  "request_data_mean_gb": 2.0,
+  "request_data_variance_gb": 0.5,
+  "request_data_min_gb": 0.5,
+  "source_dest_near_hops": 2,
+  "request_endpoint_max_low_speed_score": 0.75,
+  "request_endpoint_sample_top_k": 4,
+  "request_endpoint_route_check_limit": 12,
+  "migration_safety_margin": 0.05,
+  "route_horizon_slots": 3,
+  "future_link_horizon_slots": 3,
+  "min_cost_flow_max_augmentations_per_slot": 5,
+  "max_candidate_replicas": 4,
+  "bandit_pressure_top_k_services": 8,
+  "bandit_target_top_n_planes": 3,
+  "route_estimate_cache_enabled": true,
+  "route_estimate_time_bucket_s": 1.0,
+  "route_estimate_data_bucket_gb": 0.25,
+  "service_pressure_delay_scale_s": 10.0,
+  "service_pressure_route_delay_weight": 0.2,
+  "service_pressure_compute_wait_weight": 0.2,
+  "service_pressure_route_failure_weight": 1.0,
+  "service_pressure_p95_delay_weight": 0.1,
+  "service_pressure_replica_imbalance_weight": 0.5,
+  "switch_penalty_s": 0.02,
+  "candidate_bottleneck_shortage_penalty_weight": 2.0,
+  "candidate_egress_shortage_penalty_weight": 2.0,
+  "low_speed_neighbor_rate_threshold_mbps": 1000.0,
+  "low_speed_neighbor_penalty_weight": 0.5,
+  "migration_failure_relief_bonus": 2.0,
+  "background_link_lambda_per_slot": 0.35,
+  "background_link_data_mean_gb": 0.15,
+  "background_link_data_min_gb": 0.01,
+  "background_link_rho_max": 0.95,
+  "background_link_eta_min": 0.35,
+  "background_link_kappa": 1.0,
+  "background_link_queue_base_s": 0.02,
+  "background_epsilon": 1e-06,
+  "delay_weight": 0.4,
+  "energy_weight": 0.6,
+  "migration_weight": 0.15,
+  "failure_penalty": 100.0,
+  "slot_switch_penalty_weight": 1.0,
+  "route_failure_risk_weight": 1.0,
+  "ppo_hidden_dim": 128,
+  "ppo_clip_epsilon": 0.2,
+  "ppo_gamma": 0.99,
+  "ppo_gae_lambda": 0.95,
+  "ppo_learning_rate": 0.0003,
+  "ppo_batch_size": 64,
+  "ppo_rollout_buffer_size": 256,
+  "ppo_terminal_reward_weight": 0.2,
+  "ppo_terminal_reward_scale": 0.01,
+  "ppo_terminal_reward_clip": 100.0,
+  "ppo_normalize_value_targets": true,
+  "reward_chain_length_alpha": 0.5,
+  "output_dir": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_43"
+}

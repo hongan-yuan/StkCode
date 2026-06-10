@@ -1,0 +1,64 @@
+{
+    "root": "m47",
+    "dependency_graph": {
+        "directed": true,
+        "multigraph": false,
+        "graph": {},
+        "nodes": [
+            {
+                "id": "m47"
+            },
+            {
+                "id": "m52"
+            },
+            {
+                "id": "m41"
+            },
+            {
+                "id": "m12"
+            },
+            {
+                "id": "m19"
+            },
+            {
+                "id": "m56"
+            },
+            {
+                "id": "m20"
+            },
+            {
+                "id": "m15"
+            }
+        ],
+        "links": [
+            {
+                "source": "m47",
+                "target": "m52"
+            },
+            {
+                "source": "m52",
+                "target": "m41"
+            },
+            {
+                "source": "m41",
+                "target": "m12"
+            },
+            {
+                "source": "m12",
+                "target": "m19"
+            },
+            {
+                "source": "m19",
+                "target": "m56"
+            },
+            {
+                "source": "m56",
+                "target": "m20"
+            },
+            {
+                "source": "m20",
+                "target": "m15"
+            }
+        ]
+    }
+}
