@@ -21,7 +21,11 @@ except ModuleNotFoundError:  # pragma: no cover - depends on local plotting env
     plt = None
 
 from ..agents.migration import ReplicaPlacementMigrationAgent
-from ..agents.baselines import NearestReplicaExecutionAgent
+from ..agents.baselines import (
+    NearestReplicaExecutionAgent,
+    SCNFVChainingOrbitExecutionAgent,
+    ServicePressureExecutionAgent,
+)
 from ..agents.ppo_gnn_agent import PPOGNNExecutionAgent
 from ..config import SimulationConfig
 from ..core.env import SimulationEnvironment
@@ -50,7 +54,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seeds", default="42 43 44 45")
     parser.add_argument(
         "--ablation",
-        choices=("full", "no_bandit", "shortest_hop_routing", "nearest_replica"),
+        choices=(
+            "full",
+            "no_bandit",
+            "shortest_hop_routing",
+            "nearest_replica",
+            "service_pressure",
+            "sc_nfv",
+        ),
         default="full",
         help="Evaluation variant to run.",
     )
@@ -281,6 +292,8 @@ def build_config(
         kwargs["request_arrival_lambda_per_pattern_per_slot"] = args.arrival_lambda
     if args.ablation == "shortest_hop_routing":
         kwargs["service_routing_strategy"] = "shortest_hop_per_slot"
+    elif args.ablation == "service_pressure":
+        kwargs["service_routing_strategy"] = "service_pressure"
     else:
         kwargs["service_routing_strategy"] = "min_cost_max_flow"
     return SimulationConfig(**kwargs)
@@ -356,6 +369,10 @@ def route_mode_counts_for_results(results: list[dict]) -> Counter:
 def build_execution_agent(args: argparse.Namespace, config: SimulationConfig, run_dir: Path):
     if args.ablation == "nearest_replica":
         return NearestReplicaExecutionAgent(config), False, ""
+    if args.ablation == "service_pressure":
+        return ServicePressureExecutionAgent(config), False, ""
+    if args.ablation == "sc_nfv":
+        return SCNFVChainingOrbitExecutionAgent(config), False, ""
 
     agent = PPOGNNExecutionAgent(
         config,
