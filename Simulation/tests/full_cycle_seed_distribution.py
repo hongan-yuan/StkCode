@@ -5,6 +5,9 @@ import csv
 import json
 import math
 import random
+import sys
+import time
+from collections import Counter
 from dataclasses import asdict, fields, is_dataclass
 from html import escape
 from pathlib import Path
@@ -18,6 +21,7 @@ except ModuleNotFoundError:  # pragma: no cover - depends on local plotting env
     plt = None
 
 from ..agents.migration import ReplicaPlacementMigrationAgent
+from ..agents.baselines import NearestReplicaExecutionAgent
 from ..agents.ppo_gnn_agent import PPOGNNExecutionAgent
 from ..config import SimulationConfig
 from ..core.env import SimulationEnvironment
@@ -44,6 +48,12 @@ def parse_args() -> argparse.Namespace:
         )
     )
     parser.add_argument("--seeds", default="42 43 44 45")
+    parser.add_argument(
+        "--ablation",
+        choices=("full", "no_bandit", "shortest_hop_routing", "nearest_replica"),
+        default="full",
+        help="Evaluation variant to run.",
+    )
     parser.add_argument("--model-root", type=Path, default=DEFAULT_MODEL_ROOT)
     parser.add_argument(
         "--model-dir",
@@ -92,7 +102,72 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--no-load-checkpoint", action="store_true")
     parser.add_argument("--no-load-bandit", action="store_true")
+    parser.add_argument(
+        "--progress-every",
+        type=int,
+        default=25,
+        help="Print per-task progress every N slots.",
+    )
+    parser.add_argument(
+        "--skip-aggregate",
+        action="store_true",
+        help="Run seed simulations but do not write root-level merged CSV/plots.",
+    )
+    parser.add_argument(
+        "--plot-only",
+        action="store_true",
+        help="Read existing seed_<seed> outputs and only regenerate merged CSV/plots.",
+    )
     return parser.parse_args()
+
+
+class TaskProgress:
+    def __init__(self, label: str, total: int, every: int):
+        self.label = label
+        self.total = max(1, int(total))
+        self.every = max(1, int(every))
+        self.started_at = time.monotonic()
+        self.last_line_length = 0
+        self.is_tty = sys.stderr.isatty()
+
+    def update(self, current: int, suffix: str = "") -> None:
+        if current != 1 and current != self.total and current % self.every != 0:
+            return
+        elapsed = time.monotonic() - self.started_at
+        progress = min(1.0, max(0.0, current / self.total))
+        eta = elapsed * (1.0 - progress) / progress if progress > 0.0 else math.inf
+        line = (
+            f"{self.label} [{self._bar(progress)}] {progress * 100:6.2f}% "
+            f"{current}/{self.total} elapsed={format_duration(elapsed)} "
+            f"eta={format_duration(eta)} {suffix}".rstrip()
+        )
+        if self.is_tty:
+            padding = " " * max(0, self.last_line_length - len(line))
+            sys.stderr.write("\r" + line + padding)
+            sys.stderr.flush()
+            self.last_line_length = len(line)
+            if current >= self.total:
+                sys.stderr.write("\n")
+                sys.stderr.flush()
+                self.last_line_length = 0
+        else:
+            print(line, file=sys.stderr, flush=True)
+
+    def _bar(self, progress: float) -> str:
+        width = 24
+        filled = int(round(progress * width))
+        return "#" * filled + "-" * (width - filled)
+
+
+def format_duration(seconds: float) -> str:
+    if not math.isfinite(seconds) or seconds < 0:
+        return "--:--"
+    seconds = int(round(seconds))
+    hours, remainder = divmod(seconds, 3600)
+    minutes, secs = divmod(remainder, 60)
+    if hours:
+        return f"{hours:d}:{minutes:02d}:{secs:02d}"
+    return f"{minutes:02d}:{secs:02d}"
 
 
 def parse_seed_list(value: str) -> list[int]:
@@ -129,6 +204,13 @@ def write_csv(path: Path, rows: list[dict]) -> None:
         writer.writeheader()
         for row in rows:
             writer.writerow({key: jsonable(row.get(key, "")) for key in fieldnames})
+
+
+def read_csv(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    with path.open("r", encoding="utf-8-sig", newline="") as file:
+        return list(csv.DictReader(file))
 
 
 def run_dir_for_seed(args: argparse.Namespace, seeds: list[int], seed: int, index: int) -> Path:
@@ -197,6 +279,10 @@ def build_config(
     )
     if args.arrival_lambda is not None:
         kwargs["request_arrival_lambda_per_pattern_per_slot"] = args.arrival_lambda
+    if args.ablation == "shortest_hop_routing":
+        kwargs["service_routing_strategy"] = "shortest_hop_per_slot"
+    else:
+        kwargs["service_routing_strategy"] = "min_cost_max_flow"
     return SimulationConfig(**kwargs)
 
 
@@ -212,9 +298,16 @@ def load_or_generate_templates(
     return generate_request_templates(rng, context), None, False
 
 
-def request_metric_row(seed: int, epoch: int, slot_mod: int, result: dict) -> dict:
+def request_metric_row(
+    ablation: str,
+    seed: int,
+    epoch: int,
+    slot_mod: int,
+    result: dict,
+) -> dict:
     request = result["request"]
     return {
+        "ablation": ablation,
         "seed": seed,
         "epoch": epoch,
         "slot_mod": slot_mod,
@@ -238,12 +331,62 @@ def request_metric_row(seed: int, epoch: int, slot_mod: int, result: dict) -> di
     }
 
 
+def flatten_route_counts(route_mode_counts: dict) -> dict:
+    return {
+        f"route_mode_{mode}_count": count
+        for mode, count in sorted(route_mode_counts.items())
+        if mode
+    }
+
+
+def route_failure_count(results: list[dict]) -> int:
+    return sum(1 for result in results if not result.get("feasible", False))
+
+
+def route_mode_counts_for_results(results: list[dict]) -> Counter:
+    counts = Counter()
+    for result in results:
+        for route in result.get("route_details", []):
+            mode = route.get("route_mode", "")
+            if mode:
+                counts[mode] += 1
+    return counts
+
+
+def build_execution_agent(args: argparse.Namespace, config: SimulationConfig, run_dir: Path):
+    if args.ablation == "nearest_replica":
+        return NearestReplicaExecutionAgent(config), False, ""
+
+    agent = PPOGNNExecutionAgent(
+        config,
+        hidden_dim=config.ppo_hidden_dim,
+        train_mode=False,
+        device=args.device,
+    )
+    checkpoint = run_dir / args.checkpoint_name
+    checkpoint_loaded = False
+    checkpoint_load_error = ""
+    if not args.no_load_checkpoint and checkpoint.exists():
+        try:
+            agent.load(checkpoint)
+            checkpoint_loaded = True
+        except Exception as exc:
+            checkpoint_load_error = f"{type(exc).__name__}: {exc}"
+    return agent, checkpoint_loaded, checkpoint_load_error
+
+
 def finite_values(values: list[float | None]) -> list[float]:
-    return [
-        float(value)
-        for value in values
-        if isinstance(value, (float, int)) and math.isfinite(float(value))
-    ]
+    finite = []
+    for value in values:
+        if value in ("", None, "None", "null"):
+            continue
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(number):
+            finite.append(number)
+    return finite
 
 
 def quantile(values: list[float], fraction: float) -> float:
@@ -374,6 +517,68 @@ def plot_distribution(
     return path
 
 
+def aggregate_outputs(
+    args: argparse.Namespace,
+    seeds: list[int],
+    all_slot_rows: list[dict],
+    all_request_rows: list[dict],
+    summaries: list[dict],
+) -> dict:
+    write_csv(args.output_dir / "slot_metrics_by_seed.csv", all_slot_rows)
+    write_csv(args.output_dir / "request_metrics_by_seed.csv", all_request_rows)
+    delay_plot = plot_distribution(
+        args.output_dir,
+        seeds,
+        all_slot_rows,
+        "average_end_to_end_delay_s",
+        "Slot mean end-to-end delay (s)",
+        "slot_mean_delay_distribution_by_seed",
+        "Full-cycle slot-mean delay distribution by seed",
+    )
+    energy_plot = plot_distribution(
+        args.output_dir,
+        seeds,
+        all_slot_rows,
+        "average_energy_j",
+        "Slot mean energy (J)",
+        "slot_mean_energy_distribution_by_seed",
+        "Full-cycle slot-mean energy distribution by seed",
+    )
+    final_summary = {
+        "ablation": args.ablation,
+        "seeds": seeds,
+        "output_dir": args.output_dir,
+        "slot_metrics_csv": args.output_dir / "slot_metrics_by_seed.csv",
+        "request_metrics_csv": args.output_dir / "request_metrics_by_seed.csv",
+        "delay_plot": delay_plot,
+        "energy_plot": energy_plot,
+        "seed_summaries": summaries,
+    }
+    (args.output_dir / "summary.json").write_text(
+        json.dumps(jsonable(final_summary), ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    return final_summary
+
+
+def load_seed_outputs(output_dir: Path, seeds: list[int]) -> tuple[list[dict], list[dict], list[dict]]:
+    all_slot_rows = []
+    all_request_rows = []
+    summaries = []
+    for seed in seeds:
+        seed_output_dir = output_dir / f"seed_{seed}"
+        slot_rows = read_csv(seed_output_dir / "slot_metrics.csv")
+        request_rows = read_csv(seed_output_dir / "request_metrics.csv")
+        if not slot_rows:
+            raise SystemExit(f"Missing seed slot metrics: {seed_output_dir / 'slot_metrics.csv'}")
+        all_slot_rows.extend(slot_rows)
+        all_request_rows.extend(request_rows)
+        summary_path = seed_output_dir / "summary.json"
+        if summary_path.exists():
+            summaries.append(json.loads(summary_path.read_text(encoding="utf-8")))
+    return all_slot_rows, all_request_rows, summaries
+
+
 def run_seed(
     args: argparse.Namespace,
     seed: int,
@@ -386,7 +591,8 @@ def run_seed(
     bandit_agent = ReplicaPlacementMigrationAgent(config)
     bandit_stats = run_dir / args.bandit_stats_name
     bandit_loaded_count = 0
-    if not args.no_load_bandit and bandit_stats.exists():
+    bandit_enabled = args.ablation != "no_bandit"
+    if bandit_enabled and not args.no_load_bandit and bandit_stats.exists():
         bandit_loaded_count = bandit_agent.load_arm_stats(bandit_stats)
 
     env = SimulationEnvironment(
@@ -404,21 +610,10 @@ def run_seed(
     if len(templates) != 14:
         print(f"Warning: seed={seed} has {len(templates)} request templates, expected 14.")
 
-    agent = PPOGNNExecutionAgent(
-        config,
-        hidden_dim=config.ppo_hidden_dim,
-        train_mode=False,
-        device=args.device,
-    )
     checkpoint = run_dir / args.checkpoint_name
-    checkpoint_loaded = False
-    checkpoint_load_error = ""
-    if not args.no_load_checkpoint and checkpoint.exists():
-        try:
-            agent.load(checkpoint)
-            checkpoint_loaded = True
-        except Exception as exc:
-            checkpoint_load_error = f"{type(exc).__name__}: {exc}"
+    agent, checkpoint_loaded, checkpoint_load_error = build_execution_agent(
+        args, config, run_dir
+    )
 
     slot_rows: list[dict] = []
     request_rows: list[dict] = []
@@ -428,6 +623,11 @@ def run_seed(
     bandit_feedback_results = []
     pending_migration_actions = []
     bandit_period_slots = max(1, int(args.bandit_period_slots))
+    progress = TaskProgress(
+        f"ablation={args.ablation} seed={seed}",
+        slot_count,
+        args.progress_every,
+    )
 
     for epoch in range(1, slot_count + 1):
         absolute_slot = epoch - 1
@@ -440,15 +640,21 @@ def run_seed(
             next_request_id,
         )
         results = env.execute_requests(arrivals, agent)
-        bandit_agent.observe_failed_replicas(results)
+        if bandit_enabled:
+            bandit_agent.observe_failed_replicas(results)
         all_results.extend(results)
-        bandit_window_requests.extend(arrivals)
-        bandit_feedback_results.extend(results)
+        if bandit_enabled:
+            bandit_window_requests.extend(arrivals)
+            bandit_feedback_results.extend(results)
 
         bandit_updated = False
         migration_actions = []
         is_cycle_last_slot = slot_mod == slot_count - 1
-        if (slot_mod + 1) % bandit_period_slots == 0 and not is_cycle_last_slot:
+        if (
+            bandit_enabled
+            and (slot_mod + 1) % bandit_period_slots == 0
+            and not is_cycle_last_slot
+        ):
             if pending_migration_actions:
                 bandit_agent.observe_execution_feedback(
                     pending_migration_actions, bandit_feedback_results
@@ -462,7 +668,10 @@ def run_seed(
             bandit_updated = True
 
         summary = summarize_results(results)
+        total_reward = sum(float(result.get("reward", 0.0)) for result in results)
+        route_mode_counts = route_mode_counts_for_results(results)
         row = {
+            "ablation": args.ablation,
             "seed": seed,
             "epoch": epoch,
             "slot_mod": slot_mod,
@@ -472,14 +681,21 @@ def run_seed(
             "processed_request_count": len(results),
             "request_count": summary["request_count"],
             "feasible_count": summary["feasible_count"],
+            "failure_count": route_failure_count(results),
             "success_rate": summary["success_rate"],
+            "task_completion_rate": summary["success_rate"],
             "average_end_to_end_delay_s": summary["average_end_to_end_delay_s"],
             "average_energy_j": summary["average_energy_j"],
+            "total_reward": total_reward,
+            "average_reward_per_request": total_reward / len(results) if results else None,
             "p95_end_to_end_delay_s": summary["p95_end_to_end_delay_s"],
             "average_communication_delay_s": summary["average_communication_delay_s"],
             "average_slot_crossings": summary["average_slot_crossings"],
             "bandit_updated": bandit_updated,
             "bandit_action_count": len(migration_actions),
+            "service_routing_strategy": config.service_routing_strategy,
+            "execution_agent": agent.__class__.__name__,
+            **flatten_route_counts(route_mode_counts),
             **{
                 f"routing_{key}": value
                 for key, value in env.context["routing_cache"]["stats"].items()
@@ -491,24 +707,24 @@ def run_seed(
         }
         slot_rows.append(row)
         request_rows.extend(
-            request_metric_row(seed, epoch, slot_mod, result)
+            request_metric_row(args.ablation, seed, epoch, slot_mod, result)
             for result in results
         )
         env.context["routing_cache"]["route_results"].clear()
         env.context.get("route_estimate_cache", {}).clear()
 
-        if epoch == 1 or epoch == slot_count or epoch % 50 == 0:
-            print(
-                f"seed={seed} slot={epoch}/{slot_count} "
-                f"arrivals={len(arrivals)} success={row['success_rate']:.3f}"
-            )
+        progress.update(
+            epoch,
+            f"arrivals={len(arrivals)} success={row['success_rate']:.3f}",
+        )
 
-    if pending_migration_actions and bandit_feedback_results:
+    if bandit_enabled and pending_migration_actions and bandit_feedback_results:
         bandit_agent.observe_execution_feedback(
             pending_migration_actions, bandit_feedback_results
         )
 
     summary = {
+        "ablation": args.ablation,
         "seed": seed,
         "run_dir": run_dir,
         "slot_count": slot_count,
@@ -519,6 +735,9 @@ def run_seed(
         "checkpoint": checkpoint,
         "checkpoint_loaded": checkpoint_loaded,
         "checkpoint_load_error": checkpoint_load_error,
+        "execution_agent": agent.__class__.__name__,
+        "service_routing_strategy": config.service_routing_strategy,
+        "bandit_redeployment_enabled": bandit_enabled,
         "bandit_arm_stats": bandit_stats,
         "bandit_loaded_arm_count": bandit_loaded_count,
         "arrival_lambda_per_pattern_per_slot": (
@@ -545,6 +764,14 @@ def main() -> None:
     seeds = parse_seed_list(args.seeds)
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
+    if args.plot_only:
+        all_slot_rows, all_request_rows, summaries = load_seed_outputs(args.output_dir, seeds)
+        final_summary = aggregate_outputs(
+            args, seeds, all_slot_rows, all_request_rows, summaries
+        )
+        print(json.dumps(jsonable(final_summary), ensure_ascii=False, indent=2))
+        return
+
     all_slot_rows: list[dict] = []
     all_request_rows: list[dict] = []
     summaries: list[dict] = []
@@ -554,38 +781,12 @@ def main() -> None:
         all_request_rows.extend(request_rows)
         summaries.append(summary)
 
-    write_csv(args.output_dir / "slot_metrics_by_seed.csv", all_slot_rows)
-    write_csv(args.output_dir / "request_metrics_by_seed.csv", all_request_rows)
-    delay_plot = plot_distribution(
-        args.output_dir,
-        seeds,
-        all_slot_rows,
-        "average_end_to_end_delay_s",
-        "Slot mean end-to-end delay (s)",
-        "slot_mean_delay_distribution_by_seed",
-        "Full-cycle slot-mean delay distribution by seed",
-    )
-    energy_plot = plot_distribution(
-        args.output_dir,
-        seeds,
-        all_slot_rows,
-        "average_energy_j",
-        "Slot mean energy (J)",
-        "slot_mean_energy_distribution_by_seed",
-        "Full-cycle slot-mean energy distribution by seed",
-    )
-    final_summary = {
-        "seeds": seeds,
-        "output_dir": args.output_dir,
-        "slot_metrics_csv": args.output_dir / "slot_metrics_by_seed.csv",
-        "request_metrics_csv": args.output_dir / "request_metrics_by_seed.csv",
-        "delay_plot": delay_plot,
-        "energy_plot": energy_plot,
-        "seed_summaries": summaries,
-    }
-    (args.output_dir / "summary.json").write_text(
-        json.dumps(jsonable(final_summary), ensure_ascii=False, indent=2),
-        encoding="utf-8",
+    if args.skip_aggregate:
+        print(json.dumps(jsonable({"seeds": seeds, "seed_summaries": summaries}), ensure_ascii=False, indent=2))
+        return
+
+    final_summary = aggregate_outputs(
+        args, seeds, all_slot_rows, all_request_rows, summaries
     )
     print(json.dumps(jsonable(final_summary), ensure_ascii=False, indent=2))
 

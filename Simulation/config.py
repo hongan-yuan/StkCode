@@ -102,6 +102,7 @@ class SimulationConfig:
 
     # Parameter Sensitivity
     route_horizon_slots: int = 3
+    service_routing_strategy: str = "min_cost_max_flow"
     future_link_horizon_slots: int = 3
     min_cost_flow_max_augmentations_per_slot: int = 5
     max_candidate_replicas: int = 4

@@ -280,6 +280,34 @@ def _node_path_from_residual_prev(
     return nodes, edge_refs
 
 
+def _shortest_hop_path(
+        graph: TemporalGraph,
+        source: int,
+        target: int,
+) -> list[int] | None:
+    if source == target:
+        return [int(source)]
+    if source not in graph or target not in graph:
+        return None
+    queue: list[int] = [int(source)]
+    parent: dict[int, int | None] = {int(source): None}
+    while queue:
+        node = queue.pop(0)
+        neighbors = sorted(int(neighbor) for neighbor in graph.neighbors(node))
+        for neighbor in neighbors:
+            if neighbor in parent:
+                continue
+            parent[neighbor] = node
+            if neighbor == int(target):
+                path = [neighbor]
+                while parent[path[-1]] is not None:
+                    path.append(parent[path[-1]])
+                path.reverse()
+                return path
+            queue.append(neighbor)
+    return None
+
+
 def _decompose_positive_flow_paths(
         source: int,
         target: int,
@@ -468,6 +496,7 @@ def route_data(
     stats = routing_cache.get("stats") if routing_cache else None
 
     route_cache_key = (
+        str(getattr(config, "service_routing_strategy", "min_cost_max_flow")),
         int(source),
         int(target),
         round(float(data_gb), 9),
@@ -501,9 +530,135 @@ def route_data(
             route_results[route_cache_key] = route
         return route
 
-    route = _route_min_cost_max_flow(source, target, data_gb, start_time, context)
+    strategy = getattr(config, "service_routing_strategy", "min_cost_max_flow")
+    if strategy == "shortest_hop_per_slot":
+        route = _route_shortest_hop_per_slot(source, target, data_gb, start_time, context)
+    else:
+        route = _route_min_cost_max_flow(source, target, data_gb, start_time, context)
     if route_results is not None:
         route_results[route_cache_key] = route
+    return route
+
+
+def _route_shortest_hop_per_slot(
+        source: int, target: int, data_gb: float, start_time: float, context: dict
+) -> dict:
+    snapshots = context["snapshots"]
+    slot_duration = context["slot_duration"]
+    slot_count = context["slot_count"]
+    config: SimulationConfig = context["config"]
+
+    start_abs_slot, _ = slot_from_time(start_time, slot_duration, slot_count)
+    current_time = start_time
+    remaining_data = data_gb
+    total_tx = 0.0
+    total_prop = 0.0
+    total_queue = 0.0
+    total_energy = 0.0
+    slot_paths = []
+    representative_path: list[int] = []
+    max_failure_risk = 0.0
+    max_bottleneck_capacity = 0.0
+
+    for offset in range(config.route_horizon_slots):
+        abs_slot, slot_mod = slot_from_time(current_time, slot_duration, slot_count)
+        graph = snapshots[slot_mod]
+        slot_end_time = (abs_slot + 1) * slot_duration
+        remaining_time = max(0.0, slot_end_time - current_time)
+        if remaining_time <= 0.0:
+            current_time = slot_end_time
+            continue
+
+        path = _shortest_hop_path(graph, source, target)
+        if not path:
+            if offset < config.route_horizon_slots - 1:
+                current_time = slot_end_time
+                continue
+            break
+
+        bottleneck_capacity = path_capacity_gb(
+            graph, path, remaining_time, context, slot_mod
+        )
+        delivered_this_slot = min(remaining_data, bottleneck_capacity)
+        if delivered_this_slot <= 1.0e-9 or not math.isfinite(delivered_this_slot):
+            if offset < config.route_horizon_slots - 1:
+                current_time = slot_end_time
+                continue
+            break
+
+        delay_s, tx_s, prop_s, queue_s, energy_j = path_delay_and_energy(
+            graph, path, delivered_this_slot, context, slot_mod
+        )
+        if not math.isfinite(delay_s) or delay_s > remaining_time + 1.0e-9:
+            if offset < config.route_horizon_slots - 1:
+                current_time = slot_end_time
+                continue
+            break
+
+        if not representative_path:
+            representative_path = path
+        failure_risk = future_path_failure_risk(context, path, slot_mod)
+        slot_paths.append(
+            _slot_path_record(
+                slot_mod,
+                path,
+                graph,
+                delivered_this_slot,
+                delay_s,
+                tx_s,
+                prop_s,
+                "shortest_hop",
+                next_slot_failure=failure_risk > 0.0,
+                context=context,
+                queue_s=queue_s,
+                bottleneck_capacity_gb=bottleneck_capacity,
+                route_failure_risk=failure_risk,
+            )
+        )
+        total_tx += tx_s
+        total_prop += prop_s
+        total_queue += queue_s
+        total_energy += energy_j
+        max_failure_risk = max(max_failure_risk, failure_risk)
+        max_bottleneck_capacity = max(max_bottleneck_capacity, bottleneck_capacity)
+        remaining_data = max(0.0, remaining_data - delivered_this_slot)
+
+        if remaining_data <= 1.0e-9:
+            arrival_time = current_time + delay_s
+            end_abs_slot, end_slot_mod = slot_from_time(arrival_time, slot_duration, slot_count)
+            return {
+                "reachable": True,
+                "route_mode": "shortest_hop_per_slot",
+                "delay_s": arrival_time - start_time,
+                "transmission_delay_s": total_tx,
+                "propagation_delay_s": total_prop,
+                "link_queue_delay_s": total_queue,
+                "communication_energy_j": total_energy,
+                "arrival_time": arrival_time,
+                "end_abs_slot": end_abs_slot,
+                "end_slot_mod": end_slot_mod,
+                "slot_crossings": max(0, end_abs_slot - start_abs_slot),
+                "path": representative_path,
+                "slot_paths": slot_paths,
+                "remaining_data_gb": 0.0,
+                "delivered_data_gb": data_gb,
+                "route_failure_risk": max_failure_risk,
+                "bottleneck_capacity_gb": max_bottleneck_capacity,
+                "end_to_end_delivery_only": True,
+                "min_cost_flow_augmentations": 0,
+            }
+
+        current_time = slot_end_time
+
+    route = _route_failure(source, target, start_time, context, "shortest_hop_route_failed")
+    route["remaining_data_gb"] = remaining_data
+    route["delivered_data_gb"] = max(0.0, data_gb - remaining_data)
+    route["route_failure_risk"] = max_failure_risk
+    route["bottleneck_capacity_gb"] = max_bottleneck_capacity
+    route["end_to_end_delivery_only"] = True
+    route["slot_paths"] = slot_paths
+    route["path"] = representative_path
+    route["min_cost_flow_augmentations"] = 0
     return route
 
 
