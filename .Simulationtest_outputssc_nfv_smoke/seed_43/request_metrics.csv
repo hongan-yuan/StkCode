@@ -1,0 +1,4 @@
+﻿ablation,chain_length,destination_node,destination_satellite,epoch,failed_stage,failure_reason,feasible,request_id,reward,seed,slot_mod,source_node,source_satellite,template_id,total_delay_s,total_energy_j
+sc_nfv,5,9,SAT_0_8,1,,,True,1,-14.562682180425387,43,0,12,SAT_0_11,7,34.02946717146618,1584.8255197315261
+sc_nfv,5,11,SAT_0_10,1,,,True,2,-17.251304626212434,43,0,9,SAT_0_8,8,40.60311820099484,1683.4289096908246
+sc_nfv,10,4,SAT_0_3,1,,,True,3,-29.24349474411342,43,0,3,SAT_0_2,12,68.51559944861643,3062.0916077780807

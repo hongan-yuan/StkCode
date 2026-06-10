@@ -1,0 +1,56 @@
+{
+  "ablation": "sc_nfv",
+  "seed": 44,
+  "run_dir": "/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/multi_seed_runs/seed_44",
+  "slot_count": 1,
+  "slot_duration_s": 10.0,
+  "request_template_csv": "/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/multi_seed_runs/seed_44/request_templates.csv",
+  "request_templates_loaded": true,
+  "request_template_count": 14,
+  "checkpoint": "/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/multi_seed_runs/seed_44/ppo_gnn_latest.pth",
+  "checkpoint_loaded": false,
+  "checkpoint_load_error": "",
+  "execution_agent": "SCNFVChainingOrbitExecutionAgent",
+  "service_routing_strategy": "min_cost_max_flow",
+  "bandit_redeployment_enabled": true,
+  "bandit_arm_stats": "/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/multi_seed_runs/seed_44/bandit_arm_stats.csv",
+  "bandit_loaded_arm_count": 470,
+  "arrival_lambda_per_pattern_per_slot": 0.35,
+  "overall_summary": {
+    "request_count": 8,
+    "feasible_count": 8,
+    "success_rate": 1.0,
+    "average_end_to_end_delay_s": 41.36718258522163,
+    "p95_end_to_end_delay_s": 67.59721784110448,
+    "average_energy_j": 1739.3328937683295,
+    "average_communication_delay_s": 1.5749949968642245,
+    "average_slot_crossings": 0.1323529411764706,
+    "route_mode_counts": {
+      "min_cost_max_flow": 67,
+      "local": 1
+    }
+  },
+  "bandit_summary": {
+    "total_pulls": 4800,
+    "known_arm_count": 470,
+    "positive_arm_count": 470,
+    "average_arm_reward": 1.3037919579118156,
+    "total_applied_actions": 0,
+    "total_execution_feedback_updates": 2400,
+    "total_failed_replica_observations": 0,
+    "known_failed_replica_count": 0,
+    "known_service_pressure_metric_count": 0
+  },
+  "routing_cache_summary": {
+    "route_result_hits": 68,
+    "route_result_misses": 1574,
+    "shortest_path_hits": 0,
+    "shortest_path_misses": 0,
+    "precomputed_slots": 1,
+    "precomputed_nodes": 180
+  },
+  "route_estimate_cache_summary": {
+    "hits": 141,
+    "misses": 1574
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "ablation": "service_pressure",
+  "seed": 42,
+  "run_dir": "/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/multi_seed_runs/seed_42",
+  "slot_count": 606,
+  "slot_duration_s": 10.0,
+  "request_template_csv": "/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/multi_seed_runs/seed_42/request_templates.csv",
+  "request_templates_loaded": true,
+  "request_template_count": 14,
+  "checkpoint": "/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/multi_seed_runs/seed_42/ppo_gnn_latest.pth",
+  "checkpoint_loaded": false,
+  "checkpoint_load_error": "",
+  "execution_agent": "ServicePressureExecutionAgent",
+  "service_routing_strategy": "service_pressure",
+  "bandit_redeployment_enabled": true,
+  "bandit_arm_stats": "/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/multi_seed_runs/seed_42/bandit_arm_stats.csv",
+  "bandit_loaded_arm_count": 638,
+  "arrival_lambda_per_pattern_per_slot": 0.35,
+  "overall_summary": {
+    "request_count": 3000,
+    "feasible_count": 3000,
+    "success_rate": 1.0,
+    "average_end_to_end_delay_s": 46.247207093023874,
+    "p95_end_to_end_delay_s": 90.87922218913309,
+    "average_energy_j": 1986.059703592603,
+    "average_communication_delay_s": 1.4438096362500081,
+    "average_slot_crossings": 0.115748031496063,
+    "route_mode_counts": {
+      "service_pressure": 26567,
+      "local": 103
+    }
+  },
+  "bandit_summary": {
+    "total_pulls": 5284,
+    "known_arm_count": 653,
+    "positive_arm_count": 650,
+    "average_arm_reward": 1.1282269578810773,
+    "total_applied_actions": 240,
+    "total_execution_feedback_updates": 2640,
+    "total_failed_replica_observations": 0,
+    "known_failed_replica_count": 0,
+    "known_service_pressure_metric_count": 30,
+    "total_applied_add_count": 32,
+    "total_applied_move_count": 208,
+    "last_applied_action_count": 4,
+    "last_applied_move_count": 4
+  },
+  "routing_cache_summary": {
+    "route_result_hits": 26317,
+    "route_result_misses": 349625,
+    "shortest_path_hits": 0,
+    "shortest_path_misses": 0,
+    "precomputed_slots": 606,
+    "precomputed_nodes": 180
+  },
+  "route_estimate_cache_summary": {
+    "hits": 88619,
+    "misses": 348781
+  }
+}
