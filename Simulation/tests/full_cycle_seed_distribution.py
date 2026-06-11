@@ -42,6 +42,7 @@ from ..domain.request import (
 ROOT_DIR = Path(__file__).resolve().parents[2]
 DEFAULT_MODEL_ROOT = ROOT_DIR / "Simulation" / "multi_seed_runs"
 DEFAULT_OUTPUT_DIR = ROOT_DIR / "Simulation" / "test_outputs" / "full_cycle_seed_distribution"
+DEFAULT_ISL_CSV = ROOT_DIR / "WalkerDeltaConstellationSimu" / "Walker_Delta_ISL_Simu.csv"
 
 
 def parse_args() -> argparse.Namespace:
@@ -272,6 +273,17 @@ def config_kwargs_from_training_json(path: Path) -> dict:
     return kwargs
 
 
+def resolve_isl_csv_path(path: Path | None) -> Path:
+    if path is None:
+        return DEFAULT_ISL_CSV
+    path = Path(path)
+    if path.exists():
+        return path
+    if path.name == DEFAULT_ISL_CSV.name and DEFAULT_ISL_CSV.exists():
+        return DEFAULT_ISL_CSV
+    return path
+
+
 def build_config(
     args: argparse.Namespace,
     seed: int,
@@ -279,10 +291,13 @@ def build_config(
     output_dir: Path,
 ) -> SimulationConfig:
     kwargs = config_kwargs_from_training_json(run_dir / "training_config.json")
+    isl_csv = resolve_isl_csv_path(
+        args.isl_csv or kwargs.get("isl_log_csv", SimulationConfig().isl_log_csv)
+    )
     kwargs.update(
         {
             "random_seed": seed,
-            "isl_log_csv": args.isl_csv or kwargs.get("isl_log_csv", SimulationConfig().isl_log_csv),
+            "isl_log_csv": isl_csv,
             "max_slots_to_load": args.max_slots,
             "process_single_request": False,
             "output_dir": output_dir,

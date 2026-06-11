@@ -6,11 +6,11 @@
     44,
     45
   ],
-  "output_dir": "/home/yhg/StkCode/Simulation/test_outputs/ablation_experiments/nearest_replica",
-  "slot_metrics_csv": "/home/yhg/StkCode/Simulation/test_outputs/ablation_experiments/nearest_replica/slot_metrics_by_seed.csv",
-  "request_metrics_csv": "/home/yhg/StkCode/Simulation/test_outputs/ablation_experiments/nearest_replica/request_metrics_by_seed.csv",
-  "delay_plot": "/home/yhg/StkCode/Simulation/test_outputs/ablation_experiments/nearest_replica/slot_mean_delay_distribution_by_seed.png",
-  "energy_plot": "/home/yhg/StkCode/Simulation/test_outputs/ablation_experiments/nearest_replica/slot_mean_energy_distribution_by_seed.png",
+  "output_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/nearest_replica",
+  "slot_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/nearest_replica/slot_metrics_by_seed.csv",
+  "request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/nearest_replica/request_metrics_by_seed.csv",
+  "delay_plot": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/nearest_replica/slot_mean_delay_distribution_by_seed.png",
+  "energy_plot": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/nearest_replica/slot_mean_energy_distribution_by_seed.png",
   "seed_summaries": [
     {
       "ablation": "nearest_replica",

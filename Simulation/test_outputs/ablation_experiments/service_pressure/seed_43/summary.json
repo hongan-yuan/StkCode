@@ -1,0 +1,60 @@
+{
+  "ablation": "service_pressure",
+  "seed": 43,
+  "run_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_43",
+  "slot_count": 606,
+  "slot_duration_s": 10.0,
+  "request_template_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_43/request_templates.csv",
+  "request_templates_loaded": true,
+  "request_template_count": 14,
+  "checkpoint": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_43/ppo_gnn_latest.pth",
+  "checkpoint_loaded": false,
+  "checkpoint_load_error": "",
+  "execution_agent": "ServicePressureExecutionAgent",
+  "service_routing_strategy": "service_pressure",
+  "bandit_redeployment_enabled": true,
+  "bandit_arm_stats": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_43/bandit_arm_stats.csv",
+  "bandit_loaded_arm_count": 656,
+  "arrival_lambda_per_pattern_per_slot": 0.35,
+  "overall_summary": {
+    "request_count": 3007,
+    "feasible_count": 3007,
+    "success_rate": 1.0,
+    "average_end_to_end_delay_s": 49.82713660285015,
+    "p95_end_to_end_delay_s": 91.01509647482271,
+    "average_energy_j": 1904.1343644446824,
+    "average_communication_delay_s": 2.0737804396242585,
+    "average_slot_crossings": 0.16659016142605768,
+    "route_mode_counts": {
+      "service_pressure_backpressure": 26142
+    }
+  },
+  "bandit_summary": {
+    "total_pulls": 5304,
+    "known_arm_count": 675,
+    "positive_arm_count": 671,
+    "average_arm_reward": 1.1260820908001268,
+    "total_applied_actions": 240,
+    "total_execution_feedback_updates": 2640,
+    "total_failed_replica_observations": 0,
+    "known_failed_replica_count": 0,
+    "known_service_pressure_metric_count": 30,
+    "total_applied_add_count": 46,
+    "total_applied_move_count": 194,
+    "last_applied_action_count": 4,
+    "last_applied_move_count": 4,
+    "last_unresolved_arm_count": 1
+  },
+  "routing_cache_summary": {
+    "route_result_hits": 46,
+    "route_result_misses": 540,
+    "shortest_path_hits": 0,
+    "shortest_path_misses": 0,
+    "precomputed_slots": 606,
+    "precomputed_nodes": 180
+  },
+  "route_estimate_cache_summary": {
+    "hits": 0,
+    "misses": 0
+  }
+}

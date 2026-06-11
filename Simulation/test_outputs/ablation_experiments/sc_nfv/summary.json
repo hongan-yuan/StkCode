@@ -1,0 +1,258 @@
+{
+  "ablation": "sc_nfv",
+  "seeds": [
+    41,
+    42,
+    43,
+    44
+  ],
+  "output_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/sc_nfv",
+  "slot_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/sc_nfv/slot_metrics_by_seed.csv",
+  "request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/sc_nfv/request_metrics_by_seed.csv",
+  "delay_plot": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/sc_nfv/slot_mean_delay_distribution_by_seed.png",
+  "energy_plot": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/sc_nfv/slot_mean_energy_distribution_by_seed.png",
+  "seed_summaries": [
+    {
+      "ablation": "sc_nfv",
+      "seed": 41,
+      "run_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_41",
+      "slot_count": 606,
+      "slot_duration_s": 10.0,
+      "request_template_csv": null,
+      "request_templates_loaded": false,
+      "request_template_count": 14,
+      "checkpoint": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_41/ppo_gnn_latest.pth",
+      "checkpoint_loaded": false,
+      "checkpoint_load_error": "",
+      "execution_agent": "SCNFVChainingOrbitExecutionAgent",
+      "service_routing_strategy": "min_cost_max_flow",
+      "bandit_redeployment_enabled": true,
+      "bandit_arm_stats": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_41/bandit_arm_stats.csv",
+      "bandit_loaded_arm_count": 0,
+      "arrival_lambda_per_pattern_per_slot": 0.35,
+      "overall_summary": {
+        "request_count": 3057,
+        "feasible_count": 3057,
+        "success_rate": 1.0,
+        "average_end_to_end_delay_s": 41.871349694756326,
+        "p95_end_to_end_delay_s": 80.06119047459106,
+        "average_energy_j": 1778.1938403286492,
+        "average_communication_delay_s": 1.8202324202883566,
+        "average_slot_crossings": 0.16578352540111907,
+        "route_mode_counts": {
+          "local": 552,
+          "min_cost_max_flow": 26435
+        }
+      },
+      "bandit_summary": {
+        "total_pulls": 480,
+        "known_arm_count": 120,
+        "positive_arm_count": 120,
+        "average_arm_reward": 1.481474598860178,
+        "total_applied_actions": 240,
+        "total_execution_feedback_updates": 240,
+        "total_failed_replica_observations": 0,
+        "known_failed_replica_count": 0,
+        "known_service_pressure_metric_count": 29,
+        "total_applied_add_count": 16,
+        "total_applied_move_count": 224,
+        "last_applied_action_count": 4,
+        "last_applied_move_count": 4,
+        "last_unresolved_arm_count": 1
+      },
+      "routing_cache_summary": {
+        "route_result_hits": 26694,
+        "route_result_misses": 632399,
+        "shortest_path_hits": 0,
+        "shortest_path_misses": 0,
+        "precomputed_slots": 606,
+        "precomputed_nodes": 180
+      },
+      "route_estimate_cache_summary": {
+        "hits": 58462,
+        "misses": 631736
+      }
+    },
+    {
+      "ablation": "sc_nfv",
+      "seed": 42,
+      "run_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_42",
+      "slot_count": 606,
+      "slot_duration_s": 10.0,
+      "request_template_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_42/request_templates.csv",
+      "request_templates_loaded": true,
+      "request_template_count": 14,
+      "checkpoint": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_42/ppo_gnn_latest.pth",
+      "checkpoint_loaded": false,
+      "checkpoint_load_error": "",
+      "execution_agent": "SCNFVChainingOrbitExecutionAgent",
+      "service_routing_strategy": "min_cost_max_flow",
+      "bandit_redeployment_enabled": true,
+      "bandit_arm_stats": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_42/bandit_arm_stats.csv",
+      "bandit_loaded_arm_count": 638,
+      "arrival_lambda_per_pattern_per_slot": 0.35,
+      "overall_summary": {
+        "request_count": 3000,
+        "feasible_count": 2999,
+        "success_rate": 0.9996666666666667,
+        "average_end_to_end_delay_s": 42.00696552282596,
+        "p95_end_to_end_delay_s": 77.19575972333632,
+        "average_energy_j": 1818.5943347347702,
+        "average_communication_delay_s": 1.6151828629455356,
+        "average_slot_crossings": 0.1457122501781094,
+        "route_mode_counts": {
+          "min_cost_max_flow": 26147,
+          "local": 522
+        }
+      },
+      "bandit_summary": {
+        "total_pulls": 5284,
+        "known_arm_count": 653,
+        "positive_arm_count": 650,
+        "average_arm_reward": 1.130381265498458,
+        "total_applied_actions": 240,
+        "total_execution_feedback_updates": 2640,
+        "total_failed_replica_observations": 1,
+        "known_failed_replica_count": 1,
+        "known_service_pressure_metric_count": 30,
+        "total_applied_add_count": 32,
+        "total_applied_move_count": 208,
+        "last_applied_action_count": 4,
+        "last_applied_move_count": 4,
+        "last_unresolved_arm_count": 1
+      },
+      "routing_cache_summary": {
+        "route_result_hits": 26379,
+        "route_result_misses": 627079,
+        "shortest_path_hits": 0,
+        "shortest_path_misses": 0,
+        "precomputed_slots": 606,
+        "precomputed_nodes": 180
+      },
+      "route_estimate_cache_summary": {
+        "hits": 58817,
+        "misses": 626297
+      }
+    },
+    {
+      "ablation": "sc_nfv",
+      "seed": 43,
+      "run_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_43",
+      "slot_count": 606,
+      "slot_duration_s": 10.0,
+      "request_template_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_43/request_templates.csv",
+      "request_templates_loaded": true,
+      "request_template_count": 14,
+      "checkpoint": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_43/ppo_gnn_latest.pth",
+      "checkpoint_loaded": false,
+      "checkpoint_load_error": "",
+      "execution_agent": "SCNFVChainingOrbitExecutionAgent",
+      "service_routing_strategy": "min_cost_max_flow",
+      "bandit_redeployment_enabled": true,
+      "bandit_arm_stats": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_43/bandit_arm_stats.csv",
+      "bandit_loaded_arm_count": 656,
+      "arrival_lambda_per_pattern_per_slot": 0.35,
+      "overall_summary": {
+        "request_count": 2986,
+        "feasible_count": 2986,
+        "success_rate": 1.0,
+        "average_end_to_end_delay_s": 44.86171992109109,
+        "p95_end_to_end_delay_s": 83.432687365314,
+        "average_energy_j": 1909.228847521119,
+        "average_communication_delay_s": 1.7032438514725516,
+        "average_slot_crossings": 0.1534992107043524,
+        "route_mode_counts": {
+          "min_cost_max_flow": 25531,
+          "local": 1075
+        }
+      },
+      "bandit_summary": {
+        "total_pulls": 5304,
+        "known_arm_count": 679,
+        "positive_arm_count": 675,
+        "average_arm_reward": 1.1321517324405315,
+        "total_applied_actions": 240,
+        "total_execution_feedback_updates": 2640,
+        "total_failed_replica_observations": 0,
+        "known_failed_replica_count": 0,
+        "known_service_pressure_metric_count": 30,
+        "total_applied_add_count": 45,
+        "total_applied_move_count": 195,
+        "last_applied_action_count": 4,
+        "last_applied_move_count": 4
+      },
+      "routing_cache_summary": {
+        "route_result_hits": 26307,
+        "route_result_misses": 626269,
+        "shortest_path_hits": 0,
+        "shortest_path_misses": 0,
+        "precomputed_slots": 606,
+        "precomputed_nodes": 180
+      },
+      "route_estimate_cache_summary": {
+        "hits": 60205,
+        "misses": 625388
+      }
+    },
+    {
+      "ablation": "sc_nfv",
+      "seed": 44,
+      "run_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_44",
+      "slot_count": 606,
+      "slot_duration_s": 10.0,
+      "request_template_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_44/request_templates.csv",
+      "request_templates_loaded": true,
+      "request_template_count": 14,
+      "checkpoint": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_44/ppo_gnn_latest.pth",
+      "checkpoint_loaded": false,
+      "checkpoint_load_error": "",
+      "execution_agent": "SCNFVChainingOrbitExecutionAgent",
+      "service_routing_strategy": "min_cost_max_flow",
+      "bandit_redeployment_enabled": true,
+      "bandit_arm_stats": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_44/bandit_arm_stats.csv",
+      "bandit_loaded_arm_count": 470,
+      "arrival_lambda_per_pattern_per_slot": 0.35,
+      "overall_summary": {
+        "request_count": 2921,
+        "feasible_count": 2921,
+        "success_rate": 1.0,
+        "average_end_to_end_delay_s": 41.52725702126935,
+        "p95_end_to_end_delay_s": 83.2352717770874,
+        "average_energy_j": 1746.1587978941332,
+        "average_communication_delay_s": 1.6149653359083362,
+        "average_slot_crossings": 0.14867229112398428,
+        "route_mode_counts": {
+          "min_cost_max_flow": 24787,
+          "local": 934
+        }
+      },
+      "bandit_summary": {
+        "total_pulls": 5280,
+        "known_arm_count": 500,
+        "positive_arm_count": 500,
+        "average_arm_reward": 1.2974960154127846,
+        "total_applied_actions": 240,
+        "total_execution_feedback_updates": 2640,
+        "total_failed_replica_observations": 0,
+        "known_failed_replica_count": 0,
+        "known_service_pressure_metric_count": 30,
+        "total_applied_add_count": 36,
+        "total_applied_move_count": 204,
+        "last_applied_action_count": 4,
+        "last_applied_move_count": 4
+      },
+      "routing_cache_summary": {
+        "route_result_hits": 25353,
+        "route_result_misses": 594971,
+        "shortest_path_hits": 0,
+        "shortest_path_misses": 0,
+        "precomputed_slots": 606,
+        "precomputed_nodes": 180
+      },
+      "route_estimate_cache_summary": {
+        "hits": 57558,
+        "misses": 594085
+      }
+    }
+  ]
+}
