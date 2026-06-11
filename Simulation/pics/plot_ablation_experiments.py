@@ -206,6 +206,19 @@ def load_slot_rows(input_dir: Path) -> list[dict]:
     return rows
 
 
+def load_cycle_rows(input_dir: Path) -> list[dict]:
+    rows = read_csv_rows(input_dir / "all_ablation_cycle_metrics.csv")
+    if rows:
+        return rows
+    rows = []
+    for variant_dir in sorted(path for path in input_dir.iterdir() if path.is_dir()):
+        metrics_path = variant_dir / "cycle_metrics_by_seed.csv"
+        for row in read_csv_rows(metrics_path):
+            row.setdefault("ablation", variant_dir.name)
+            rows.append(row)
+    return rows
+
+
 def aggregate_by_slot(
     rows: list[dict],
     ablations: list[str],
@@ -570,6 +583,7 @@ def main() -> None:
     args = parse_args()
     ablations = parse_names(args.ablations)
     rows = load_slot_rows(args.input_dir)
+    cycle_rows = load_cycle_rows(args.input_dir)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     fmt = "svg" if args.format == "png" and plt is None else args.format
 
@@ -580,7 +594,8 @@ def main() -> None:
         "average_energy_j",
         "p95_end_to_end_delay_s",
     ]
-    summaries = summary_means(rows, ablations, summary_metrics)
+    summary_rows = cycle_rows if cycle_rows else rows
+    summaries = summary_means(summary_rows, ablations, summary_metrics)
     generated.append(
         plot_summary_bar(
             args.output_dir / "ablation_metric_summary",

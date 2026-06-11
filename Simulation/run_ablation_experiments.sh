@@ -249,6 +249,7 @@ def write_rows(path, rows):
 
 slot_rows = []
 request_rows = []
+cycle_rows = []
 for ablation in ablations:
     variant_dir = output_root / ablation
     for row in read_rows(variant_dir / "slot_metrics_by_seed.csv"):
@@ -257,9 +258,13 @@ for ablation in ablations:
     for row in read_rows(variant_dir / "request_metrics_by_seed.csv"):
         row.setdefault("ablation", ablation)
         request_rows.append(row)
+    for row in read_rows(variant_dir / "cycle_metrics_by_seed.csv"):
+        row.setdefault("ablation", ablation)
+        cycle_rows.append(row)
 
 write_rows(output_root / "all_ablation_slot_metrics.csv", slot_rows)
 write_rows(output_root / "all_ablation_request_metrics.csv", request_rows)
+write_rows(output_root / "all_ablation_cycle_metrics.csv", cycle_rows)
 
 metric_columns = [
     "task_completion_rate",
@@ -276,8 +281,12 @@ metric_columns = [
 
 summary_rows = []
 for ablation in ablations:
-    rows = [row for row in slot_rows if row.get("ablation") == ablation]
-    summary = {"ablation": ablation, "slot_count": len(rows)}
+    rows = [row for row in cycle_rows if row.get("ablation") == ablation]
+    if not rows:
+        rows = [row for row in slot_rows if row.get("ablation") == ablation]
+    summary = {"ablation": ablation, "row_count": len(rows)}
+    slot_count = len([row for row in slot_rows if row.get("ablation") == ablation])
+    summary["slot_count"] = slot_count
     seeds = sorted({row.get("seed", "") for row in rows if row.get("seed", "")})
     summary["seed_count"] = len(seeds)
     summary["seeds"] = " ".join(seeds)

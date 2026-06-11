@@ -396,6 +396,38 @@ def generate_slot_arrivals(
     }
 
 
+def generate_slot_arrivals_total_poisson(
+    rng: random.Random,
+    context: dict,
+    templates: list[SFCRequest],
+    absolute_slot: int,
+    next_request_id: int,
+    arrival_lambda_total_per_slot: float,
+) -> tuple[list[SFCRequest], int, dict]:
+    if not templates:
+        raise ValueError("At least one request template is required.")
+
+    arrivals: list[SFCRequest] = []
+    counts_by_template = {template.request_id: 0 for template in templates}
+    arrival_count = poisson_sample(rng, arrival_lambda_total_per_slot)
+    for _ in range(arrival_count):
+        template = rng.choice(templates)
+        counts_by_template[template.request_id] += 1
+        arrivals.append(
+            instantiate_request_from_template(
+                rng, context, template, next_request_id, absolute_slot
+            )
+        )
+        next_request_id += 1
+    arrivals.sort(key=lambda request: request.start_time)
+
+    return arrivals, next_request_id, {
+        "arrival_count": len(arrivals),
+        "arrival_lambda_total_per_slot": arrival_lambda_total_per_slot,
+        "arrival_counts_by_template": counts_by_template,
+    }
+
+
 def parse_list_field(value: str) -> list:
     if value in ("", "None", None):
         return []

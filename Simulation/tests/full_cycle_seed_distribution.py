@@ -35,6 +35,7 @@ from ..domain.request import (
     SFCRequest,
     generate_request_templates,
     generate_slot_arrivals,
+    generate_slot_arrivals_total_poisson,
     load_request_templates,
 )
 
@@ -99,6 +100,33 @@ def parse_args() -> argparse.Namespace:
             "Override the Poisson lambda per request-chain template per slot. "
             "By default the value from training_config.json or SimulationConfig is used."
         ),
+    )
+    parser.add_argument(
+        "--arrival-mode",
+        choices=("per_template", "total_per_slot"),
+        default="per_template",
+        help=(
+            "per_template samples one Poisson arrival count per request template. "
+            "total_per_slot samples one total Poisson count per slot and then "
+            "draws templates uniformly from the selected template pool."
+        ),
+    )
+    parser.add_argument(
+        "--total-arrival-lambda",
+        type=float,
+        default=None,
+        help=(
+            "Poisson lambda for total arrivals per slot when --arrival-mode "
+            "total_per_slot is used. Defaults to per-template lambda times the "
+            "selected template count."
+        ),
+    )
+    parser.add_argument(
+        "--chain-length-filter",
+        type=int,
+        choices=(5, 10, 15),
+        default=None,
+        help="Restrict evaluation to request templates with this chain length.",
     )
     parser.add_argument(
         "--bandit-period-slots",
@@ -326,6 +354,57 @@ def load_or_generate_templates(
     return generate_request_templates(rng, context), None, False
 
 
+def filter_templates_by_chain_length(
+    templates: list[SFCRequest],
+    chain_length: int | None,
+) -> list[SFCRequest]:
+    if chain_length is None:
+        return list(templates)
+    filtered = [
+        template for template in templates if len(template.services) == chain_length
+    ]
+    if not filtered:
+        raise SystemExit(f"No request templates found with chain length {chain_length}.")
+    return filtered
+
+
+def total_arrival_lambda(
+    args: argparse.Namespace,
+    config: SimulationConfig,
+    template_count: int,
+) -> float:
+    if args.total_arrival_lambda is not None:
+        return args.total_arrival_lambda
+    return config.request_arrival_lambda_per_pattern_per_slot * template_count
+
+
+def generate_arrivals_for_slot(
+    args: argparse.Namespace,
+    rng: random.Random,
+    context: dict,
+    templates: list[SFCRequest],
+    absolute_slot: int,
+    next_request_id: int,
+) -> tuple[list[SFCRequest], int, dict]:
+    config: SimulationConfig = context["config"]
+    if args.arrival_mode == "total_per_slot":
+        return generate_slot_arrivals_total_poisson(
+            rng,
+            context,
+            templates,
+            absolute_slot,
+            next_request_id,
+            total_arrival_lambda(args, config, len(templates)),
+        )
+    return generate_slot_arrivals(
+        rng,
+        context,
+        templates,
+        absolute_slot,
+        next_request_id,
+    )
+
+
 def request_metric_row(
     ablation: str,
     seed: int,
@@ -364,6 +443,40 @@ def flatten_route_counts(route_mode_counts: dict) -> dict:
         f"route_mode_{mode}_count": count
         for mode, count in sorted(route_mode_counts.items())
         if mode
+    }
+
+
+def cycle_metric_row(summary: dict) -> dict:
+    overall = summary.get("overall_summary", {})
+    route_mode_counts = overall.get("route_mode_counts", {})
+    request_count = int(overall.get("request_count") or 0)
+    feasible_count = int(overall.get("feasible_count") or 0)
+    task_completion_rate = (
+        feasible_count / request_count if request_count > 0 else 0.0
+    )
+    return {
+        "ablation": summary.get("ablation", ""),
+        "seed": summary.get("seed", ""),
+        "chain_length_filter": summary.get("chain_length_filter", ""),
+        "arrival_mode": summary.get("arrival_mode", ""),
+        "arrival_lambda_total_per_slot": summary.get(
+            "arrival_lambda_total_per_slot", ""
+        ),
+        "template_count": summary.get("request_template_count", ""),
+        "slot_count": summary.get("slot_count", ""),
+        "request_count": request_count,
+        "feasible_count": feasible_count,
+        "failure_count": max(0, request_count - feasible_count),
+        "success_rate": task_completion_rate,
+        "task_completion_rate": task_completion_rate,
+        "average_end_to_end_delay_s": overall.get("average_end_to_end_delay_s", ""),
+        "average_energy_j": overall.get("average_energy_j", ""),
+        "p95_end_to_end_delay_s": overall.get("p95_end_to_end_delay_s", ""),
+        "average_communication_delay_s": overall.get(
+            "average_communication_delay_s", ""
+        ),
+        "average_slot_crossings": overall.get("average_slot_crossings", ""),
+        **flatten_route_counts(route_mode_counts),
     }
 
 
@@ -558,6 +671,8 @@ def aggregate_outputs(
 ) -> dict:
     write_csv(args.output_dir / "slot_metrics_by_seed.csv", all_slot_rows)
     write_csv(args.output_dir / "request_metrics_by_seed.csv", all_request_rows)
+    cycle_rows = [cycle_metric_row(summary) for summary in summaries]
+    write_csv(args.output_dir / "cycle_metrics_by_seed.csv", cycle_rows)
     delay_plot = plot_distribution(
         args.output_dir,
         seeds,
@@ -582,6 +697,7 @@ def aggregate_outputs(
         "output_dir": args.output_dir,
         "slot_metrics_csv": args.output_dir / "slot_metrics_by_seed.csv",
         "request_metrics_csv": args.output_dir / "request_metrics_by_seed.csv",
+        "cycle_metrics_csv": args.output_dir / "cycle_metrics_by_seed.csv",
         "delay_plot": delay_plot,
         "energy_plot": energy_plot,
         "seed_summaries": summaries,
@@ -639,7 +755,9 @@ def run_seed(
     templates, template_csv, templates_loaded = load_or_generate_templates(
         args, run_dir, arrival_rng, env.context
     )
-    if len(templates) != 14:
+    original_template_count = len(templates)
+    templates = filter_templates_by_chain_length(templates, args.chain_length_filter)
+    if args.chain_length_filter is None and len(templates) != 14:
         print(f"Warning: seed={seed} has {len(templates)} request templates, expected 14.")
 
     checkpoint = run_dir / args.checkpoint_name
@@ -651,6 +769,8 @@ def run_seed(
     request_rows: list[dict] = []
     all_results: list[dict] = []
     next_request_id = 1
+    cumulative_request_count = 0
+    cumulative_feasible_count = 0
     bandit_window_requests = []
     bandit_feedback_results = []
     pending_migration_actions = []
@@ -664,12 +784,8 @@ def run_seed(
     for epoch in range(1, slot_count + 1):
         absolute_slot = epoch - 1
         slot_mod = absolute_slot % slot_count
-        arrivals, next_request_id, arrival_info = generate_slot_arrivals(
-            arrival_rng,
-            env.context,
-            templates,
-            absolute_slot,
-            next_request_id,
+        arrivals, next_request_id, arrival_info = generate_arrivals_for_slot(
+            args, arrival_rng, env.context, templates, absolute_slot, next_request_id
         )
         results = env.execute_requests(arrivals, agent)
         if bandit_enabled:
@@ -700,6 +816,13 @@ def run_seed(
             bandit_updated = True
 
         summary = summarize_results(results)
+        cumulative_request_count += summary["request_count"]
+        cumulative_feasible_count += summary["feasible_count"]
+        cumulative_task_completion_rate = (
+            cumulative_feasible_count / cumulative_request_count
+            if cumulative_request_count
+            else 0.0
+        )
         total_reward = sum(float(result.get("reward", 0.0)) for result in results)
         route_mode_counts = route_mode_counts_for_results(results)
         row = {
@@ -715,7 +838,11 @@ def run_seed(
             "feasible_count": summary["feasible_count"],
             "failure_count": route_failure_count(results),
             "success_rate": summary["success_rate"],
-            "task_completion_rate": summary["success_rate"],
+            "slot_success_rate": summary["success_rate"],
+            "cumulative_request_count": cumulative_request_count,
+            "cumulative_feasible_count": cumulative_feasible_count,
+            "task_completion_rate": cumulative_task_completion_rate,
+            "cumulative_task_completion_rate": cumulative_task_completion_rate,
             "average_end_to_end_delay_s": summary["average_end_to_end_delay_s"],
             "average_energy_j": summary["average_energy_j"],
             "total_reward": total_reward,
@@ -764,6 +891,14 @@ def run_seed(
         "request_template_csv": template_csv,
         "request_templates_loaded": templates_loaded,
         "request_template_count": len(templates),
+        "original_request_template_count": original_template_count,
+        "chain_length_filter": args.chain_length_filter,
+        "arrival_mode": args.arrival_mode,
+        "arrival_lambda_total_per_slot": (
+            total_arrival_lambda(args, config, len(templates))
+            if args.arrival_mode == "total_per_slot"
+            else None
+        ),
         "checkpoint": checkpoint,
         "checkpoint_loaded": checkpoint_loaded,
         "checkpoint_load_error": checkpoint_load_error,
