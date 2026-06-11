@@ -13,8 +13,9 @@ MODEL_ROOT="${MODEL_ROOT:-${SCRIPT_DIR}/multi_seed_runs}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-${SCRIPT_DIR}/test_outputs/chain_length_ablation_experiments}"
 DEFAULT_ISL_CSV="${PROJECT_ROOT}/WalkerDeltaConstellationSimu/Walker_Delta_ISL_Simu.csv"
 ISL_CSV="${ISL_CSV:-${DEFAULT_ISL_CSV}}"
-DEVICE="${DEVICE:-cpu}"
+DEVICE="${DEVICE:-cuda}"
 CPU_WORKERS="${CPU_WORKERS:-4}"
+GPU_WORKERS_PER_GPU="${GPU_WORKERS_PER_GPU:-9}"
 TOTAL_ARRIVAL_LAMBDA="${TOTAL_ARRIVAL_LAMBDA:-4.9}"
 BANDIT_PERIOD_SLOTS="${BANDIT_PERIOD_SLOTS:-10}"
 CHECKPOINT_NAME="${CHECKPOINT_NAME:-ppo_gnn_latest.pth}"
@@ -87,17 +88,19 @@ if [[ "${DEVICE}" == "cpu" ]]; then
   echo "  cpu_workers: ${CPU_WORKERS}"
 else
   echo "  gpus: ${GPUS}"
+  echo "  gpu_workers_per_gpu: ${GPU_WORKERS_PER_GPU}"
 fi
 
 if [[ "${DEVICE}" == "cpu" ]]; then
   max_parallel="${MAX_PARALLEL:-${CPU_WORKERS}}"
 else
   gpu_count="${#GPU_ARRAY[@]}"
-  max_parallel="${MAX_PARALLEL:-${gpu_count}}"
+  max_parallel="${MAX_PARALLEL:-$((gpu_count * GPU_WORKERS_PER_GPU))}"
 fi
+echo "  max_parallel_tasks: ${max_parallel}"
 
 if [[ "${max_parallel}" -lt 1 ]]; then
-  echo "MAX_PARALLEL/CPU_WORKERS must be at least 1, got: ${max_parallel}" >&2
+  echo "MAX_PARALLEL/CPU_WORKERS/GPU_WORKERS_PER_GPU must be at least 1, got: ${max_parallel}" >&2
   exit 1
 fi
 
