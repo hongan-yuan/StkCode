@@ -296,13 +296,23 @@ class SimulationEnvironment:
             accumulated_delay = current_time - request.start_time
             current_node = decision.selected_node
 
-        final_route = route_data(
-            current_node,
-            request.destination_node,
-            request.output_data_gb,
-            current_time,
-            self.context,
-        )
+        route_to_destination = getattr(agent, "route_to_destination", None)
+        if callable(route_to_destination):
+            final_route = route_to_destination(
+                request,
+                current_node,
+                current_time,
+                request.output_data_gb,
+                self.context,
+            )
+        else:
+            final_route = route_data(
+                current_node,
+                request.destination_node,
+                request.output_data_gb,
+                current_time,
+                self.context,
+            )
         if not final_route["reachable"]:
             self._finalize_agent_episode(
                 agent, self._reward(accumulated_delay, accumulated_energy, False),

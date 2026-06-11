@@ -5,16 +5,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 PYTHON_BIN="${PYTHON_BIN:-python}"
-SEEDS="${SEEDS:-42 43 44 45}"
+SEEDS="${SEEDS:-41 42 43 44}"
+RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-service_pressure sc_nfv}}"
+MERGE_ABLATIONS="${MERGE_ABLATIONS:-full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv}"
 GPUS="${GPUS:-0 1 2 3}"
-ABLATIONS="${ABLATIONS:-full no_bandit shortest_hop_routing nearest_replica}"
 MODEL_ROOT="${MODEL_ROOT:-${SCRIPT_DIR}/multi_seed_runs}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-${SCRIPT_DIR}/test_outputs/ablation_experiments}"
-DEVICE="${DEVICE:-cuda}"
+DEVICE="${DEVICE:-cpu}"
 BANDIT_PERIOD_SLOTS="${BANDIT_PERIOD_SLOTS:-10}"
 CHECKPOINT_NAME="${CHECKPOINT_NAME:-ppo_gnn_latest.pth}"
 BANDIT_STATS_NAME="${BANDIT_STATS_NAME:-bandit_arm_stats.csv}"
 PROGRESS_EVERY="${PROGRESS_EVERY:-25}"
+CPU_WORKERS="${CPU_WORKERS:-4}"
 
 common_args=(
   --model-root "${MODEL_ROOT}"
@@ -50,56 +52,131 @@ fi
 
 read -r -a SEED_ARRAY <<< "${SEEDS}"
 read -r -a GPU_ARRAY <<< "${GPUS}"
-read -r -a ABLATION_ARRAY <<< "${ABLATIONS}"
+read -r -a RUN_ABLATION_ARRAY <<< "${RUN_ABLATIONS}"
+read -r -a MERGE_ABLATION_ARRAY <<< "${MERGE_ABLATIONS}"
 
 if [[ "${#SEED_ARRAY[@]}" -eq 0 ]]; then
   echo "Expected at least one seed, got: ${SEEDS}" >&2
   exit 1
 fi
 
-if [[ "${#GPU_ARRAY[@]}" -eq 0 ]]; then
+if [[ "${DEVICE}" != "cpu" && "${#GPU_ARRAY[@]}" -eq 0 ]]; then
   echo "Expected at least one GPU id, got: ${GPUS}" >&2
   exit 1
 fi
 
-if [[ "${#ABLATION_ARRAY[@]}" -eq 0 ]]; then
-  echo "Expected at least one ablation variant, got: ${ABLATIONS}" >&2
+if [[ "${#RUN_ABLATION_ARRAY[@]}" -eq 0 ]]; then
+  echo "Expected at least one ablation variant to run, got: ${RUN_ABLATIONS}" >&2
+  exit 1
+fi
+
+if [[ "${#MERGE_ABLATION_ARRAY[@]}" -eq 0 ]]; then
+  echo "Expected at least one ablation variant to merge, got: ${MERGE_ABLATIONS}" >&2
   exit 1
 fi
 
 mkdir -p "${OUTPUT_ROOT}"
 
 echo "Running ablation experiments"
-echo "  ablations: ${ABLATIONS}"
+echo "  run_ablations: ${RUN_ABLATIONS}"
+echo "  merge_ablations: ${MERGE_ABLATIONS}"
 echo "  seeds: ${SEEDS}"
-echo "  gpus: ${GPUS}"
+if [[ "${DEVICE}" == "cpu" ]]; then
+  echo "  cpu_workers: ${CPU_WORKERS}"
+else
+  echo "  gpus: ${GPUS}"
+fi
 echo "  model_root: ${MODEL_ROOT}"
 echo "  output_root: ${OUTPUT_ROOT}"
 echo "  device: ${DEVICE}"
 
-gpu_count="${#GPU_ARRAY[@]}"
-task_index=0
-pids=()
+if [[ "${DEVICE}" == "cpu" ]]; then
+  max_parallel="${MAX_PARALLEL:-${CPU_WORKERS}}"
+else
+  gpu_count="${#GPU_ARRAY[@]}"
+  max_parallel="${MAX_PARALLEL:-${gpu_count}}"
+fi
+if [[ "${max_parallel}" -lt 1 ]]; then
+  echo "MAX_PARALLEL/CPU_WORKERS must be at least 1, got: ${max_parallel}" >&2
+  exit 1
+fi
 
-for ablation in "${ABLATION_ARRAY[@]}"; do
+task_index=0
+failed=0
+pids=()
+labels=()
+
+wait_active_tasks() {
+  local i
+  for i in "${!pids[@]}"; do
+    if ! wait "${pids[$i]}"; then
+      echo "Task failed: ${labels[$i]}" >&2
+      failed=1
+    fi
+  done
+  pids=()
+  labels=()
+}
+
+wait_for_slot() {
+  if [[ "${#pids[@]}" -ge "${max_parallel}" ]]; then
+    wait_active_tasks
+  fi
+}
+
+existing_seed_list() {
+  local variant_dir="$1"
+  local seed_dirs=()
+  local seed_dir seed
+  for seed_dir in "${variant_dir}"/seed_*; do
+    [[ -d "${seed_dir}" ]] || continue
+    [[ -f "${seed_dir}/slot_metrics.csv" ]] || continue
+    seed="${seed_dir##*/seed_}"
+    seed_dirs+=("${seed}")
+  done
+  if [[ "${#seed_dirs[@]}" -eq 0 ]]; then
+    return 1
+  fi
+  printf '%s\n' "${seed_dirs[@]}" | sort -n | tr '\n' ' ' | sed 's/[[:space:]]*$//'
+}
+
+for ablation in "${RUN_ABLATION_ARRAY[@]}"; do
   variant_dir="${OUTPUT_ROOT}/${ablation}"
   mkdir -p "${variant_dir}"
   for seed in "${SEED_ARRAY[@]}"; do
-    gpu="${GPU_ARRAY[$((task_index % gpu_count))]}"
+    wait_for_slot
     log_file="${variant_dir}/seed_${seed}.log"
-    echo "Launching ablation=${ablation} seed=${seed} on GPU=${gpu}; log=${log_file}"
-    (
-      cd "${PROJECT_ROOT}"
-      CUDA_VISIBLE_DEVICES="${gpu}" "${PYTHON_BIN}" -m Simulation.tests.full_cycle_seed_distribution \
-        --ablation "${ablation}" \
-        --seeds "${seed}" \
-        --output-dir "${variant_dir}" \
-        --device "${DEVICE}" \
-        --skip-aggregate \
-        "${common_args[@]}" \
-        "$@"
-    ) > "${log_file}" 2>&1 &
+    label="ablation=${ablation} seed=${seed}"
+    if [[ "${DEVICE}" == "cpu" ]]; then
+      echo "Launching ${label} on CPU; log=${log_file}"
+      (
+        cd "${PROJECT_ROOT}"
+        CUDA_VISIBLE_DEVICES="" "${PYTHON_BIN}" -m Simulation.tests.full_cycle_seed_distribution \
+          --ablation "${ablation}" \
+          --seeds "${seed}" \
+          --output-dir "${variant_dir}" \
+          --device "${DEVICE}" \
+          --skip-aggregate \
+          "${common_args[@]}" \
+          "$@"
+      ) > "${log_file}" 2>&1 &
+    else
+      gpu="${GPU_ARRAY[$((task_index % gpu_count))]}"
+      echo "Launching ${label} on GPU=${gpu}; log=${log_file}"
+      (
+        cd "${PROJECT_ROOT}"
+        CUDA_VISIBLE_DEVICES="${gpu}" "${PYTHON_BIN}" -m Simulation.tests.full_cycle_seed_distribution \
+          --ablation "${ablation}" \
+          --seeds "${seed}" \
+          --output-dir "${variant_dir}" \
+          --device "${DEVICE}" \
+          --skip-aggregate \
+          "${common_args[@]}" \
+          "$@"
+      ) > "${log_file}" 2>&1 &
+    fi
     pids+=("$!")
+    labels+=("${label}")
     task_index=$((task_index + 1))
   done
 done
@@ -111,12 +188,7 @@ cleanup() {
 }
 trap cleanup INT TERM
 
-failed=0
-for pid in "${pids[@]}"; do
-  if ! wait "${pid}"; then
-    failed=1
-  fi
-done
+wait_active_tasks
 
 if [[ "${failed}" -ne 0 ]]; then
   echo "At least one ablation task failed. Check logs under ${OUTPUT_ROOT}." >&2
@@ -124,20 +196,30 @@ if [[ "${failed}" -ne 0 ]]; then
 fi
 
 echo "All ablation tasks finished. Merging per-variant outputs."
-for ablation in "${ABLATION_ARRAY[@]}"; do
+for ablation in "${MERGE_ABLATION_ARRAY[@]}"; do
   variant_dir="${OUTPUT_ROOT}/${ablation}"
+  if [[ ! -d "${variant_dir}" ]]; then
+    echo "Skipping missing variant directory during merge: ${variant_dir}" >&2
+    continue
+  fi
+  variant_seeds="$(existing_seed_list "${variant_dir}" || true)"
+  if [[ -z "${variant_seeds}" ]]; then
+    echo "Skipping ${ablation}; no seed_<seed>/slot_metrics.csv files found." >&2
+    continue
+  fi
+  echo "Merging ablation=${ablation} seeds=${variant_seeds}"
   (
     cd "${PROJECT_ROOT}"
     "${PYTHON_BIN}" -m Simulation.tests.full_cycle_seed_distribution \
       --ablation "${ablation}" \
-      --seeds "${SEEDS}" \
+      --seeds "${variant_seeds}" \
       --output-dir "${variant_dir}" \
       --plot-only
   )
 done
 
 echo "Building cross-variant merged metric tables."
-"${PYTHON_BIN}" - "${OUTPUT_ROOT}" "${ABLATIONS}" <<'PY'
+"${PYTHON_BIN}" - "${OUTPUT_ROOT}" "${MERGE_ABLATIONS}" <<'PY'
 import csv
 import sys
 from pathlib import Path

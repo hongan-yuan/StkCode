@@ -25,6 +25,8 @@ ABLATION_LABELS = {
     "no_bandit": "No Bandit",
     "shortest_hop_routing": "Shortest-Hop Routing",
     "nearest_replica": "Nearest Replica",
+    "service_pressure": "Service Pressure",
+    "sc_nfv": "SC-NFV",
 }
 
 METRICS = {
@@ -45,7 +47,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument(
         "--ablations",
-        default="full no_bandit shortest_hop_routing nearest_replica",
+        default="full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv",
         help="Space/comma separated ablation names and plotting order.",
     )
     parser.add_argument(
@@ -321,7 +323,7 @@ def plot_slot_curve_svg(path: Path, title: str, ylabel: str, series: dict) -> No
     y_pad = (y_max - y_min) * 0.08
     y_min -= y_pad
     y_max += y_pad
-    colors = ["#2563eb", "#dc2626", "#059669", "#7c3aed", "#ea580c"]
+    colors = ["#2563eb", "#dc2626", "#059669", "#7c3aed", "#ea580c", "#0891b2"]
     parts = svg_canvas(title, width, height)
     parts.extend([
         f'<line x1="{left}" y1="{height - bottom}" x2="{width - right}" y2="{height - bottom}" stroke="#334155"/>',
@@ -424,7 +426,7 @@ def plot_summary_bar_svg(path: Path, summaries: dict, metrics: list[str], ablati
     width, height = max(920, 220 * len(metrics)), 470
     parts = svg_canvas("Ablation Metric Summary", width, height)
     panel_w = (width - 50) / len(metrics)
-    colors = ["#7dd3fc", "#fecaca", "#bbf7d0", "#ddd6fe"]
+    colors = ["#7dd3fc", "#fecaca", "#bbf7d0", "#ddd6fe", "#fed7aa", "#bae6fd"]
     for m_index, metric in enumerate(metrics):
         title, ylabel = METRICS[metric]
         x0 = 32 + panel_w * m_index

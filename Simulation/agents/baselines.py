@@ -6,6 +6,7 @@ from collections import defaultdict
 from ..domain.constellation import orbit_plane, sat_position
 from ..domain.request import SFCRequest
 from ..domain.service import compute_service_execution
+from ..network.service_pressure import ServicePressureBackpressureRouter
 from ..network.topology import slot_from_time
 from .execution_agent import CandidateDecision, ServiceExecutionAgent
 
@@ -88,21 +89,12 @@ class NearestReplicaExecutionAgent(ServiceExecutionAgent):
 
 
 class ServicePressureExecutionAgent(ServiceExecutionAgent):
-    """Backpressure-style microservice replica selector.
+    """Service Pressure baseline with local queue-differential routing.
 
-    The paper implementation of Service Pressure is packet-level and keeps
-    explicit per-flow queues on virtual compute/transmit nodes. This simulator
-    advances request chains directly, so this baseline uses the same local
-    signals available to the main environment as queue/backlog proxies:
-
-    * compute utilization and queue delay at candidate satellites,
-    * background link utilization, link queueing, bottleneck shortage, and
-      future failure risk on the route to a candidate,
-    * hop-distance progress toward the next service/destination, and
-    * a small decaying virtual backlog maintained by this agent.
-
-    It deliberately reuses the existing route/compute estimators and lets the
-    environment's Bandit migration layer operate unchanged.
+    The baseline keeps an explicit virtual backlog per satellite/service label
+    and uses ``ServicePressureBackpressureRouter`` for service-stage and egress
+    routes. It intentionally does not call the simulator's min-cost max-flow
+    route strategy for request traffic.
     """
 
     def __init__(
@@ -115,6 +107,11 @@ class ServicePressureExecutionAgent(ServiceExecutionAgent):
         self.backlog_decay = max(0.0, min(1.0, float(backlog_decay)))
         self.virtual_backlog_weight = max(0.0, float(virtual_backlog_weight))
         self.virtual_service_backlog: defaultdict[tuple[int, int], float] = defaultdict(float)
+        self.backpressure_router = ServicePressureBackpressureRouter(
+            config,
+            self.virtual_service_backlog,
+            virtual_backlog_weight=self.virtual_backlog_weight,
+        )
 
     def select_replica(
         self,
@@ -138,7 +135,15 @@ class ServicePressureExecutionAgent(ServiceExecutionAgent):
         candidate_scores: list[dict] = []
 
         for node_id in candidates:
-            route = self._cached_route_data(current_node, node_id, data_gb, current_time, context)
+            route = self._backpressure_route(
+                current_node,
+                node_id,
+                data_gb,
+                current_time,
+                context,
+                service_id,
+                target_is_compute=True,
+            )
             if not route["reachable"]:
                 candidate_scores.append(
                     {
@@ -223,8 +228,21 @@ class ServicePressureExecutionAgent(ServiceExecutionAgent):
                 -item["node_id"],
             ),
         )
-        selected_route, selected_compute = self._exact_execution_estimates(
-            service_id, current_node, best["node_id"], data_gb, current_time, context
+        selected_route = self._backpressure_route(
+            current_node,
+            best["node_id"],
+            data_gb,
+            current_time,
+            context,
+            service_id,
+            target_is_compute=True,
+        )
+        selected_compute = (
+            compute_service_execution(
+                service_id, best["node_id"], selected_route["arrival_time"], context
+            )
+            if selected_route["reachable"]
+            else None
         )
         self._remember_selection(current_node, best["node_id"], service_id, data_gb)
         return CandidateDecision(
@@ -240,6 +258,24 @@ class ServicePressureExecutionAgent(ServiceExecutionAgent):
                 "service_id": service_id,
                 "data_gb": data_gb,
             },
+        )
+
+    def route_to_destination(
+        self,
+        request: SFCRequest,
+        current_node: int,
+        current_time: float,
+        output_data_gb: float,
+        context: dict,
+    ) -> dict:
+        return self._backpressure_route(
+            current_node,
+            request.destination_node,
+            output_data_gb,
+            current_time,
+            context,
+            service_id=0,
+            target_is_compute=False,
         )
 
     def record_step_outcome(
@@ -332,6 +368,126 @@ class ServicePressureExecutionAgent(ServiceExecutionAgent):
             + float(route.get("route_failure_risk", 0.0))
             + float(route.get("slot_crossings", 0.0)) / horizon
         )
+
+    def _backpressure_route(
+        self,
+        source: int,
+        target: int,
+        data_gb: float,
+        start_time: float,
+        context: dict,
+        service_id: int,
+        target_is_compute: bool,
+    ) -> dict:
+        return self.backpressure_router.route(
+            source,
+            target,
+            data_gb,
+            start_time,
+            context,
+            service_id=service_id,
+            target_is_compute=target_is_compute,
+        )
+
+    def _exact_execution_estimates(
+        self,
+        service_id: int,
+        source_node: int,
+        selected_node: int,
+        data_gb: float,
+        current_time: float,
+        context: dict,
+    ) -> tuple[dict, dict | None]:
+        route = self._backpressure_route(
+            source_node,
+            selected_node,
+            data_gb,
+            current_time,
+            context,
+            service_id,
+            target_is_compute=True,
+        )
+        if not route["reachable"]:
+            return route, None
+        compute = compute_service_execution(
+            service_id, selected_node, route["arrival_time"], context
+        )
+        return route, compute
+
+    def _estimate_egress_capacity(
+        self,
+        request: SFCRequest,
+        service_index: int,
+        candidate_node: int,
+        egress_start_time: float,
+        context: dict,
+    ) -> dict:
+        if service_index + 1 < len(request.services):
+            egress_data_gb = request.data_gb_between_services[service_index]
+            target_nodes = context["microservices"][request.services[service_index + 1]].replicas
+            egress_type = "next_service"
+            egress_service_id = request.services[service_index + 1]
+            target_is_compute = True
+        else:
+            egress_data_gb = request.output_data_gb
+            target_nodes = [request.destination_node]
+            egress_type = "destination"
+            egress_service_id = 0
+            target_is_compute = False
+
+        best: dict | None = None
+        failure_reasons: dict[str, int] = {}
+        target_nodes = self._select_candidate_subset(
+            list(target_nodes), candidate_node, egress_start_time, context
+        )
+        for target_node in target_nodes:
+            route = self._backpressure_route(
+                candidate_node,
+                target_node,
+                egress_data_gb,
+                egress_start_time,
+                context,
+                egress_service_id,
+                target_is_compute,
+            )
+            if not route["reachable"]:
+                reason = route.get("failure_reason", "route_failed")
+                failure_reasons[reason] = failure_reasons.get(reason, 0) + 1
+                continue
+            shortage = self._route_bottleneck_shortage(route, egress_data_gb)
+            item = {
+                "egress_type": egress_type,
+                "egress_target_node": target_node,
+                "egress_data_gb": egress_data_gb,
+                "egress_reachable": True,
+                "egress_bottleneck_capacity_gb": float(
+                    route.get("bottleneck_capacity_gb", 0.0)
+                ),
+                "egress_bottleneck_shortage": shortage,
+                "egress_delay_s": route["delay_s"],
+                "egress_route": route,
+            }
+            if best is None or (
+                item["egress_bottleneck_shortage"],
+                item["egress_delay_s"],
+            ) < (
+                best["egress_bottleneck_shortage"],
+                best["egress_delay_s"],
+            ):
+                best = item
+
+        if best is not None:
+            return best
+        return {
+            "egress_type": egress_type,
+            "egress_target_node": None,
+            "egress_data_gb": egress_data_gb,
+            "egress_reachable": False,
+            "egress_bottleneck_capacity_gb": 0.0,
+            "egress_bottleneck_shortage": 1.0 if egress_data_gb > 1.0e-9 else 0.0,
+            "egress_delay_s": math.inf,
+            "egress_failure_reasons": failure_reasons,
+        }
 
     def _downstream_progress_gain(
         self,
