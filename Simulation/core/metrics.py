@@ -40,6 +40,7 @@ def summarize_results(results: list[dict]) -> dict:
         "average_end_to_end_delay_s": mean(delays) if delays else math.inf,
         "p95_end_to_end_delay_s": percentile(delays, 95),
         "average_energy_j": mean(energies) if energies else math.inf,
+        "p95_energy_j": percentile(energies, 95),
         "average_communication_delay_s": mean(route_delays) if route_delays else math.inf,
         "average_slot_crossings": mean(slot_crossings) if slot_crossings else 0.0,
         "route_mode_counts": route_modes,

@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 PYTHON_BIN="${PYTHON_BIN:-python}"
-SEEDS="${SEEDS:-41 42 43 44}"
+SEEDS="${SEEDS:-42 43 44 45}"
 RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv fairness_nfv_greedy}}"
 MERGE_ABLATIONS="${MERGE_ABLATIONS:-full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv fairness_nfv_greedy}"
 GPUS="${GPUS:-0 1 2 3}"
@@ -275,6 +275,7 @@ metric_columns = [
     "average_end_to_end_delay_s",
     "average_energy_j",
     "p95_end_to_end_delay_s",
+    "p95_energy_j",
     "average_communication_delay_s",
     "average_slot_crossings",
     "average_reward_per_request",

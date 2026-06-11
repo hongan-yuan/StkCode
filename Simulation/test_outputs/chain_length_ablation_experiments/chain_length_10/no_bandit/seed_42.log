@@ -1,5 +1,0 @@
-ablation=no_bandit seed=42 [------------------------]   0.17% 1/606 elapsed=00:09 eta=1:32:31 arrivals=5 success=1.000
-ablation=no_bandit seed=42 [#-----------------------]   4.13% 25/606 elapsed=03:26 eta=1:19:52 arrivals=8 success=1.000
-ablation=no_bandit seed=42 [##----------------------]   8.25% 50/606 elapsed=07:09 eta=1:19:34 arrivals=6 success=1.000
-ablation=no_bandit seed=42 [###---------------------]  12.38% 75/606 elapsed=10:17 eta=1:12:51 arrivals=3 success=1.000
-ablation=no_bandit seed=42 [####--------------------]  16.50% 100/606 elapsed=13:19 eta=1:07:21 arrivals=2 success=1.000

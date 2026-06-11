@@ -1,29 +1,6 @@
-ablation=full seed=42 [------------------------]   0.17% 1/606 elapsed=00:13 eta=2:08:21 arrivals=8 success=1.000
-ablation=full seed=42 [#-----------------------]   4.13% 25/606 elapsed=02:15 eta=52:18 arrivals=4 success=1.000
-ablation=full seed=42 [##----------------------]   8.25% 50/606 elapsed=04:47 eta=53:09 arrivals=5 success=1.000
-ablation=full seed=42 [###---------------------]  12.38% 75/606 elapsed=07:13 eta=51:08 arrivals=5 success=1.000
-ablation=full seed=42 [####--------------------]  16.50% 100/606 elapsed=09:29 eta=47:57 arrivals=5 success=1.000
-ablation=full seed=42 [#####-------------------]  20.63% 125/606 elapsed=11:47 eta=45:22 arrivals=5 success=1.000
-ablation=full seed=42 [######------------------]  24.75% 150/606 elapsed=13:54 eta=42:16 arrivals=6 success=1.000
-ablation=full seed=42 [#######-----------------]  28.88% 175/606 elapsed=16:02 eta=39:30 arrivals=7 success=1.000
-ablation=full seed=42 [########----------------]  33.00% 200/606 elapsed=17:52 eta=36:16 arrivals=2 success=0.500
-ablation=full seed=42 [#########---------------]  37.13% 225/606 elapsed=19:37 eta=33:13 arrivals=4 success=1.000
-ablation=full seed=42 [##########--------------]  41.25% 250/606 elapsed=21:35 eta=30:43 arrivals=3 success=1.000
-ablation=full seed=42 [###########-------------]  45.38% 275/606 elapsed=23:17 eta=28:01 arrivals=6 success=1.000
-ablation=full seed=42 [############------------]  49.50% 300/606 elapsed=25:29 eta=25:59 arrivals=7 success=1.000
-ablation=full seed=42 [#############-----------]  53.63% 325/606 elapsed=27:23 eta=23:40 arrivals=3 success=1.000
-ablation=full seed=42 [##############----------]  57.76% 350/606 elapsed=29:26 eta=21:32 arrivals=9 success=1.000
-ablation=full seed=42 [###############---------]  61.88% 375/606 elapsed=31:12 eta=19:13 arrivals=3 success=1.000
-ablation=full seed=42 [################--------]  66.01% 400/606 elapsed=33:21 eta=17:11 arrivals=5 success=1.000
-ablation=full seed=42 [#################-------]  70.13% 425/606 elapsed=35:22 eta=15:04 arrivals=4 success=1.000
-ablation=full seed=42 [##################------]  74.26% 450/606 elapsed=37:16 eta=12:55 arrivals=8 success=1.000
-ablation=full seed=42 [###################-----]  78.38% 475/606 elapsed=39:14 eta=10:49 arrivals=6 success=1.000
-ablation=full seed=42 [####################----]  82.51% 500/606 elapsed=41:04 eta=08:42 arrivals=6 success=1.000
-ablation=full seed=42 [#####################---]  86.63% 525/606 elapsed=43:12 eta=06:40 arrivals=3 success=1.000
-ablation=full seed=42 [######################--]  90.76% 550/606 elapsed=45:07 eta=04:36 arrivals=3 success=1.000
-ablation=full seed=42 [#######################-]  94.88% 575/606 elapsed=47:20 eta=02:33 arrivals=6 success=1.000
-ablation=full seed=42 [########################]  99.01% 600/606 elapsed=49:48 eta=00:30 arrivals=4 success=1.000
-ablation=full seed=42 [########################] 100.00% 606/606 elapsed=50:34 eta=00:00 arrivals=7 success=1.000
+ablation=full seed=42 [------------------------]   0.17% 1/606 elapsed=00:13 eta=2:10:56 arrivals=8 success=1.000
+ablation=full seed=42 [#-----------------------]   4.13% 25/606 elapsed=02:45 eta=1:04:06 arrivals=4 success=1.00abablation=full seed=42 [##----------------------]   8.25% 50/606 elapsed=05:54 eta=1:05:41 arrivals=5 success=1.00abablation=full seed=42 [###---------------------]  12.38% 75/606 elapsed=08:56 eta=1:03:17 arrivals=5 success=1.00abablation=full seed=42 [####--------------------]  16.50% 100/606 elapsed=11:46 eta=59:35 arrivals=5 success=1.00abablation=full seed=42 [#####-------------------]  20.63% 125/606 elapsed=14:41 eta=56:28 arrivals=5 success=1.00abablation=full seed=42 [######------------------]  24.75% 150/606 elapsed=17:43 eta=53:53 arrivals=6 success=1.00abablation=full seed=42 [#######-----------------]  28.88% 175/606 elapsed=21:01 eta=51:45 arrivals=7 success=1.00abablation=full seed=42 [########----------------]  33.00% 200/606 elapsed=23:48 eta=48:19 arrivals=2 success=0.50abablation=full seed=42 [#########---------------]  37.13% 225/606 elapsed=26:28 eta=44:49 arrivals=4 success=1.00abablation=full seed=42 [##########--------------]  41.25% 250/606 elapsed=29:00 eta=41:17 arrivals=3 success=1.00abablation=full seed=42 [###########-------------]  45.38% 275/606 elapsed=30:45 eta=37:01 arrivals=6 success=1.00abablation=full seed=42 [############------------]  49.50% 300/606 elapsed=33:00 eta=33:40 arrivals=7 success=1.00abablation=full seed=42 [#############-----------]  53.63% 325/606 elapsed=34:58 eta=30:14 arrivals=3 success=1.00abablation=full seed=42 [##############----------]  57.76% 350/606 elapsed=37:05 eta=27:07 arrivals=9 success=1.00abablation=full seed=42 [###############---------]  61.88% 375/606 elapsed=38:54 eta=23:58 arrivals=3 success=1.00abablation=full seed=42 [################--------]  66.01% 400/606 elapsed=41:08 eta=21:11 arrivals=5 success=1.00abablation=full seed=42 [#################-------]  70.13% 425/606 elapsed=43:11 eta=18:23 arrivals=4 success=1.00abablation=full seed=42 [##################------]  74.26% 450/606 elapsed=45:09 eta=15:39 arrivals=8 success=1.00abablation=full seed=42 [###################-----]  78.38% 475/606 elapsed=47:10 eta=13:00 arrivals=6 success=1.00abablation=full seed=42 [####################----]  82.51% 500/606 elapsed=49:02 eta=10:24 arrivals=6 success=1.00abablation=full seed=42 [#####################---]  86.63% 525/606 elapsed=51:13 eta=07:54 arrivals=3 success=1.00abablation=full seed=42 [######################--]  90.76% 550/606 elapsed=53:10 eta=05:25 arrivals=3 success=1.00abablation=full seed=42 [#######################-]  94.88% 575/606 elapsed=55:25 eta=02:59 arrivals=6 success=1.00abablation=full seed=42 [########################]  99.01% 600/606 elapsed=57:55 eta=00:35 arrivals=4 success=1.000
+ablation=full seed=42 [########################] 100.00% 606/606 elapsed=58:38 eta=00:00 arrivals=7 success=1.000
 {
   "seeds": [
     42

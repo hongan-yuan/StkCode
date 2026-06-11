@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1190" height="460" viewBox="0 0 1190 460">
+<rect width="100%" height="100%" fill="white"/>
+<text x="595.0" y="28" text-anchor="middle" font-family="Times New Roman" font-size="16">P95 end-to-end delay distribution by ablation</text>
+<line x1="84" y1="382" x2="1166" y2="382" stroke="#334155" stroke-width="1.2"/>
+<line x1="84" y1="52" x2="84" y2="382" stroke="#334155" stroke-width="1.2"/>
+<text x="18" y="230.0" transform="rotate(-90 18 230.0)" text-anchor="middle" font-family="Times New Roman" font-size="13">Delay (s)</text>
+<line x1="84" y1="382.0" x2="1166" y2="382.0" stroke="#e5e7eb" stroke-width="0.7"/>
+<text x="76" y="386.0" text-anchor="end" font-family="Times New Roman" font-size="11">57.9</text>
+<line x1="84" y1="316.0" x2="1166" y2="316.0" stroke="#e5e7eb" stroke-width="0.7"/>
+<text x="76" y="320.0" text-anchor="end" font-family="Times New Roman" font-size="11">70.2</text>
+<line x1="84" y1="250.0" x2="1166" y2="250.0" stroke="#e5e7eb" stroke-width="0.7"/>
+<text x="76" y="254.0" text-anchor="end" font-family="Times New Roman" font-size="11">82.6</text>
+<line x1="84" y1="184.0" x2="1166" y2="184.0" stroke="#e5e7eb" stroke-width="0.7"/>
+<text x="76" y="188.0" text-anchor="end" font-family="Times New Roman" font-size="11">94.9</text>
+<line x1="84" y1="118.0" x2="1166" y2="118.0" stroke="#e5e7eb" stroke-width="0.7"/>
+<text x="76" y="122.0" text-anchor="end" font-family="Times New Roman" font-size="11">107</text>
+<line x1="84" y1="52.0" x2="1166" y2="52.0" stroke="#e5e7eb" stroke-width="0.7"/>
+<text x="76" y="56.0" text-anchor="end" font-family="Times New Roman" font-size="11">120</text>
+<text x="161.3" y="406" text-anchor="middle" font-family="Times New Roman" font-size="11">Full</text>
+<line x1="161.3" y1="352.9" x2="161.3" y2="313.6" stroke="#475569" stroke-width="1.5"/>
+<rect x="132.3" y="327.8" width="58.0" height="14.3" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+<line x1="132.3" y1="335.6" x2="190.3" y2="335.6" stroke="#1e3a8a" stroke-width="2.0"/>
+<circle cx="161.3" cy="334.4" r="3" fill="#dc2626"/>
+<text x="315.9" y="406" text-anchor="middle" font-family="Times New Roman" font-size="11">No Bandit</text>
+<line x1="315.9" y1="324.4" x2="315.9" y2="302.7" stroke="#475569" stroke-width="1.5"/>
+<rect x="286.9" y="314.9" width="58.0" height="8.0" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+<line x1="286.9" y1="320.7" x2="344.9" y2="320.7" stroke="#1e3a8a" stroke-width="2.0"/>
+<circle cx="315.9" cy="317.1" r="3" fill="#dc2626"/>
+<text x="470.4" y="406" text-anchor="middle" font-family="Times New Roman" font-size="11">Shortest-Hop Routing</text>
+<line x1="470.4" y1="233.3" x2="470.4" y2="183.2" stroke="#475569" stroke-width="1.5"/>
+<rect x="441.4" y="184.1" width="58.0" height="35.1" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+<line x1="441.4" y1="199.5" x2="499.4" y2="199.5" stroke="#1e3a8a" stroke-width="2.0"/>
+<circle cx="470.4" cy="203.9" r="3" fill="#dc2626"/>
+<text x="625.0" y="406" text-anchor="middle" font-family="Times New Roman" font-size="11">Nearest Replica</text>
+<line x1="625.0" y1="166.6" x2="625.0" y2="74.8" stroke="#475569" stroke-width="1.5"/>
+<rect x="596.0" y="78.7" width="58.0" height="48.0" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+<line x1="596.0" y1="96.7" x2="654.0" y2="96.7" stroke="#1e3a8a" stroke-width="2.0"/>
+<circle cx="625.0" cy="108.7" r="3" fill="#dc2626"/>
+<text x="779.6" y="406" text-anchor="middle" font-family="Times New Roman" font-size="11">Service Pressure</text>
+<line x1="779.6" y1="222.6" x2="779.6" y2="163.4" stroke="#475569" stroke-width="1.5"/>
+<rect x="750.6" y="167.7" width="58.0" height="41.5" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+<line x1="750.6" y1="186.9" x2="808.6" y2="186.9" stroke="#1e3a8a" stroke-width="2.0"/>
+<circle cx="779.6" cy="190.0" r="3" fill="#dc2626"/>
+<text x="934.1" y="406" text-anchor="middle" font-family="Times New Roman" font-size="11">SC-NFV</text>
+<line x1="934.1" y1="278.7" x2="934.1" y2="245.3" stroke="#475569" stroke-width="1.5"/>
+<rect x="905.1" y="246.1" width="58.0" height="9.3" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+<line x1="905.1" y1="247.0" x2="963.1" y2="247.0" stroke="#1e3a8a" stroke-width="2.0"/>
+<circle cx="934.1" cy="254.5" r="3" fill="#dc2626"/>
+<text x="1088.7" y="406" text-anchor="middle" font-family="Times New Roman" font-size="11">Fairness-NFV</text>
+<line x1="1088.7" y1="359.2" x2="1088.7" y2="320.4" stroke="#475569" stroke-width="1.5"/>
+<rect x="1059.7" y="325.2" width="58.0" height="11.5" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+<line x1="1059.7" y1="328.0" x2="1117.7" y2="328.0" stroke="#1e3a8a" stroke-width="2.0"/>
+<circle cx="1088.7" cy="333.9" r="3" fill="#dc2626"/>
+</svg>

@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="470" viewBox="0 0 1100 470">
+<rect width="100%" height="100%" fill="white"/>
+<text x="550.0" y="28" text-anchor="middle" font-family="Times New Roman" font-size="16">Ablation Metric Summary</text>
+<text x="123.0" y="48" text-anchor="middle" font-family="Times New Roman" font-size="14">Task completion rate</text>
+<line x1="80.0" y1="362.0" x2="214.0" y2="362.0" stroke="#334155" stroke-width="1.2"/>
+<line x1="80.0" y1="62.0" x2="80.0" y2="362.0" stroke="#334155" stroke-width="1.2"/>
+<rect x="90.0" y="62.0" width="10.8" height="300.0" fill="#7dd3fc" stroke="#0f172a" stroke-width="0.9"/>
+<text x="95.4" y="378" transform="rotate(18 95.4 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Full</text>
+<rect x="106.6" y="62.0" width="10.8" height="300.0" fill="#fecaca" stroke="#0f172a" stroke-width="0.9"/>
+<text x="112.0" y="378" transform="rotate(18 112.0 378)" text-anchor="start" font-family="Times New Roman" font-size="10">No Bandit</text>
+<rect x="123.1" y="64.4" width="10.8" height="297.6" fill="#bbf7d0" stroke="#0f172a" stroke-width="0.9"/>
+<text x="128.5" y="378" transform="rotate(18 128.5 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Shortest-Hop Routing</text>
+<rect x="139.7" y="62.9" width="10.8" height="299.1" fill="#ddd6fe" stroke="#0f172a" stroke-width="0.9"/>
+<text x="145.1" y="378" transform="rotate(18 145.1 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Nearest Replica</text>
+<rect x="156.3" y="62.0" width="10.8" height="300.0" fill="#fed7aa" stroke="#0f172a" stroke-width="0.9"/>
+<text x="161.7" y="378" transform="rotate(18 161.7 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Service Pressure</text>
+<rect x="172.9" y="62.0" width="10.8" height="300.0" fill="#bae6fd" stroke="#0f172a" stroke-width="0.9"/>
+<text x="178.2" y="378" transform="rotate(18 178.2 378)" text-anchor="start" font-family="Times New Roman" font-size="10">SC-NFV</text>
+<rect x="189.4" y="62.0" width="10.8" height="300.0" fill="#fecdd3" stroke="#0f172a" stroke-width="0.9"/>
+<text x="194.8" y="378" transform="rotate(18 194.8 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Fairness-NFV</text>
+<text x="44.0" y="212.0" transform="rotate(-90 44.0 212.0)" text-anchor="middle" font-family="Times New Roman" font-size="11">Task completion rate</text>
+<text x="333.0" y="48" text-anchor="middle" font-family="Times New Roman" font-size="14">Average end-to-end delay</text>
+<line x1="290.0" y1="362.0" x2="424.0" y2="362.0" stroke="#334155" stroke-width="1.2"/>
+<line x1="290.0" y1="62.0" x2="290.0" y2="362.0" stroke="#334155" stroke-width="1.2"/>
+<rect x="300.0" y="168.3" width="10.8" height="193.7" fill="#7dd3fc" stroke="#0f172a" stroke-width="0.9"/>
+<text x="305.4" y="378" transform="rotate(18 305.4 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Full</text>
+<rect x="316.6" y="156.6" width="10.8" height="205.4" fill="#fecaca" stroke="#0f172a" stroke-width="0.9"/>
+<text x="322.0" y="378" transform="rotate(18 322.0 378)" text-anchor="start" font-family="Times New Roman" font-size="10">No Bandit</text>
+<rect x="333.1" y="101.0" width="10.8" height="261.0" fill="#bbf7d0" stroke="#0f172a" stroke-width="0.9"/>
+<text x="338.5" y="378" transform="rotate(18 338.5 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Shortest-Hop Routing</text>
+<rect x="349.7" y="62.0" width="10.8" height="300.0" fill="#ddd6fe" stroke="#0f172a" stroke-width="0.9"/>
+<text x="355.1" y="378" transform="rotate(18 355.1 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Nearest Replica</text>
+<rect x="366.3" y="91.7" width="10.8" height="270.3" fill="#fed7aa" stroke="#0f172a" stroke-width="0.9"/>
+<text x="371.7" y="378" transform="rotate(18 371.7 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Service Pressure</text>
+<rect x="382.9" y="128.0" width="10.8" height="234.0" fill="#bae6fd" stroke="#0f172a" stroke-width="0.9"/>
+<text x="388.2" y="378" transform="rotate(18 388.2 378)" text-anchor="start" font-family="Times New Roman" font-size="10">SC-NFV</text>
+<rect x="399.4" y="163.6" width="10.8" height="198.4" fill="#fecdd3" stroke="#0f172a" stroke-width="0.9"/>
+<text x="404.8" y="378" transform="rotate(18 404.8 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Fairness-NFV</text>
+<text x="254.0" y="212.0" transform="rotate(-90 254.0 212.0)" text-anchor="middle" font-family="Times New Roman" font-size="11">Delay (s)</text>
+<text x="543.0" y="48" text-anchor="middle" font-family="Times New Roman" font-size="14">Average energy consumption</text>
+<line x1="500.0" y1="362.0" x2="634.0" y2="362.0" stroke="#334155" stroke-width="1.2"/>
+<line x1="500.0" y1="62.0" x2="500.0" y2="362.0" stroke="#334155" stroke-width="1.2"/>
+<rect x="510.0" y="188.2" width="10.8" height="173.8" fill="#7dd3fc" stroke="#0f172a" stroke-width="0.9"/>
+<text x="515.4" y="378" transform="rotate(18 515.4 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Full</text>
+<rect x="526.6" y="188.6" width="10.8" height="173.4" fill="#fecaca" stroke="#0f172a" stroke-width="0.9"/>
+<text x="532.0" y="378" transform="rotate(18 532.0 378)" text-anchor="start" font-family="Times New Roman" font-size="10">No Bandit</text>
+<rect x="543.1" y="186.3" width="10.8" height="175.7" fill="#bbf7d0" stroke="#0f172a" stroke-width="0.9"/>
+<text x="548.5" y="378" transform="rotate(18 548.5 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Shortest-Hop Routing</text>
+<rect x="559.7" y="62.0" width="10.8" height="300.0" fill="#ddd6fe" stroke="#0f172a" stroke-width="0.9"/>
+<text x="565.1" y="378" transform="rotate(18 565.1 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Nearest Replica</text>
+<rect x="576.3" y="142.7" width="10.8" height="219.3" fill="#fed7aa" stroke="#0f172a" stroke-width="0.9"/>
+<text x="581.7" y="378" transform="rotate(18 581.7 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Service Pressure</text>
+<rect x="592.9" y="153.7" width="10.8" height="208.3" fill="#bae6fd" stroke="#0f172a" stroke-width="0.9"/>
+<text x="598.2" y="378" transform="rotate(18 598.2 378)" text-anchor="start" font-family="Times New Roman" font-size="10">SC-NFV</text>
+<rect x="609.4" y="178.4" width="10.8" height="183.6" fill="#fecdd3" stroke="#0f172a" stroke-width="0.9"/>
+<text x="614.8" y="378" transform="rotate(18 614.8 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Fairness-NFV</text>
+<text x="464.0" y="212.0" transform="rotate(-90 464.0 212.0)" text-anchor="middle" font-family="Times New Roman" font-size="11">Energy (J)</text>
+<text x="753.0" y="48" text-anchor="middle" font-family="Times New Roman" font-size="14">P95 end-to-end delay</text>
+<line x1="710.0" y1="362.0" x2="844.0" y2="362.0" stroke="#334155" stroke-width="1.2"/>
+<line x1="710.0" y1="62.0" x2="710.0" y2="362.0" stroke="#334155" stroke-width="1.2"/>
+<rect x="720.0" y="178.1" width="10.8" height="183.9" fill="#7dd3fc" stroke="#0f172a" stroke-width="0.9"/>
+<text x="725.4" y="378" transform="rotate(18 725.4 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Full</text>
+<rect x="736.6" y="169.2" width="10.8" height="192.8" fill="#fecaca" stroke="#0f172a" stroke-width="0.9"/>
+<text x="742.0" y="378" transform="rotate(18 742.0 378)" text-anchor="start" font-family="Times New Roman" font-size="10">No Bandit</text>
+<rect x="753.1" y="111.0" width="10.8" height="251.0" fill="#bbf7d0" stroke="#0f172a" stroke-width="0.9"/>
+<text x="758.5" y="378" transform="rotate(18 758.5 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Shortest-Hop Routing</text>
+<rect x="769.7" y="62.0" width="10.8" height="300.0" fill="#ddd6fe" stroke="#0f172a" stroke-width="0.9"/>
+<text x="775.1" y="378" transform="rotate(18 775.1 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Nearest Replica</text>
+<rect x="786.3" y="103.8" width="10.8" height="258.2" fill="#fed7aa" stroke="#0f172a" stroke-width="0.9"/>
+<text x="791.7" y="378" transform="rotate(18 791.7 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Service Pressure</text>
+<rect x="802.9" y="137.0" width="10.8" height="225.0" fill="#bae6fd" stroke="#0f172a" stroke-width="0.9"/>
+<text x="808.2" y="378" transform="rotate(18 808.2 378)" text-anchor="start" font-family="Times New Roman" font-size="10">SC-NFV</text>
+<rect x="819.4" y="177.8" width="10.8" height="184.2" fill="#fecdd3" stroke="#0f172a" stroke-width="0.9"/>
+<text x="824.8" y="378" transform="rotate(18 824.8 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Fairness-NFV</text>
+<text x="674.0" y="212.0" transform="rotate(-90 674.0 212.0)" text-anchor="middle" font-family="Times New Roman" font-size="11">Delay (s)</text>
+<text x="963.0" y="48" text-anchor="middle" font-family="Times New Roman" font-size="14">P95 energy consumption</text>
+<line x1="920.0" y1="362.0" x2="1054.0" y2="362.0" stroke="#334155" stroke-width="1.2"/>
+<line x1="920.0" y1="62.0" x2="920.0" y2="362.0" stroke="#334155" stroke-width="1.2"/>
+<rect x="930.0" y="192.0" width="10.8" height="170.0" fill="#7dd3fc" stroke="#0f172a" stroke-width="0.9"/>
+<text x="935.4" y="378" transform="rotate(18 935.4 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Full</text>
+<rect x="946.6" y="195.3" width="10.8" height="166.7" fill="#fecaca" stroke="#0f172a" stroke-width="0.9"/>
+<text x="952.0" y="378" transform="rotate(18 952.0 378)" text-anchor="start" font-family="Times New Roman" font-size="10">No Bandit</text>
+<rect x="963.1" y="191.3" width="10.8" height="170.7" fill="#bbf7d0" stroke="#0f172a" stroke-width="0.9"/>
+<text x="968.5" y="378" transform="rotate(18 968.5 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Shortest-Hop Routing</text>
+<rect x="979.7" y="62.0" width="10.8" height="300.0" fill="#ddd6fe" stroke="#0f172a" stroke-width="0.9"/>
+<text x="985.1" y="378" transform="rotate(18 985.1 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Nearest Replica</text>
+<rect x="996.3" y="147.1" width="10.8" height="214.9" fill="#fed7aa" stroke="#0f172a" stroke-width="0.9"/>
+<text x="1001.7" y="378" transform="rotate(18 1001.7 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Service Pressure</text>
+<rect x="1012.9" y="155.0" width="10.8" height="207.0" fill="#bae6fd" stroke="#0f172a" stroke-width="0.9"/>
+<text x="1018.2" y="378" transform="rotate(18 1018.2 378)" text-anchor="start" font-family="Times New Roman" font-size="10">SC-NFV</text>
+<rect x="1029.4" y="185.4" width="10.8" height="176.6" fill="#fecdd3" stroke="#0f172a" stroke-width="0.9"/>
+<text x="1034.8" y="378" transform="rotate(18 1034.8 378)" text-anchor="start" font-family="Times New Roman" font-size="10">Fairness-NFV</text>
+<text x="884.0" y="212.0" transform="rotate(-90 884.0 212.0)" text-anchor="middle" font-family="Times New Roman" font-size="11">Energy (J)</text>
+</svg>

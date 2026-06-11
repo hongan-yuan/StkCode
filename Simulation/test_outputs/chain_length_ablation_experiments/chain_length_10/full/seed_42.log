@@ -1,5 +1,0 @@
-ablation=full seed=42 [------------------------]   0.17% 1/606 elapsed=00:09 eta=1:33:04 arrivals=5 success=1.000
-ablation=full seed=42 [#-----------------------]   4.13% 25/606 elapsed=03:21 eta=1:17:58 arrivals=4 success=1.000
-ablation=full seed=42 [##----------------------]   8.25% 50/606 elapsed=07:11 eta=1:19:53 arrivals=5 success=1.000
-ablation=full seed=42 [###---------------------]  12.38% 75/606 elapsed=10:26 eta=1:13:50 arrivals=1 success=1.000
-ablation=full seed=42 [####--------------------]  16.50% 100/606 elapsed=13:46 eta=1:09:42 arrivals=3 success=1.000

@@ -522,6 +522,7 @@ def cycle_metric_row(summary: dict) -> dict:
         "average_end_to_end_delay_s": overall.get("average_end_to_end_delay_s", ""),
         "average_energy_j": overall.get("average_energy_j", ""),
         "p95_end_to_end_delay_s": overall.get("p95_end_to_end_delay_s", ""),
+        "p95_energy_j": overall.get("p95_energy_j", ""),
         "average_communication_delay_s": overall.get(
             "average_communication_delay_s", ""
         ),
@@ -906,6 +907,7 @@ def run_seed(
             "total_reward": total_reward,
             "average_reward_per_request": total_reward / len(results) if results else None,
             "p95_end_to_end_delay_s": summary["p95_end_to_end_delay_s"],
+            "p95_energy_j": summary["p95_energy_j"],
             "average_communication_delay_s": summary["average_communication_delay_s"],
             "average_slot_crossings": summary["average_slot_crossings"],
             "bandit_updated": bandit_updated,
