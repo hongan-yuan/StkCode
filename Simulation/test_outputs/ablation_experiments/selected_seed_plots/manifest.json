@@ -1,6 +1,6 @@
 {
-  "input_dir": "/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/test_outputs/ablation_experiments",
-  "output_dir": "/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/test_outputs/ablation_experiments/selected_seed_plots",
+  "input_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments",
+  "output_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/selected_seed_plots",
   "target_ablation": "full",
   "selection_rule": "target ablation chooses max normalized utility; every other ablation chooses min normalized utility within that ablation",
   "higher_better_metrics": [
@@ -145,8 +145,8 @@
     }
   },
   "figures": [
-    "/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/test_outputs/ablation_experiments/selected_seed_plots/selected_seed_metric_panels.png",
-    "/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/test_outputs/ablation_experiments/selected_seed_plots/selected_seed_scores.png",
-    "/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/test_outputs/ablation_experiments/selected_seed_plots/selected_seed_slot_curves.png"
+    "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/selected_seed_plots/selected_seed_metric_panels.png",
+    "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/selected_seed_plots/selected_seed_scores.png",
+    "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/selected_seed_plots/selected_seed_slot_curves.png"
   ]
 }
