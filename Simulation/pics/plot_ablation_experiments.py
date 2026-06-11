@@ -20,6 +20,23 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 DEFAULT_INPUT_DIR = ROOT_DIR / "Simulation" / "test_outputs" / "ablation_experiments"
 DEFAULT_OUTPUT_DIR = DEFAULT_INPUT_DIR / "plots"
 
+FONT_FAMILY = "Times New Roman"
+TITLE_FONT_SIZE = 16
+LEGEND_FONT_SIZE = 12
+AXIS_LABEL_FONT_SIZE = 13
+TICK_FONT_SIZE = 11
+SUMMARY_PANEL_TITLE_FONT_SIZE = 14
+SUMMARY_BAR_LABEL_FONT_SIZE = 10
+AXIS_SPINE_LINEWIDTH = 1.2
+AXIS_TICK_LINEWIDTH = 1.0
+PLOT_LINEWIDTH = 2.1
+LEGEND_LINEWIDTH = 2.5
+GRID_LINEWIDTH = 0.7
+BOX_LINEWIDTH = 1.5
+BOX_MEDIAN_LINEWIDTH = 2.0
+BAR_EDGE_LINEWIDTH = 0.9
+ERROR_BAR_LINEWIDTH = 1.0
+
 ABLATION_LABELS = {
     "full": "Full",
     "no_bandit": "No Bandit",
@@ -37,6 +54,50 @@ METRICS = {
     "average_communication_delay_s": ("Average communication delay", "Delay (s)"),
     "average_slot_crossings": ("Average slot crossings", "Slot crossings"),
 }
+
+
+def configure_matplotlib_style() -> None:
+    if plt is None:
+        return
+    plt.rcParams.update(
+        {
+            "font.family": "serif",
+            "font.serif": [FONT_FAMILY],
+            "mathtext.fontset": "custom",
+            "mathtext.rm": FONT_FAMILY,
+            "mathtext.it": f"{FONT_FAMILY}:italic",
+            "mathtext.bf": f"{FONT_FAMILY}:bold",
+            "axes.titlesize": TITLE_FONT_SIZE,
+            "axes.labelsize": AXIS_LABEL_FONT_SIZE,
+            "xtick.labelsize": TICK_FONT_SIZE,
+            "ytick.labelsize": TICK_FONT_SIZE,
+            "legend.fontsize": LEGEND_FONT_SIZE,
+            "axes.linewidth": AXIS_SPINE_LINEWIDTH,
+            "xtick.major.width": AXIS_TICK_LINEWIDTH,
+            "ytick.major.width": AXIS_TICK_LINEWIDTH,
+            "grid.linewidth": GRID_LINEWIDTH,
+            "lines.linewidth": PLOT_LINEWIDTH,
+            "svg.fonttype": "none",
+        }
+    )
+
+
+def style_axes(ax, *, title: str | None = None, xlabel: str | None = None, ylabel: str | None = None) -> None:
+    if title is not None:
+        ax.set_title(title, fontsize=TITLE_FONT_SIZE, fontfamily=FONT_FAMILY)
+    if xlabel is not None:
+        ax.set_xlabel(xlabel, fontsize=AXIS_LABEL_FONT_SIZE, fontfamily=FONT_FAMILY)
+    if ylabel is not None:
+        ax.set_ylabel(ylabel, fontsize=AXIS_LABEL_FONT_SIZE, fontfamily=FONT_FAMILY)
+    ax.tick_params(
+        axis="both",
+        labelsize=TICK_FONT_SIZE,
+        width=AXIS_TICK_LINEWIDTH,
+    )
+    for tick_label in ax.get_xticklabels() + ax.get_yticklabels():
+        tick_label.set_fontfamily(FONT_FAMILY)
+    for spine in ax.spines.values():
+        spine.set_linewidth(AXIS_SPINE_LINEWIDTH)
 
 
 def parse_args() -> argparse.Namespace:
@@ -226,6 +287,7 @@ def output_path(output_dir: Path, stem: str, fmt: str) -> Path:
 
 def plot_slot_curve_matplotlib(path: Path, title: str, ylabel: str, series: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    configure_matplotlib_style()
     fig, ax = plt.subplots(figsize=(12, 5.6), dpi=170)
     for ablation, (slots, means, stds) in series.items():
         if not slots:
@@ -233,13 +295,13 @@ def plot_slot_curve_matplotlib(path: Path, title: str, ylabel: str, series: dict
         lower = [avg - spread for avg, spread in zip(means, stds)]
         upper = [avg + spread for avg, spread in zip(means, stds)]
         label = ABLATION_LABELS.get(ablation, ablation)
-        line = ax.plot(slots, means, linewidth=2.0, label=label)[0]
+        line = ax.plot(slots, means, linewidth=PLOT_LINEWIDTH, label=label)[0]
         ax.fill_between(slots, lower, upper, alpha=0.16, color=line.get_color())
-    ax.set_title(title)
-    ax.set_xlabel("Time slot")
-    ax.set_ylabel(ylabel)
-    ax.grid(True, alpha=0.25)
-    ax.legend()
+    style_axes(ax, title=title, xlabel="Time slot", ylabel=ylabel)
+    ax.grid(True, alpha=0.25, linewidth=GRID_LINEWIDTH)
+    legend = ax.legend(prop={"family": FONT_FAMILY, "size": LEGEND_FONT_SIZE})
+    if legend is not None:
+        legend.get_frame().set_linewidth(AXIS_SPINE_LINEWIDTH)
     fig.tight_layout()
     fig.savefig(path)
     plt.close(fig)
@@ -247,14 +309,25 @@ def plot_slot_curve_matplotlib(path: Path, title: str, ylabel: str, series: dict
 
 def plot_box_matplotlib(path: Path, title: str, ylabel: str, data: dict, ablations: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    configure_matplotlib_style()
     fig, ax = plt.subplots(figsize=(10, 5.4), dpi=170)
     values = [data.get(ablation, []) for ablation in ablations]
     labels = [ABLATION_LABELS.get(ablation, ablation) for ablation in ablations]
-    ax.boxplot(values, labels=labels, showmeans=True)
-    ax.set_title(title)
-    ax.set_ylabel(ylabel)
-    ax.grid(axis="y", alpha=0.25)
-    ax.tick_params(axis="x", rotation=15)
+    ax.boxplot(
+        values,
+        labels=labels,
+        showmeans=True,
+        boxprops={"linewidth": BOX_LINEWIDTH},
+        whiskerprops={"linewidth": BOX_LINEWIDTH},
+        capprops={"linewidth": BOX_LINEWIDTH},
+        medianprops={"linewidth": BOX_MEDIAN_LINEWIDTH},
+        meanprops={"markeredgewidth": BOX_LINEWIDTH},
+    )
+    style_axes(ax, title=title, ylabel=ylabel)
+    ax.grid(axis="y", alpha=0.25, linewidth=GRID_LINEWIDTH)
+    ax.tick_params(axis="x", rotation=15, width=AXIS_TICK_LINEWIDTH)
+    for tick_label in ax.get_xticklabels():
+        tick_label.set_fontfamily(FONT_FAMILY)
     fig.tight_layout()
     fig.savefig(path)
     plt.close(fig)
@@ -262,6 +335,7 @@ def plot_box_matplotlib(path: Path, title: str, ylabel: str, data: dict, ablatio
 
 def plot_summary_bar_matplotlib(path: Path, summaries: dict, metrics: list[str], ablations: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    configure_matplotlib_style()
     fig, axes = plt.subplots(1, len(metrics), figsize=(5.2 * len(metrics), 4.8), dpi=170)
     if len(metrics) == 1:
         axes = [axes]
@@ -278,13 +352,22 @@ def plot_summary_bar_matplotlib(path: Path, summaries: dict, metrics: list[str],
             capsize=4,
             color="#7dd3fc",
             edgecolor="#0f172a",
-            linewidth=0.8,
+            linewidth=BAR_EDGE_LINEWIDTH,
+            error_kw={
+                "elinewidth": ERROR_BAR_LINEWIDTH,
+                "capthick": ERROR_BAR_LINEWIDTH,
+            },
         )
         ax.set_xticks(positions)
-        ax.set_xticklabels(labels, rotation=18, ha="right")
-        ax.set_title(title)
-        ax.set_ylabel(ylabel)
-        ax.grid(axis="y", alpha=0.25)
+        ax.set_xticklabels(
+            labels,
+            rotation=18,
+            ha="right",
+            fontsize=TICK_FONT_SIZE,
+            fontfamily=FONT_FAMILY,
+        )
+        style_axes(ax, title=title, ylabel=ylabel)
+        ax.grid(axis="y", alpha=0.25, linewidth=GRID_LINEWIDTH)
     fig.tight_layout()
     fig.savefig(path)
     plt.close(fig)
@@ -300,7 +383,7 @@ def svg_canvas(title: str, width: int, height: int) -> list[str]:
     return [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
         '<rect width="100%" height="100%" fill="white"/>',
-        f'<text x="{width / 2:.1f}" y="28" text-anchor="middle" font-family="Arial" font-size="18">{escape(title)}</text>',
+        f'<text x="{width / 2:.1f}" y="28" text-anchor="middle" font-family="{FONT_FAMILY}" font-size="{TITLE_FONT_SIZE}">{escape(title)}</text>',
     ]
 
 
@@ -326,16 +409,16 @@ def plot_slot_curve_svg(path: Path, title: str, ylabel: str, series: dict) -> No
     colors = ["#2563eb", "#dc2626", "#059669", "#7c3aed", "#ea580c", "#0891b2"]
     parts = svg_canvas(title, width, height)
     parts.extend([
-        f'<line x1="{left}" y1="{height - bottom}" x2="{width - right}" y2="{height - bottom}" stroke="#334155"/>',
-        f'<line x1="{left}" y1="{top}" x2="{left}" y2="{height - bottom}" stroke="#334155"/>',
-        f'<text x="{width / 2:.1f}" y="{height - 18}" text-anchor="middle" font-family="Arial" font-size="13">Time slot</text>',
-        f'<text x="18" y="{height / 2:.1f}" transform="rotate(-90 18 {height / 2:.1f})" text-anchor="middle" font-family="Arial" font-size="13">{escape(ylabel)}</text>',
+        f'<line x1="{left}" y1="{height - bottom}" x2="{width - right}" y2="{height - bottom}" stroke="#334155" stroke-width="{AXIS_SPINE_LINEWIDTH}"/>',
+        f'<line x1="{left}" y1="{top}" x2="{left}" y2="{height - bottom}" stroke="#334155" stroke-width="{AXIS_SPINE_LINEWIDTH}"/>',
+        f'<text x="{width / 2:.1f}" y="{height - 18}" text-anchor="middle" font-family="{FONT_FAMILY}" font-size="{AXIS_LABEL_FONT_SIZE}">Time slot</text>',
+        f'<text x="18" y="{height / 2:.1f}" transform="rotate(-90 18 {height / 2:.1f})" text-anchor="middle" font-family="{FONT_FAMILY}" font-size="{AXIS_LABEL_FONT_SIZE}">{escape(ylabel)}</text>',
     ])
     for tick in range(6):
         value = y_min + (y_max - y_min) * tick / 5
         y = scale(value, y_min, y_max, height - bottom, top)
-        parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{width - right}" y2="{y:.1f}" stroke="#e5e7eb"/>')
-        parts.append(f'<text x="{left - 8}" y="{y + 4:.1f}" text-anchor="end" font-family="Arial" font-size="11">{value:.3g}</text>')
+        parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{width - right}" y2="{y:.1f}" stroke="#e5e7eb" stroke-width="{GRID_LINEWIDTH}"/>')
+        parts.append(f'<text x="{left - 8}" y="{y + 4:.1f}" text-anchor="end" font-family="{FONT_FAMILY}" font-size="{TICK_FONT_SIZE}">{value:.3g}</text>')
     legend_y = top
     for idx, (ablation, (slots, means, _)) in enumerate(series.items()):
         if not slots:
@@ -349,9 +432,9 @@ def plot_slot_curve_svg(path: Path, title: str, ylabel: str, series: dict) -> No
             for slot, value in zip(slots, means)
         ]
         point_text = " ".join(f"{x:.1f},{y:.1f}" for x, y in points)
-        parts.append(f'<polyline fill="none" stroke="{color}" stroke-width="2.1" points="{point_text}"/>')
-        parts.append(f'<line x1="{width - 230}" y1="{legend_y}" x2="{width - 200}" y2="{legend_y}" stroke="{color}" stroke-width="2.5"/>')
-        parts.append(f'<text x="{width - 194}" y="{legend_y + 4}" font-family="Arial" font-size="12">{escape(ABLATION_LABELS.get(ablation, ablation))}</text>')
+        parts.append(f'<polyline fill="none" stroke="{color}" stroke-width="{PLOT_LINEWIDTH}" points="{point_text}"/>')
+        parts.append(f'<line x1="{width - 230}" y1="{legend_y}" x2="{width - 200}" y2="{legend_y}" stroke="{color}" stroke-width="{LEGEND_LINEWIDTH}"/>')
+        parts.append(f'<text x="{width - 194}" y="{legend_y + 4}" font-family="{FONT_FAMILY}" font-size="{LEGEND_FONT_SIZE}">{escape(ABLATION_LABELS.get(ablation, ablation))}</text>')
         legend_y += 18
     parts.append("</svg>")
     path.write_text("\n".join(parts), encoding="utf-8")
@@ -387,20 +470,20 @@ def plot_box_svg(path: Path, title: str, ylabel: str, data: dict, ablations: lis
     y_max += y_pad
     parts = svg_canvas(title, width, height)
     parts.extend([
-        f'<line x1="{left}" y1="{height - bottom}" x2="{width - right}" y2="{height - bottom}" stroke="#334155"/>',
-        f'<line x1="{left}" y1="{top}" x2="{left}" y2="{height - bottom}" stroke="#334155"/>',
-        f'<text x="18" y="{height / 2:.1f}" transform="rotate(-90 18 {height / 2:.1f})" text-anchor="middle" font-family="Arial" font-size="13">{escape(ylabel)}</text>',
+        f'<line x1="{left}" y1="{height - bottom}" x2="{width - right}" y2="{height - bottom}" stroke="#334155" stroke-width="{AXIS_SPINE_LINEWIDTH}"/>',
+        f'<line x1="{left}" y1="{top}" x2="{left}" y2="{height - bottom}" stroke="#334155" stroke-width="{AXIS_SPINE_LINEWIDTH}"/>',
+        f'<text x="18" y="{height / 2:.1f}" transform="rotate(-90 18 {height / 2:.1f})" text-anchor="middle" font-family="{FONT_FAMILY}" font-size="{AXIS_LABEL_FONT_SIZE}">{escape(ylabel)}</text>',
     ])
     for tick in range(6):
         value = y_min + (y_max - y_min) * tick / 5
         y = scale(value, y_min, y_max, height - bottom, top)
-        parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{width - right}" y2="{y:.1f}" stroke="#e5e7eb"/>')
-        parts.append(f'<text x="{left - 8}" y="{y + 4:.1f}" text-anchor="end" font-family="Arial" font-size="11">{value:.3g}</text>')
+        parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{width - right}" y2="{y:.1f}" stroke="#e5e7eb" stroke-width="{GRID_LINEWIDTH}"/>')
+        parts.append(f'<text x="{left - 8}" y="{y + 4:.1f}" text-anchor="end" font-family="{FONT_FAMILY}" font-size="{TICK_FONT_SIZE}">{value:.3g}</text>')
     for index, ablation in enumerate(ablations):
         values = sorted(data.get(ablation, []))
         x = left + (index + 0.5) * plot_w / max(1, len(ablations))
         label = ABLATION_LABELS.get(ablation, ablation)
-        parts.append(f'<text x="{x:.1f}" y="{height - bottom + 24}" text-anchor="middle" font-family="Arial" font-size="11">{escape(label)}</text>')
+        parts.append(f'<text x="{x:.1f}" y="{height - bottom + 24}" text-anchor="middle" font-family="{FONT_FAMILY}" font-size="{TICK_FONT_SIZE}">{escape(label)}</text>')
         if not values:
             continue
         q1, med, q3 = quantile(values, 0.25), quantile(values, 0.5), quantile(values, 0.75)
@@ -413,9 +496,9 @@ def plot_box_svg(path: Path, title: str, ylabel: str, data: dict, ablations: lis
         y_q3 = scale(q3, y_min, y_max, height - bottom, top)
         y_med = scale(med, y_min, y_max, height - bottom, top)
         y_avg = scale(avg, y_min, y_max, height - bottom, top)
-        parts.append(f'<line x1="{x:.1f}" y1="{y_low:.1f}" x2="{x:.1f}" y2="{y_high:.1f}" stroke="#475569" stroke-width="1.5"/>')
-        parts.append(f'<rect x="{x - box_w / 2:.1f}" y="{y_q3:.1f}" width="{box_w:.1f}" height="{max(1.0, y_q1 - y_q3):.1f}" fill="#dbeafe" stroke="#2563eb"/>')
-        parts.append(f'<line x1="{x - box_w / 2:.1f}" y1="{y_med:.1f}" x2="{x + box_w / 2:.1f}" y2="{y_med:.1f}" stroke="#1e3a8a" stroke-width="2"/>')
+        parts.append(f'<line x1="{x:.1f}" y1="{y_low:.1f}" x2="{x:.1f}" y2="{y_high:.1f}" stroke="#475569" stroke-width="{BOX_LINEWIDTH}"/>')
+        parts.append(f'<rect x="{x - box_w / 2:.1f}" y="{y_q3:.1f}" width="{box_w:.1f}" height="{max(1.0, y_q1 - y_q3):.1f}" fill="#dbeafe" stroke="#2563eb" stroke-width="{BOX_LINEWIDTH}"/>')
+        parts.append(f'<line x1="{x - box_w / 2:.1f}" y1="{y_med:.1f}" x2="{x + box_w / 2:.1f}" y2="{y_med:.1f}" stroke="#1e3a8a" stroke-width="{BOX_MEDIAN_LINEWIDTH}"/>')
         parts.append(f'<circle cx="{x:.1f}" cy="{y_avg:.1f}" r="3" fill="#dc2626"/>')
     parts.append("</svg>")
     path.write_text("\n".join(parts), encoding="utf-8")
@@ -438,9 +521,9 @@ def plot_summary_bar_svg(path: Path, summaries: dict, metrics: list[str], ablati
         y_max = max(finite) if finite else 1.0
         if y_max <= 0:
             y_max = 1.0
-        parts.append(f'<text x="{x0 + w / 2:.1f}" y="{y0 - 14}" text-anchor="middle" font-family="Arial" font-size="14">{escape(title)}</text>')
-        parts.append(f'<line x1="{x0 + 48:.1f}" y1="{y0 + h:.1f}" x2="{x0 + w:.1f}" y2="{y0 + h:.1f}" stroke="#334155"/>')
-        parts.append(f'<line x1="{x0 + 48:.1f}" y1="{y0:.1f}" x2="{x0 + 48:.1f}" y2="{y0 + h:.1f}" stroke="#334155"/>')
+        parts.append(f'<text x="{x0 + w / 2:.1f}" y="{y0 - 14}" text-anchor="middle" font-family="{FONT_FAMILY}" font-size="{SUMMARY_PANEL_TITLE_FONT_SIZE}">{escape(title)}</text>')
+        parts.append(f'<line x1="{x0 + 48:.1f}" y1="{y0 + h:.1f}" x2="{x0 + w:.1f}" y2="{y0 + h:.1f}" stroke="#334155" stroke-width="{AXIS_SPINE_LINEWIDTH}"/>')
+        parts.append(f'<line x1="{x0 + 48:.1f}" y1="{y0:.1f}" x2="{x0 + 48:.1f}" y2="{y0 + h:.1f}" stroke="#334155" stroke-width="{AXIS_SPINE_LINEWIDTH}"/>')
         for index, ablation in enumerate(ablations):
             value = values[index]
             if value is None:
@@ -449,9 +532,9 @@ def plot_summary_bar_svg(path: Path, summaries: dict, metrics: list[str], ablati
             x = x0 + 58 + index * (w - 66) / max(1, len(ablations))
             bar_h = value / y_max * h
             y = y0 + h - bar_h
-            parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{bar_w:.1f}" height="{bar_h:.1f}" fill="{colors[index % len(colors)]}" stroke="#0f172a"/>')
-            parts.append(f'<text x="{x + bar_w / 2:.1f}" y="{y0 + h + 16}" transform="rotate(18 {x + bar_w / 2:.1f} {y0 + h + 16})" text-anchor="start" font-family="Arial" font-size="10">{escape(ABLATION_LABELS.get(ablation, ablation))}</text>')
-        parts.append(f'<text x="{x0 + 12:.1f}" y="{y0 + h / 2:.1f}" transform="rotate(-90 {x0 + 12:.1f} {y0 + h / 2:.1f})" text-anchor="middle" font-family="Arial" font-size="11">{escape(ylabel)}</text>')
+            parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{bar_w:.1f}" height="{bar_h:.1f}" fill="{colors[index % len(colors)]}" stroke="#0f172a" stroke-width="{BAR_EDGE_LINEWIDTH}"/>')
+            parts.append(f'<text x="{x + bar_w / 2:.1f}" y="{y0 + h + 16}" transform="rotate(18 {x + bar_w / 2:.1f} {y0 + h + 16})" text-anchor="start" font-family="{FONT_FAMILY}" font-size="{SUMMARY_BAR_LABEL_FONT_SIZE}">{escape(ABLATION_LABELS.get(ablation, ablation))}</text>')
+        parts.append(f'<text x="{x0 + 12:.1f}" y="{y0 + h / 2:.1f}" transform="rotate(-90 {x0 + 12:.1f} {y0 + h / 2:.1f})" text-anchor="middle" font-family="{FONT_FAMILY}" font-size="{TICK_FONT_SIZE}">{escape(ylabel)}</text>')
     parts.append("</svg>")
     path.write_text("\n".join(parts), encoding="utf-8")
 
