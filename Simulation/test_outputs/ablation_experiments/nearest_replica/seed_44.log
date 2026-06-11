@@ -1,29 +1,29 @@
-ablation=nearest_replica seed=44 [------------------------]   0.17% 1/606 elapsed=00:04 eta=35:28 arrivals=8 success=1.000
-ablation=nearest_replica seed=44 [#-----------------------]   4.13% 25/606 elapsed=00:46 eta=17:40 arrivals=7 success=1.000
-ablation=nearest_replica seed=44 [##----------------------]   8.25% 50/606 elapsed=01:41 eta=18:47 arrivals=5 success=1.000
-ablation=nearest_replica seed=44 [###---------------------]  12.38% 75/606 elapsed=02:45 eta=19:29 arrivals=5 success=1.000
-ablation=nearest_replica seed=44 [####--------------------]  16.50% 100/606 elapsed=03:46 eta=19:02 arrivals=7 success=1.000
-ablation=nearest_replica seed=44 [#####-------------------]  20.63% 125/606 elapsed=04:50 eta=18:37 arrivals=1 success=1.000
-ablation=nearest_replica seed=44 [######------------------]  24.75% 150/606 elapsed=05:47 eta=17:34 arrivals=6 success=1.000
-ablation=nearest_replica seed=44 [#######-----------------]  28.88% 175/606 elapsed=06:42 eta=16:29 arrivals=5 success=1.000
-ablation=nearest_replica seed=44 [########----------------]  33.00% 200/606 elapsed=07:39 eta=15:31 arrivals=4 success=1.000
-ablation=nearest_replica seed=44 [#########---------------]  37.13% 225/606 elapsed=08:42 eta=14:44 arrivals=1 success=1.000
-ablation=nearest_replica seed=44 [##########--------------]  41.25% 250/606 elapsed=09:43 eta=13:51 arrivals=7 success=1.000
-ablation=nearest_replica seed=44 [###########-------------]  45.38% 275/606 elapsed=10:44 eta=12:55 arrivals=4 success=1.000
-ablation=nearest_replica seed=44 [############------------]  49.50% 300/606 elapsed=11:53 eta=12:08 arrivals=11 success=1.000
-ablation=nearest_replica seed=44 [#############-----------]  53.63% 325/606 elapsed=12:59 eta=11:14 arrivals=6 success=1.000
-ablation=nearest_replica seed=44 [##############----------]  57.76% 350/606 elapsed=14:01 eta=10:15 arrivals=6 success=1.000
-ablation=nearest_replica seed=44 [###############---------]  61.88% 375/606 elapsed=15:10 eta=09:20 arrivals=5 success=1.000
-ablation=nearest_replica seed=44 [################--------]  66.01% 400/606 elapsed=16:07 eta=08:18 arrivals=8 success=1.000
-ablation=nearest_replica seed=44 [#################-------]  70.13% 425/606 elapsed=17:03 eta=07:16 arrivals=9 success=1.000
-ablation=nearest_replica seed=44 [##################------]  74.26% 450/606 elapsed=18:05 eta=06:16 arrivals=5 success=1.000
-ablation=nearest_replica seed=44 [###################-----]  78.38% 475/606 elapsed=19:13 eta=05:18 arrivals=4 success=1.000
-ablation=nearest_replica seed=44 [####################----]  82.51% 500/606 elapsed=20:14 eta=04:17 arrivals=11 success=1.000
-ablation=nearest_replica seed=44 [#####################---]  86.63% 525/606 elapsed=21:08 eta=03:16 arrivals=6 success=1.000
-ablation=nearest_replica seed=44 [######################--]  90.76% 550/606 elapsed=22:10 eta=02:15 arrivals=4 success=1.000
-ablation=nearest_replica seed=44 [#######################-]  94.88% 575/606 elapsed=23:19 eta=01:15 arrivals=5 success=1.000
-ablation=nearest_replica seed=44 [########################]  99.01% 600/606 elapsed=24:29 eta=00:15 arrivals=3 success=1.000
-ablation=nearest_replica seed=44 [########################] 100.00% 606/606 elapsed=24:41 eta=00:00 arrivals=2 success=1.000
+ablation=nearest_replica seed=44 [------------------------]   0.17% 1/606 elapsed=00:04 eta=42:49 arrivals=8 success=1.000
+ablation=nearest_replica seed=44 [#-----------------------]   4.13% 25/606 elapsed=00:48 eta=18:43 arrivals=7 success=1.000
+ablation=nearest_replica seed=44 [##----------------------]   8.25% 50/606 elapsed=01:46 eta=19:43 arrivals=5 success=1.000
+ablation=nearest_replica seed=44 [###---------------------]  12.38% 75/606 elapsed=02:52 eta=20:20 arrivals=5 success=1.000
+ablation=nearest_replica seed=44 [####--------------------]  16.50% 100/606 elapsed=03:55 eta=19:49 arrivals=7 success=1.000
+ablation=nearest_replica seed=44 [#####-------------------]  20.63% 125/606 elapsed=05:02 eta=19:21 arrivals=1 success=1.000
+ablation=nearest_replica seed=44 [######------------------]  24.75% 150/606 elapsed=06:01 eta=18:17 arrivals=6 success=1.000
+ablation=nearest_replica seed=44 [#######-----------------]  28.88% 175/606 elapsed=06:58 eta=17:11 arrivals=5 success=1.000
+ablation=nearest_replica seed=44 [########----------------]  33.00% 200/606 elapsed=07:58 eta=16:10 arrivals=4 success=1.000
+ablation=nearest_replica seed=44 [#########---------------]  37.13% 225/606 elapsed=09:04 eta=15:22 arrivals=1 success=1.000
+ablation=nearest_replica seed=44 [##########--------------]  41.25% 250/606 elapsed=10:09 eta=14:27 arrivals=7 success=1.000
+ablation=nearest_replica seed=44 [###########-------------]  45.38% 275/606 elapsed=11:13 eta=13:30 arrivals=4 success=1.000
+ablation=nearest_replica seed=44 [############------------]  49.50% 300/606 elapsed=12:26 eta=12:40 arrivals=11 success=1.000
+ablation=nearest_replica seed=44 [#############-----------]  53.63% 325/606 elapsed=13:33 eta=11:43 arrivals=6 success=1.000
+ablation=nearest_replica seed=44 [##############----------]  57.76% 350/606 elapsed=14:37 eta=10:42 arrivals=6 success=1.000
+ablation=nearest_replica seed=44 [###############---------]  61.88% 375/606 elapsed=15:49 eta=09:44 arrivals=5 success=1.000
+ablation=nearest_replica seed=44 [################--------]  66.01% 400/606 elapsed=16:49 eta=08:39 arrivals=8 success=1.000
+ablation=nearest_replica seed=44 [#################-------]  70.13% 425/606 elapsed=17:47 eta=07:34 arrivals=9 success=1.000
+ablation=nearest_replica seed=44 [##################------]  74.26% 450/606 elapsed=18:51 eta=06:32 arrivals=5 success=1.000
+ablation=nearest_replica seed=44 [###################-----]  78.38% 475/606 elapsed=20:01 eta=05:31 arrivals=4 success=1.000
+ablation=nearest_replica seed=44 [####################----]  82.51% 500/606 elapsed=21:04 eta=04:28 arrivals=11 success=1.000
+ablation=nearest_replica seed=44 [#####################---]  86.63% 525/606 elapsed=22:01 eta=03:24 arrivals=6 success=1.000
+ablation=nearest_replica seed=44 [######################--]  90.76% 550/606 elapsed=23:06 eta=02:21 arrivals=4 success=1.000
+ablation=nearest_replica seed=44 [#######################-]  94.88% 575/606 elapsed=24:17 eta=01:19 arrivals=5 success=1.000
+ablation=nearest_replica seed=44 [########################]  99.01% 600/606 elapsed=25:30 eta=00:15 arrivals=3 success=1.000
+ablation=nearest_replica seed=44 [########################] 100.00% 606/606 elapsed=25:42 eta=00:00 arrivals=2 success=1.000
 {
   "seeds": [
     44
@@ -38,6 +38,10 @@ ablation=nearest_replica seed=44 [########################] 100.00% 606/606 elap
       "request_template_csv": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_44/request_templates.csv",
       "request_templates_loaded": true,
       "request_template_count": 14,
+      "original_request_template_count": 14,
+      "chain_length_filter": null,
+      "arrival_mode": "per_template",
+      "arrival_lambda_total_per_slot": null,
       "checkpoint": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_44/ppo_gnn_latest.pth",
       "checkpoint_loaded": false,
       "checkpoint_load_error": "",
@@ -60,6 +64,13 @@ ablation=nearest_replica seed=44 [########################] 100.00% 606/606 elap
           "min_cost_max_flow": 24595,
           "local": 1230
         }
+      },
+      "delay_margin_summary": {
+        "deadline_accepted_count": 2746,
+        "deadline_acceptance_rate": 0.9468965517241379,
+        "delay_margin_mean": 0.6317040564859956,
+        "delay_margin_max": 1.6446533479458048,
+        "delay_margin_jain_fairness": 0.9011919046750986
       },
       "bandit_summary": {
         "total_pulls": 5280,

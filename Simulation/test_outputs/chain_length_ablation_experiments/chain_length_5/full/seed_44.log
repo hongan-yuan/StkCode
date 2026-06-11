@@ -1,0 +1,11 @@
+ablation=full seed=44 [------------------------]   0.17% 1/606 elapsed=00:04 eta=37:11 arrivals=4 success=1.000
+ablation=full seed=44 [#-----------------------]   4.13% 25/606 elapsed=01:44 eta=40:06 arrivals=5 success=1.000
+ablation=full seed=44 [##----------------------]   8.25% 50/606 elapsed=03:28 eta=38:32 arrivals=5 success=1.000
+ablation=full seed=44 [###---------------------]  12.38% 75/606 elapsed=05:11 eta=36:40 arrivals=6 success=1.000
+ablation=full seed=44 [####--------------------]  16.50% 100/606 elapsed=06:48 eta=34:27 arrivals=4 success=1.000
+ablation=full seed=44 [#####-------------------]  20.63% 125/606 elapsed=08:36 eta=33:04 arrivals=7 success=1.000
+ablation=full seed=44 [######------------------]  24.75% 150/606 elapsed=10:04 eta=30:35 arrivals=3 success=1.000
+ablation=full seed=44 [#######-----------------]  28.88% 175/606 elapsed=11:30 eta=28:20 arrivals=4 success=1.000
+ablation=full seed=44 [########----------------]  33.00% 200/606 elapsed=12:48 eta=26:00 arrivals=2 success=1.000
+ablation=full seed=44 [#########---------------]  37.13% 225/606 elapsed=14:23 eta=24:21 arrivals=2 success=1.000
+ablation=full seed=44 [##########--------------]  41.25% 250/606 elapsed=15:34 eta=22:09 arrivals=6 success=1.000

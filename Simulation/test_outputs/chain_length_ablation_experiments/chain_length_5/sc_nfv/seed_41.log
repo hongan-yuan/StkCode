@@ -1,0 +1,7 @@
+ablation=sc_nfv seed=41 [------------------------]   0.17% 1/606 elapsed=00:06 eta=59:45 arrivals=5 success=1.000
+ablation=sc_nfv seed=41 [#-----------------------]   4.13% 25/606 elapsed=02:05 eta=48:23 arrivals=3 success=1.000
+ablation=sc_nfv seed=41 [##----------------------]   8.25% 50/606 elapsed=04:30 eta=49:59 arrivals=4 success=1.000
+ablation=sc_nfv seed=41 [###---------------------]  12.38% 75/606 elapsed=06:57 eta=49:14 arrivals=1 success=1.000
+ablation=sc_nfv seed=41 [####--------------------]  16.50% 100/606 elapsed=09:06 eta=46:03 arrivals=8 success=1.000
+ablation=sc_nfv seed=41 [#####-------------------]  20.63% 125/606 elapsed=11:43 eta=45:03 arrivals=5 success=1.000
+ablation=sc_nfv seed=41 [######------------------]  24.75% 150/606 elapsed=14:20 eta=43:34 arrivals=10 success=1.000

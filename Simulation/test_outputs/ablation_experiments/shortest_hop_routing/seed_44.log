@@ -1,29 +1,29 @@
-ablation=shortest_hop_routing seed=44 [------------------------]   0.17% 1/606 elapsed=00:02 eta=17:13 arrivals=8 success=1.000
+ablation=shortest_hop_routing seed=44 [------------------------]   0.17% 1/606 elapsed=00:01 eta=14:41 arrivals=8 success=1.000
 ablation=shortest_hop_routing seed=44 [#-----------------------]   4.13% 25/606 elapsed=00:26 eta=10:07 arrivals=8 success=0.875
-ablation=shortest_hop_routing seed=44 [##----------------------]   8.25% 50/606 elapsed=00:54 eta=09:58 arrivals=3 success=1.000
-ablation=shortest_hop_routing seed=44 [###---------------------]  12.38% 75/606 elapsed=01:23 eta=09:51 arrivals=3 success=1.000
-ablation=shortest_hop_routing seed=44 [####--------------------]  16.50% 100/606 elapsed=02:00 eta=10:07 arrivals=6 success=1.000
-ablation=shortest_hop_routing seed=44 [#####-------------------]  20.63% 125/606 elapsed=02:34 eta=09:53 arrivals=1 success=1.000
-ablation=shortest_hop_routing seed=44 [######------------------]  24.75% 150/606 elapsed=03:02 eta=09:13 arrivals=2 success=1.000
-ablation=shortest_hop_routing seed=44 [#######-----------------]  28.88% 175/606 elapsed=03:30 eta=08:38 arrivals=5 success=1.000
-ablation=shortest_hop_routing seed=44 [########----------------]  33.00% 200/606 elapsed=04:00 eta=08:07 arrivals=3 success=1.000
-ablation=shortest_hop_routing seed=44 [#########---------------]  37.13% 225/606 elapsed=04:31 eta=07:39 arrivals=7 success=0.857
-ablation=shortest_hop_routing seed=44 [##########--------------]  41.25% 250/606 elapsed=05:02 eta=07:09 arrivals=3 success=1.000
-ablation=shortest_hop_routing seed=44 [###########-------------]  45.38% 275/606 elapsed=05:31 eta=06:38 arrivals=4 success=1.000
-ablation=shortest_hop_routing seed=44 [############------------]  49.50% 300/606 elapsed=06:04 eta=06:12 arrivals=8 success=1.000
-ablation=shortest_hop_routing seed=44 [#############-----------]  53.63% 325/606 elapsed=06:39 eta=05:45 arrivals=5 success=1.000
-ablation=shortest_hop_routing seed=44 [##############----------]  57.76% 350/606 elapsed=07:05 eta=05:11 arrivals=2 success=1.000
-ablation=shortest_hop_routing seed=44 [###############---------]  61.88% 375/606 elapsed=07:35 eta=04:40 arrivals=7 success=1.000
-ablation=shortest_hop_routing seed=44 [################--------]  66.01% 400/606 elapsed=08:02 eta=04:08 arrivals=2 success=1.000
-ablation=shortest_hop_routing seed=44 [#################-------]  70.13% 425/606 elapsed=08:40 eta=03:41 arrivals=5 success=1.000
-ablation=shortest_hop_routing seed=44 [##################------]  74.26% 450/606 elapsed=09:09 eta=03:10 arrivals=5 success=1.000
-ablation=shortest_hop_routing seed=44 [###################-----]  78.38% 475/606 elapsed=09:40 eta=02:40 arrivals=6 success=1.000
-ablation=shortest_hop_routing seed=44 [####################----]  82.51% 500/606 elapsed=10:09 eta=02:09 arrivals=7 success=0.857
-ablation=shortest_hop_routing seed=44 [#####################---]  86.63% 525/606 elapsed=10:37 eta=01:38 arrivals=5 success=0.800
-ablation=shortest_hop_routing seed=44 [######################--]  90.76% 550/606 elapsed=11:06 eta=01:08 arrivals=3 success=1.000
-ablation=shortest_hop_routing seed=44 [#######################-]  94.88% 575/606 elapsed=11:30 eta=00:37 arrivals=6 success=1.000
-ablation=shortest_hop_routing seed=44 [########################]  99.01% 600/606 elapsed=12:00 eta=00:07 arrivals=2 success=1.000
-ablation=shortest_hop_routing seed=44 [########################] 100.00% 606/606 elapsed=12:06 eta=00:00 arrivals=3 success=1.000
+ablation=shortest_hop_routing seed=44 [##----------------------]   8.25% 50/606 elapsed=00:55 eta=10:11 arrivals=3 success=1.000
+ablation=shortest_hop_routing seed=44 [###---------------------]  12.38% 75/606 elapsed=01:25 eta=10:03 arrivals=3 success=1.000
+ablation=shortest_hop_routing seed=44 [####--------------------]  16.50% 100/606 elapsed=02:03 eta=10:22 arrivals=6 success=1.000
+ablation=shortest_hop_routing seed=44 [#####-------------------]  20.63% 125/606 elapsed=02:38 eta=10:08 arrivals=1 success=1.000
+ablation=shortest_hop_routing seed=44 [######------------------]  24.75% 150/606 elapsed=03:06 eta=09:26 arrivals=2 success=1.000
+ablation=shortest_hop_routing seed=44 [#######-----------------]  28.88% 175/606 elapsed=03:35 eta=08:49 arrivals=5 success=1.000
+ablation=shortest_hop_routing seed=44 [########----------------]  33.00% 200/606 elapsed=04:05 eta=08:17 arrivals=3 success=1.000
+ablation=shortest_hop_routing seed=44 [#########---------------]  37.13% 225/606 elapsed=04:37 eta=07:50 arrivals=7 success=0.857
+ablation=shortest_hop_routing seed=44 [##########--------------]  41.25% 250/606 elapsed=05:09 eta=07:19 arrivals=3 success=1.000
+ablation=shortest_hop_routing seed=44 [###########-------------]  45.38% 275/606 elapsed=05:38 eta=06:47 arrivals=4 success=1.000
+ablation=shortest_hop_routing seed=44 [############------------]  49.50% 300/606 elapsed=06:13 eta=06:20 arrivals=8 success=1.000
+ablation=shortest_hop_routing seed=44 [#############-----------]  53.63% 325/606 elapsed=06:48 eta=05:53 arrivals=5 success=1.000
+ablation=shortest_hop_routing seed=44 [##############----------]  57.76% 350/606 elapsed=07:14 eta=05:18 arrivals=2 success=1.000
+ablation=shortest_hop_routing seed=44 [###############---------]  61.88% 375/606 elapsed=07:45 eta=04:46 arrivals=7 success=1.000
+ablation=shortest_hop_routing seed=44 [################--------]  66.01% 400/606 elapsed=08:12 eta=04:13 arrivals=2 success=1.000
+ablation=shortest_hop_routing seed=44 [#################-------]  70.13% 425/606 elapsed=08:50 eta=03:46 arrivals=5 success=1.000
+ablation=shortest_hop_routing seed=44 [##################------]  74.26% 450/606 elapsed=09:20 eta=03:14 arrivals=5 success=1.000
+ablation=shortest_hop_routing seed=44 [###################-----]  78.38% 475/606 elapsed=09:52 eta=02:43 arrivals=6 success=1.000
+ablation=shortest_hop_routing seed=44 [####################----]  82.51% 500/606 elapsed=10:22 eta=02:12 arrivals=7 success=0.857
+ablation=shortest_hop_routing seed=44 [#####################---]  86.63% 525/606 elapsed=10:50 eta=01:40 arrivals=5 success=0.800
+ablation=shortest_hop_routing seed=44 [######################--]  90.76% 550/606 elapsed=11:19 eta=01:09 arrivals=3 success=1.000
+ablation=shortest_hop_routing seed=44 [#######################-]  94.88% 575/606 elapsed=11:43 eta=00:38 arrivals=6 success=1.000
+ablation=shortest_hop_routing seed=44 [########################]  99.01% 600/606 elapsed=12:14 eta=00:07 arrivals=2 success=1.000
+ablation=shortest_hop_routing seed=44 [########################] 100.00% 606/606 elapsed=12:20 eta=00:00 arrivals=3 success=1.000
 {
   "seeds": [
     44
@@ -38,6 +38,10 @@ ablation=shortest_hop_routing seed=44 [########################] 100.00% 606/606
       "request_template_csv": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_44/request_templates.csv",
       "request_templates_loaded": true,
       "request_template_count": 14,
+      "original_request_template_count": 14,
+      "chain_length_filter": null,
+      "arrival_mode": "per_template",
+      "arrival_lambda_total_per_slot": null,
       "checkpoint": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_44/ppo_gnn_latest.pth",
       "checkpoint_loaded": true,
       "checkpoint_load_error": "",
@@ -60,6 +64,13 @@ ablation=shortest_hop_routing seed=44 [########################] 100.00% 606/606
           "shortest_hop_per_slot": 24620,
           "local": 1115
         }
+      },
+      "delay_margin_summary": {
+        "deadline_accepted_count": 2824,
+        "deadline_acceptance_rate": 0.9856893542757417,
+        "delay_margin_mean": 0.5759983093361787,
+        "delay_margin_max": 1.2876524036455583,
+        "delay_margin_jain_fairness": 0.9329321218230661
       },
       "bandit_summary": {
         "total_pulls": 5291,

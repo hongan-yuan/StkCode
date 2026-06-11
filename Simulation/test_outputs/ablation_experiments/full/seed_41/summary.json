@@ -1,0 +1,72 @@
+{
+  "ablation": "full",
+  "seed": 41,
+  "run_dir": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_41",
+  "slot_count": 606,
+  "slot_duration_s": 10.0,
+  "request_template_csv": null,
+  "request_templates_loaded": false,
+  "request_template_count": 14,
+  "original_request_template_count": 14,
+  "chain_length_filter": null,
+  "arrival_mode": "per_template",
+  "arrival_lambda_total_per_slot": null,
+  "checkpoint": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_41/ppo_gnn_latest.pth",
+  "checkpoint_loaded": false,
+  "checkpoint_load_error": "",
+  "execution_agent": "PPOGNNExecutionAgent",
+  "service_routing_strategy": "min_cost_max_flow",
+  "bandit_redeployment_enabled": true,
+  "bandit_arm_stats": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_41/bandit_arm_stats.csv",
+  "bandit_loaded_arm_count": 0,
+  "arrival_lambda_per_pattern_per_slot": 0.35,
+  "overall_summary": {
+    "request_count": 3057,
+    "feasible_count": 3044,
+    "success_rate": 0.9957474648348054,
+    "average_end_to_end_delay_s": 67.26345339158482,
+    "p95_end_to_end_delay_s": 133.61607838432337,
+    "average_energy_j": 3254.7860313262386,
+    "average_communication_delay_s": 1.2244980783532076,
+    "average_slot_crossings": 0.09817640491254187,
+    "route_mode_counts": {
+      "local": 1407,
+      "min_cost_max_flow": 25463
+    }
+  },
+  "delay_margin_summary": {
+    "deadline_accepted_count": 2362,
+    "deadline_acceptance_rate": 0.7759526938239159,
+    "delay_margin_mean": 0.8280947948570114,
+    "delay_margin_max": 2.183826311564032,
+    "delay_margin_jain_fairness": 0.9108496929741858
+  },
+  "bandit_summary": {
+    "total_pulls": 480,
+    "known_arm_count": 116,
+    "positive_arm_count": 116,
+    "average_arm_reward": 1.393183495331937,
+    "total_applied_actions": 240,
+    "total_execution_feedback_updates": 240,
+    "total_failed_replica_observations": 13,
+    "known_failed_replica_count": 1,
+    "known_service_pressure_metric_count": 29,
+    "total_applied_add_count": 16,
+    "total_applied_move_count": 224,
+    "last_applied_action_count": 4,
+    "last_applied_move_count": 4,
+    "last_unresolved_arm_count": 3
+  },
+  "routing_cache_summary": {
+    "route_result_hits": 26450,
+    "route_result_misses": 350234,
+    "shortest_path_hits": 0,
+    "shortest_path_misses": 0,
+    "precomputed_slots": 606,
+    "precomputed_nodes": 180
+  },
+  "route_estimate_cache_summary": {
+    "hits": 90006,
+    "misses": 349444
+  }
+}

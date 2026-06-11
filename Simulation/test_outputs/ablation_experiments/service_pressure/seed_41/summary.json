@@ -1,19 +1,23 @@
 {
   "ablation": "service_pressure",
   "seed": 41,
-  "run_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_41",
+  "run_dir": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_41",
   "slot_count": 606,
   "slot_duration_s": 10.0,
   "request_template_csv": null,
   "request_templates_loaded": false,
   "request_template_count": 14,
-  "checkpoint": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_41/ppo_gnn_latest.pth",
+  "original_request_template_count": 14,
+  "chain_length_filter": null,
+  "arrival_mode": "per_template",
+  "arrival_lambda_total_per_slot": null,
+  "checkpoint": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_41/ppo_gnn_latest.pth",
   "checkpoint_loaded": false,
   "checkpoint_load_error": "",
   "execution_agent": "ServicePressureExecutionAgent",
   "service_routing_strategy": "service_pressure",
   "bandit_redeployment_enabled": true,
-  "bandit_arm_stats": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_41/bandit_arm_stats.csv",
+  "bandit_arm_stats": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_41/bandit_arm_stats.csv",
   "bandit_loaded_arm_count": 0,
   "arrival_lambda_per_pattern_per_slot": 0.35,
   "overall_summary": {
@@ -29,11 +33,18 @@
       "service_pressure_backpressure": 26987
     }
   },
+  "delay_margin_summary": {
+    "deadline_accepted_count": 3010,
+    "deadline_acceptance_rate": 0.9846254497873732,
+    "delay_margin_mean": 0.6365175747165509,
+    "delay_margin_max": 1.3423876239897585,
+    "delay_margin_jain_fairness": 0.9420580645789942
+  },
   "bandit_summary": {
     "total_pulls": 480,
     "known_arm_count": 120,
     "positive_arm_count": 120,
-    "average_arm_reward": 1.4529522879305419,
+    "average_arm_reward": 1.452952287930542,
     "total_applied_actions": 240,
     "total_execution_feedback_updates": 240,
     "total_failed_replica_observations": 0,

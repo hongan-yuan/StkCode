@@ -7,6 +7,10 @@
   "request_template_csv": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_44/request_templates.csv",
   "request_templates_loaded": true,
   "request_template_count": 14,
+  "original_request_template_count": 14,
+  "chain_length_filter": null,
+  "arrival_mode": "per_template",
+  "arrival_lambda_total_per_slot": null,
   "checkpoint": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_44/ppo_gnn_latest.pth",
   "checkpoint_loaded": false,
   "checkpoint_load_error": "",
@@ -29,6 +33,13 @@
       "min_cost_max_flow": 24595,
       "local": 1230
     }
+  },
+  "delay_margin_summary": {
+    "deadline_accepted_count": 2746,
+    "deadline_acceptance_rate": 0.9468965517241379,
+    "delay_margin_mean": 0.6317040564859956,
+    "delay_margin_max": 1.6446533479458048,
+    "delay_margin_jain_fairness": 0.9011919046750986
   },
   "bandit_summary": {
     "total_pulls": 5280,

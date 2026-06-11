@@ -1,29 +1,29 @@
-ablation=no_bandit seed=43 [------------------------]   0.17% 1/606 elapsed=00:03 eta=33:48 arrivals=3 success=1.000
-ablation=no_bandit seed=43 [#-----------------------]   4.13% 25/606 elapsed=02:16 eta=52:45 arrivals=8 success=1.000
-ablation=no_bandit seed=43 [##----------------------]   8.25% 50/606 elapsed=04:35 eta=50:53 arrivals=4 success=1.000
-ablation=no_bandit seed=43 [###---------------------]  12.38% 75/606 elapsed=06:44 eta=47:41 arrivals=7 success=1.000
-ablation=no_bandit seed=43 [####--------------------]  16.50% 100/606 elapsed=08:58 eta=45:22 arrivals=5 success=1.000
-ablation=no_bandit seed=43 [#####-------------------]  20.63% 125/606 elapsed=11:16 eta=43:20 arrivals=9 success=1.000
-ablation=no_bandit seed=43 [######------------------]  24.75% 150/606 elapsed=13:27 eta=40:53 arrivals=2 success=1.000
-ablation=no_bandit seed=43 [#######-----------------]  28.88% 175/606 elapsed=15:19 eta=37:43 arrivals=6 success=1.000
-ablation=no_bandit seed=43 [########----------------]  33.00% 200/606 elapsed=16:55 eta=34:21 arrivals=7 success=1.000
-ablation=no_bandit seed=43 [#########---------------]  37.13% 225/606 elapsed=18:48 eta=31:50 arrivals=6 success=1.000
-ablation=no_bandit seed=43 [##########--------------]  41.25% 250/606 elapsed=20:23 eta=29:02 arrivals=3 success=1.000
-ablation=no_bandit seed=43 [###########-------------]  45.38% 275/606 elapsed=22:26 eta=27:00 arrivals=4 success=1.000
-ablation=no_bandit seed=43 [############------------]  49.50% 300/606 elapsed=24:32 eta=25:02 arrivals=5 success=1.000
-ablation=no_bandit seed=43 [#############-----------]  53.63% 325/606 elapsed=26:11 eta=22:38 arrivals=3 success=1.000
-ablation=no_bandit seed=43 [##############----------]  57.76% 350/606 elapsed=27:55 eta=20:25 arrivals=3 success=1.000
-ablation=no_bandit seed=43 [###############---------]  61.88% 375/606 elapsed=29:38 eta=18:16 arrivals=4 success=1.000
-ablation=no_bandit seed=43 [################--------]  66.01% 400/606 elapsed=31:21 eta=16:09 arrivals=5 success=1.000
-ablation=no_bandit seed=43 [#################-------]  70.13% 425/606 elapsed=33:36 eta=14:18 arrivals=7 success=1.000
-ablation=no_bandit seed=43 [##################------]  74.26% 450/606 elapsed=35:23 eta=12:16 arrivals=0 success=0.000
-ablation=no_bandit seed=43 [###################-----]  78.38% 475/606 elapsed=37:18 eta=10:17 arrivals=3 success=1.000
-ablation=no_bandit seed=43 [####################----]  82.51% 500/606 elapsed=39:05 eta=08:17 arrivals=3 success=1.000
-ablation=no_bandit seed=43 [#####################---]  86.63% 525/606 elapsed=41:06 eta=06:20 arrivals=3 success=1.000
-ablation=no_bandit seed=43 [######################--]  90.76% 550/606 elapsed=42:56 eta=04:22 arrivals=6 success=1.000
-ablation=no_bandit seed=43 [#######################-]  94.88% 575/606 elapsed=44:35 eta=02:24 arrivals=6 success=1.000
-ablation=no_bandit seed=43 [########################]  99.01% 600/606 elapsed=46:36 eta=00:28 arrivals=5 success=1.000
-ablation=no_bandit seed=43 [########################] 100.00% 606/606 elapsed=47:11 eta=00:00 arrivals=5 success=1.000
+ablation=no_bandit seed=43 [------------------------]   0.17% 1/606 elapsed=00:03 eta=34:40 arrivals=3 success=1.000
+ablation=no_bandit seed=43 [#-----------------------]   4.13% 25/606 elapsed=02:23 eta=55:13 arrivals=8 success=1.000
+ablation=no_bandit seed=43 [##----------------------]   8.25% 50/606 elapsed=04:43 eta=52:23 arrivals=4 success=1.000
+ablation=no_bandit seed=43 [###---------------------]  12.38% 75/606 elapsed=06:54 eta=48:54 arrivals=7 success=1.000
+ablation=no_bandit seed=43 [####--------------------]  16.50% 100/606 elapsed=09:10 eta=46:21 arrivals=5 success=1.000
+ablation=no_bandit seed=43 [#####-------------------]  20.63% 125/606 elapsed=11:29 eta=44:12 arrivals=9 success=1.000
+ablation=no_bandit seed=43 [######------------------]  24.75% 150/606 elapsed=13:41 eta=41:36 arrivals=2 success=1.000
+ablation=no_bandit seed=43 [#######-----------------]  28.88% 175/606 elapsed=15:37 eta=38:28 arrivals=6 success=1.000
+ablation=no_bandit seed=43 [########----------------]  33.00% 200/606 elapsed=17:16 eta=35:03 arrivals=7 success=1.000
+ablation=no_bandit seed=43 [#########---------------]  37.13% 225/606 elapsed=19:11 eta=32:30 arrivals=6 success=1.000
+ablation=no_bandit seed=43 [##########--------------]  41.25% 250/606 elapsed=20:50 eta=29:40 arrivals=3 success=1.000
+ablation=no_bandit seed=43 [###########-------------]  45.38% 275/606 elapsed=22:56 eta=27:36 arrivals=4 success=1.000
+ablation=no_bandit seed=43 [############------------]  49.50% 300/606 elapsed=25:06 eta=25:36 arrivals=5 success=1.000
+ablation=no_bandit seed=43 [#############-----------]  53.63% 325/606 elapsed=26:46 eta=23:09 arrivals=3 success=1.000
+ablation=no_bandit seed=43 [##############----------]  57.76% 350/606 elapsed=28:33 eta=20:53 arrivals=3 success=1.000
+ablation=no_bandit seed=43 [###############---------]  61.88% 375/606 elapsed=30:18 eta=18:40 arrivals=4 success=1.000
+ablation=no_bandit seed=43 [################--------]  66.01% 400/606 elapsed=32:02 eta=16:30 arrivals=5 success=1.000
+ablation=no_bandit seed=43 [#################-------]  70.13% 425/606 elapsed=34:19 eta=14:37 arrivals=7 success=1.000
+ablation=no_bandit seed=43 [##################------]  74.26% 450/606 elapsed=36:09 eta=12:32 arrivals=0 success=0.000
+ablation=no_bandit seed=43 [###################-----]  78.38% 475/606 elapsed=38:06 eta=10:31 arrivals=3 success=1.000
+ablation=no_bandit seed=43 [####################----]  82.51% 500/606 elapsed=39:55 eta=08:28 arrivals=3 success=1.000
+ablation=no_bandit seed=43 [#####################---]  86.63% 525/606 elapsed=41:59 eta=06:29 arrivals=3 success=1.000
+ablation=no_bandit seed=43 [######################--]  90.76% 550/606 elapsed=43:51 eta=04:28 arrivals=6 success=1.000
+ablation=no_bandit seed=43 [#######################-]  94.88% 575/606 elapsed=45:32 eta=02:27 arrivals=6 success=1.000
+ablation=no_bandit seed=43 [########################]  99.01% 600/606 elapsed=47:35 eta=00:29 arrivals=5 success=1.000
+ablation=no_bandit seed=43 [########################] 100.00% 606/606 elapsed=48:10 eta=00:00 arrivals=5 success=1.000
 {
   "seeds": [
     43
@@ -38,6 +38,10 @@ ablation=no_bandit seed=43 [########################] 100.00% 606/606 elapsed=47
       "request_template_csv": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_43/request_templates.csv",
       "request_templates_loaded": true,
       "request_template_count": 14,
+      "original_request_template_count": 14,
+      "chain_length_filter": null,
+      "arrival_mode": "per_template",
+      "arrival_lambda_total_per_slot": null,
       "checkpoint": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_43/ppo_gnn_latest.pth",
       "checkpoint_loaded": true,
       "checkpoint_load_error": "",
@@ -60,6 +64,13 @@ ablation=no_bandit seed=43 [########################] 100.00% 606/606 elapsed=47
           "min_cost_max_flow": 24179,
           "local": 866
         }
+      },
+      "delay_margin_summary": {
+        "deadline_accepted_count": 2819,
+        "deadline_acceptance_rate": 0.999645390070922,
+        "delay_margin_mean": 0.4807996340974732,
+        "delay_margin_max": 1.0233876098132566,
+        "delay_margin_jain_fairness": 0.9653142123491236
       },
       "bandit_summary": {
         "total_pulls": 0,
