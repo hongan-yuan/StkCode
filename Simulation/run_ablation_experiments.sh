@@ -6,8 +6,8 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 PYTHON_BIN="${PYTHON_BIN:-python}"
 SEEDS="${SEEDS:-41 42 43 44}"
-RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-service_pressure sc_nfv}}"
-MERGE_ABLATIONS="${MERGE_ABLATIONS:-full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv}"
+RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-service_pressure sc_nfv fairness_nfv_greedy}}"
+MERGE_ABLATIONS="${MERGE_ABLATIONS:-full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv fairness_nfv_greedy}"
 GPUS="${GPUS:-0 1 2 3}"
 MODEL_ROOT="${MODEL_ROOT:-${SCRIPT_DIR}/multi_seed_runs}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-${SCRIPT_DIR}/test_outputs/ablation_experiments}"
@@ -280,6 +280,10 @@ metric_columns = [
     "average_reward_per_request",
     "failure_count",
     "bandit_action_count",
+    "deadline_acceptance_rate",
+    "delay_margin_mean",
+    "delay_margin_max",
+    "delay_margin_jain_fairness",
 ]
 
 summary_rows = []

@@ -44,6 +44,7 @@ ABLATION_LABELS = {
     "nearest_replica": "Nearest Replica",
     "service_pressure": "Service Pressure",
     "sc_nfv": "SC-NFV",
+    "fairness_nfv_greedy": "Fairness-NFV",
 }
 
 METRICS = {
@@ -53,6 +54,8 @@ METRICS = {
     "p95_end_to_end_delay_s": ("P95 end-to-end delay", "Delay (s)"),
     "average_communication_delay_s": ("Average communication delay", "Delay (s)"),
     "average_slot_crossings": ("Average slot crossings", "Slot crossings"),
+    "deadline_acceptance_rate": ("Deadline acceptance rate", "Acceptance rate"),
+    "delay_margin_jain_fairness": ("Delay-margin fairness", "Jain fairness"),
 }
 
 
@@ -108,7 +111,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument(
         "--ablations",
-        default="full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv",
+        default="full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv fairness_nfv_greedy",
         help="Space/comma separated ablation names and plotting order.",
     )
     parser.add_argument(
@@ -419,7 +422,7 @@ def plot_slot_curve_svg(path: Path, title: str, ylabel: str, series: dict) -> No
     y_pad = (y_max - y_min) * 0.08
     y_min -= y_pad
     y_max += y_pad
-    colors = ["#2563eb", "#dc2626", "#059669", "#7c3aed", "#ea580c", "#0891b2"]
+    colors = ["#2563eb", "#dc2626", "#059669", "#7c3aed", "#ea580c", "#0891b2", "#be123c"]
     parts = svg_canvas(title, width, height)
     parts.extend([
         f'<line x1="{left}" y1="{height - bottom}" x2="{width - right}" y2="{height - bottom}" stroke="#334155" stroke-width="{AXIS_SPINE_LINEWIDTH}"/>',
@@ -522,7 +525,7 @@ def plot_summary_bar_svg(path: Path, summaries: dict, metrics: list[str], ablati
     width, height = max(920, 220 * len(metrics)), 470
     parts = svg_canvas("Ablation Metric Summary", width, height)
     panel_w = (width - 50) / len(metrics)
-    colors = ["#7dd3fc", "#fecaca", "#bbf7d0", "#ddd6fe", "#fed7aa", "#bae6fd"]
+    colors = ["#7dd3fc", "#fecaca", "#bbf7d0", "#ddd6fe", "#fed7aa", "#bae6fd", "#fecdd3"]
     for m_index, metric in enumerate(metrics):
         title, ylabel = METRICS[metric]
         x0 = 32 + panel_w * m_index
@@ -593,6 +596,8 @@ def main() -> None:
         "average_end_to_end_delay_s",
         "average_energy_j",
         "p95_end_to_end_delay_s",
+        "deadline_acceptance_rate",
+        "delay_margin_jain_fairness",
     ]
     summary_rows = cycle_rows if cycle_rows else rows
     summaries = summary_means(summary_rows, ablations, summary_metrics)

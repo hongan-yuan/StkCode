@@ -7,7 +7,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PYTHON_BIN="${PYTHON_BIN:-python}"
 CHAIN_LENGTHS="${CHAIN_LENGTHS:-5 10 15}"
 SEEDS="${SEEDS:-41 42 43 44}"
-RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv}}"
+RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv fairness_nfv_greedy}}"
 GPUS="${GPUS:-0 1 2 3}"
 MODEL_ROOT="${MODEL_ROOT:-${SCRIPT_DIR}/multi_seed_runs}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-${SCRIPT_DIR}/test_outputs/chain_length_ablation_experiments}"
@@ -263,6 +263,10 @@ metric_columns = [
     "average_communication_delay_s",
     "average_slot_crossings",
     "failure_count",
+    "deadline_acceptance_rate",
+    "delay_margin_mean",
+    "delay_margin_max",
+    "delay_margin_jain_fairness",
 ]
 
 all_slot_rows = []

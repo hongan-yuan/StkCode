@@ -7,7 +7,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PYTHON_BIN="${PYTHON_BIN:-python}"
 INPUT_DIR="${INPUT_DIR:-${SCRIPT_DIR}/test_outputs/ablation_experiments}"
 OUTPUT_DIR="${OUTPUT_DIR:-${INPUT_DIR}/plots}"
-ABLATIONS="${ABLATIONS:-full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv}"
+ABLATIONS="${ABLATIONS:-full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv fairness_nfv_greedy}"
 WINDOW="${WINDOW:-1}"
 FORMAT="${FORMAT:-auto}"
 

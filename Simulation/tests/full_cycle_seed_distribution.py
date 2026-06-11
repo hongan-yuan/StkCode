@@ -26,6 +26,7 @@ from ..agents.baselines import (
     SCNFVChainingOrbitExecutionAgent,
     ServicePressureExecutionAgent,
 )
+from ..agents.fairness_nfv import FairnessAwareGreedyVNFExecutionAgent
 from ..agents.ppo_gnn_agent import PPOGNNExecutionAgent
 from ..config import SimulationConfig
 from ..core.env import SimulationEnvironment
@@ -63,6 +64,7 @@ def parse_args() -> argparse.Namespace:
             "nearest_replica",
             "service_pressure",
             "sc_nfv",
+            "fairness_nfv_greedy",
         ),
         default="full",
         help="Evaluation variant to run.",
@@ -335,6 +337,8 @@ def build_config(
         kwargs["request_arrival_lambda_per_pattern_per_slot"] = args.arrival_lambda
     if args.ablation == "shortest_hop_routing":
         kwargs["service_routing_strategy"] = "shortest_hop_per_slot"
+    elif args.ablation == "fairness_nfv_greedy":
+        kwargs["service_routing_strategy"] = "shortest_hop_per_slot"
     elif args.ablation == "service_pressure":
         kwargs["service_routing_strategy"] = "service_pressure"
     else:
@@ -413,6 +417,8 @@ def request_metric_row(
     result: dict,
 ) -> dict:
     request = result["request"]
+    deadline_s = request_deadline_s(request)
+    delay_margin = delay_margin_for_result(result)
     return {
         "ablation": ablation,
         "seed": seed,
@@ -431,6 +437,9 @@ def request_metric_row(
         "total_delay_s": (
             result["total_delay_s"] if math.isfinite(result["total_delay_s"]) else ""
         ),
+        "deadline_s": deadline_s,
+        "delay_margin": delay_margin if delay_margin is not None else "",
+        "deadline_accepted": bool(delay_margin is not None and delay_margin <= 1.0),
         "total_energy_j": (
             result["total_energy_j"] if math.isfinite(result["total_energy_j"]) else ""
         ),
@@ -446,8 +455,49 @@ def flatten_route_counts(route_mode_counts: dict) -> dict:
     }
 
 
+def request_deadline_s(request: dict | SFCRequest) -> float:
+    services = request.services if isinstance(request, SFCRequest) else request.get("services", [])
+    return 10.0 + 9.0 * max(1, len(services))
+
+
+def delay_margin_for_result(result: dict) -> float | None:
+    if not result.get("feasible", False):
+        return None
+    delay = result.get("total_delay_s", math.inf)
+    if not isinstance(delay, (int, float)) or not math.isfinite(delay):
+        return None
+    return float(delay) / request_deadline_s(result["request"])
+
+
+def jain_fairness(values: list[float]) -> float:
+    finite = [value for value in values if math.isfinite(value) and value >= 0.0]
+    if not finite:
+        return 0.0
+    numerator = sum(finite) ** 2
+    denominator = len(finite) * sum(value * value for value in finite)
+    return numerator / denominator if denominator > 0.0 else 0.0
+
+
+def delay_margin_summary(results: list[dict]) -> dict:
+    margins = [
+        margin for result in results if (margin := delay_margin_for_result(result)) is not None
+    ]
+    feasible_count = sum(1 for result in results if result.get("feasible", False))
+    accepted_count = sum(1 for margin in margins if margin <= 1.0)
+    return {
+        "deadline_accepted_count": accepted_count,
+        "deadline_acceptance_rate": (
+            accepted_count / feasible_count if feasible_count > 0 else 0.0
+        ),
+        "delay_margin_mean": sum(margins) / len(margins) if margins else math.inf,
+        "delay_margin_max": max(margins) if margins else math.inf,
+        "delay_margin_jain_fairness": jain_fairness(margins),
+    }
+
+
 def cycle_metric_row(summary: dict) -> dict:
     overall = summary.get("overall_summary", {})
+    margin_summary = summary.get("delay_margin_summary", {})
     route_mode_counts = overall.get("route_mode_counts", {})
     request_count = int(overall.get("request_count") or 0)
     feasible_count = int(overall.get("feasible_count") or 0)
@@ -476,6 +526,12 @@ def cycle_metric_row(summary: dict) -> dict:
             "average_communication_delay_s", ""
         ),
         "average_slot_crossings": overall.get("average_slot_crossings", ""),
+        "deadline_acceptance_rate": margin_summary.get("deadline_acceptance_rate", ""),
+        "delay_margin_mean": margin_summary.get("delay_margin_mean", ""),
+        "delay_margin_max": margin_summary.get("delay_margin_max", ""),
+        "delay_margin_jain_fairness": margin_summary.get(
+            "delay_margin_jain_fairness", ""
+        ),
         **flatten_route_counts(route_mode_counts),
     }
 
@@ -501,6 +557,8 @@ def build_execution_agent(args: argparse.Namespace, config: SimulationConfig, ru
         return ServicePressureExecutionAgent(config), False, ""
     if args.ablation == "sc_nfv":
         return SCNFVChainingOrbitExecutionAgent(config), False, ""
+    if args.ablation == "fairness_nfv_greedy":
+        return FairnessAwareGreedyVNFExecutionAgent(config), False, ""
 
     agent = PPOGNNExecutionAgent(
         config,
@@ -911,6 +969,7 @@ def run_seed(
             config.request_arrival_lambda_per_pattern_per_slot
         ),
         "overall_summary": summarize_results(all_results),
+        "delay_margin_summary": delay_margin_summary(all_results),
         "bandit_summary": bandit_agent.summary(),
         "routing_cache_summary": dict(env.context["routing_cache"]["stats"]),
         "route_estimate_cache_summary": dict(

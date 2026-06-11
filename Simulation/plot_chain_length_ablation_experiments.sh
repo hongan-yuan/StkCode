@@ -8,7 +8,7 @@ PYTHON_BIN="${PYTHON_BIN:-python}"
 INPUT_ROOT="${INPUT_ROOT:-${SCRIPT_DIR}/test_outputs/chain_length_ablation_experiments}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-${INPUT_ROOT}/plots}"
 CHAIN_LENGTHS="${CHAIN_LENGTHS:-5 10 15}"
-ABLATIONS="${ABLATIONS:-full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv}"
+ABLATIONS="${ABLATIONS:-full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv fairness_nfv_greedy}"
 WINDOW="${WINDOW:-1}"
 FORMAT="${FORMAT:-auto}"
 

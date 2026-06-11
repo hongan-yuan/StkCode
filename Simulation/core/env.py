@@ -145,6 +145,9 @@ class SimulationEnvironment:
             agent: ServiceExecutionAgent
     ) -> list[dict]:
 
+        plan_slot_requests = getattr(agent, "plan_slot_requests", None)
+        if callable(plan_slot_requests):
+            plan_slot_requests(requests, self.context)
         return [self.execute_request(request, agent) for request in requests]
 
     def apply_migration(self, requests: list[SFCRequest]):
