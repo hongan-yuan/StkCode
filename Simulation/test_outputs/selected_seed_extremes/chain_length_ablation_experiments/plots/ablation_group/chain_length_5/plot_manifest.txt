@@ -1,2 +1,2 @@
-/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/test_outputs/selected_seed_extremes/chain_length_ablation_experiments/plots/ablation_group/chain_length_5/latency_metrics.png
-/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/test_outputs/selected_seed_extremes/chain_length_ablation_experiments/plots/ablation_group/chain_length_5/energy_metrics.png
+/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/selected_seed_extremes/chain_length_ablation_experiments/plots/ablation_group/chain_length_5/latency_metrics.png
+/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/selected_seed_extremes/chain_length_ablation_experiments/plots/ablation_group/chain_length_5/energy_metrics.png
