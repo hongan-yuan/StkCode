@@ -136,6 +136,9 @@ existing_seed_list() {
   for seed_dir in "${variant_dir}"/seed_*; do
     [[ -d "${seed_dir}" ]] || continue
     [[ -f "${seed_dir}/slot_metrics.csv" ]] || continue
+    [[ -f "${seed_dir}/cycle_request_metrics.csv" ]] || continue
+    [[ -f "${seed_dir}/request_metrics.csv" ]] || continue
+    [[ -f "${seed_dir}/request_hop_metrics.csv" ]] || continue
     seed="${seed_dir##*/seed_}"
     seed_dirs+=("${seed}")
   done
@@ -143,6 +146,22 @@ existing_seed_list() {
     return 1
   fi
   printf '%s\n' "${seed_dirs[@]}" | sort -n | tr '\n' ' ' | sed 's/[[:space:]]*$//'
+}
+
+require_seed_outputs() {
+  local variant_dir="$1"
+  local label="$2"
+  local seed="$3"
+  local seed_dir="${variant_dir}/seed_${seed}"
+  local missing=0
+  local file
+  for file in slot_metrics.csv cycle_request_metrics.csv request_metrics.csv request_hop_metrics.csv summary.json; do
+    if [[ ! -f "${seed_dir}/${file}" ]]; then
+      echo "Missing ${file} for ${label} seed=${seed}: ${seed_dir}/${file}" >&2
+      missing=1
+    fi
+  done
+  return "${missing}"
 }
 
 for ablation in "${RUN_ABLATION_ARRAY[@]}"; do
@@ -197,6 +216,20 @@ wait_active_tasks
 
 if [[ "${failed}" -ne 0 ]]; then
   echo "At least one ablation task failed. Check logs under ${OUTPUT_ROOT}." >&2
+  exit 1
+fi
+
+echo "Validating per-seed metric outputs."
+for ablation in "${RUN_ABLATION_ARRAY[@]}"; do
+  variant_dir="${OUTPUT_ROOT}/${ablation}"
+  for seed in "${SEED_ARRAY[@]}"; do
+    if ! require_seed_outputs "${variant_dir}" "ablation=${ablation}" "${seed}"; then
+      failed=1
+    fi
+  done
+done
+if [[ "${failed}" -ne 0 ]]; then
+  echo "At least one seed is missing required metric CSV files. Rerun failed tasks before plotting." >&2
   exit 1
 fi
 
@@ -264,6 +297,7 @@ def write_rows(path, rows):
             writer.writerow({key: row.get(key, "") for key in fieldnames})
 
 slot_rows = []
+cycle_request_rows = []
 request_rows = []
 hop_rows = []
 cycle_rows = []
@@ -272,6 +306,9 @@ for ablation in ablations:
     for row in read_rows(variant_dir / "slot_metrics_by_seed.csv"):
         row["ablation"] = canonical_ablation_name(row.get("ablation", ablation))
         slot_rows.append(row)
+    for row in read_rows(variant_dir / "cycle_request_metrics_by_seed.csv"):
+        row["ablation"] = canonical_ablation_name(row.get("ablation", ablation))
+        cycle_request_rows.append(row)
     for row in read_rows(variant_dir / "request_metrics_by_seed.csv"):
         row["ablation"] = canonical_ablation_name(row.get("ablation", ablation))
         request_rows.append(row)
@@ -283,6 +320,7 @@ for ablation in ablations:
         cycle_rows.append(row)
 
 write_rows(output_root / "all_ablation_slot_metrics.csv", slot_rows)
+write_rows(output_root / "all_ablation_cycle_request_metrics.csv", cycle_request_rows)
 write_rows(output_root / "all_ablation_request_metrics.csv", request_rows)
 write_rows(output_root / "all_ablation_request_hop_metrics.csv", hop_rows)
 write_rows(output_root / "all_ablation_cycle_metrics.csv", cycle_rows)

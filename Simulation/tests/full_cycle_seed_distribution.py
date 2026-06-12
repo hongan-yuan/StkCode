@@ -55,6 +55,33 @@ DEFAULT_MODEL_ROOT = ROOT_DIR / "Simulation" / "multi_seed_runs"
 DEFAULT_OUTPUT_DIR = ROOT_DIR / "Simulation" / "test_outputs" / "full_cycle_seed_distribution"
 DEFAULT_ISL_CSV = ROOT_DIR / "WalkerDeltaConstellationSimu" / "Walker_Delta_ISL_Simu.csv"
 
+REQUEST_HOP_METRIC_FIELDNAMES = [
+    "ablation",
+    "seed",
+    "cycle",
+    "epoch",
+    "slot_mod",
+    "template_id",
+    "request_id",
+    "chain_length",
+    "hop_index",
+    "service_id",
+    "source_node",
+    "target_node",
+    "route_mode",
+    "communication_delay_s",
+    "transmission_delay_s",
+    "propagation_delay_s",
+    "queue_delay_s",
+    "compute_delay_s",
+    "compute_total_delay_s",
+    "communication_energy_j",
+    "compute_energy_j",
+    "slot_crossings",
+    "hop_total_delay_s",
+    "hop_total_energy_j",
+]
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -238,12 +265,17 @@ def jsonable(value):
     return value
 
 
-def write_csv(path: Path, rows: list[dict]) -> None:
+def write_csv(path: Path, rows: list[dict], fieldnames: list[str] | None = None) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     if not rows:
-        path.write_text("", encoding="utf-8-sig")
+        if fieldnames:
+            with path.open("w", encoding="utf-8-sig", newline="") as file:
+                writer = csv.DictWriter(file, fieldnames=fieldnames)
+                writer.writeheader()
+        else:
+            path.write_text("", encoding="utf-8-sig")
         return
-    fieldnames = sorted({key for row in rows for key in row})
+    fieldnames = fieldnames or sorted({key for row in rows for key in row})
     with path.open("w", encoding="utf-8-sig", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
@@ -256,6 +288,72 @@ def read_csv(path: Path) -> list[dict]:
         return []
     with path.open("r", encoding="utf-8-sig", newline="") as file:
         return list(csv.DictReader(file))
+
+
+def truthy(value) -> bool:
+    return str(value).strip().lower() in {"1", "true", "yes"}
+
+
+def has_successful_requests(rows: list[dict]) -> bool:
+    return any(truthy(row.get("feasible", "")) for row in rows)
+
+
+def numeric(value, default: float = 0.0) -> float:
+    if value in ("", None, "None", "null"):
+        return default
+    try:
+        result = float(value)
+    except (TypeError, ValueError):
+        return default
+    return result if math.isfinite(result) else default
+
+
+def cycle_request_metric_rows(slot_rows: list[dict]) -> list[dict]:
+    grouped: dict[tuple[str, str, str, str, int], list[dict]] = {}
+    for row in slot_rows:
+        cycle = int(numeric(row.get("cycle"), 0))
+        if cycle <= 0:
+            continue
+        key = (
+            row.get("ablation", ""),
+            str(row.get("seed", "")),
+            str(row.get("chain_length_filter", "")),
+            row.get("arrival_mode", ""),
+            cycle,
+        )
+        grouped.setdefault(key, []).append(row)
+
+    cycle_rows = []
+    for key, rows in sorted(grouped.items(), key=lambda item: item[0]):
+        ablation, seed, chain_length_filter, arrival_mode, cycle = key
+        request_count = int(sum(numeric(row.get("request_count")) for row in rows))
+        feasible_count = int(sum(numeric(row.get("feasible_count")) for row in rows))
+        failure_count = int(sum(numeric(row.get("failure_count")) for row in rows))
+        processed_request_count = int(
+            sum(numeric(row.get("processed_request_count")) for row in rows)
+        )
+        cycle_rows.append(
+            {
+                "ablation": ablation,
+                "seed": seed,
+                "chain_length_filter": chain_length_filter,
+                "arrival_mode": arrival_mode,
+                "cycle": cycle,
+                "cycle_start_epoch": int(min(numeric(row.get("epoch")) for row in rows)),
+                "cycle_end_epoch": int(max(numeric(row.get("epoch")) for row in rows)),
+                "slot_count_in_cycle": len(rows),
+                "processed_request_count": processed_request_count,
+                "total_request_count": request_count,
+                "request_count": request_count,
+                "feasible_request_count": feasible_count,
+                "feasible_count": feasible_count,
+                "failed_request_count": failure_count,
+                "failure_count": failure_count,
+                "success_rate": feasible_count / request_count if request_count else 0.0,
+                "task_completion_rate": feasible_count / request_count if request_count else 0.0,
+            }
+        )
+    return cycle_rows
 
 
 def run_dir_for_seed(args: argparse.Namespace, seeds: list[int], seed: int, index: int) -> Path:
@@ -415,6 +513,7 @@ def generate_arrivals_for_slot(
 def request_metric_row(
     ablation: str,
     seed: int,
+    cycle: int,
     epoch: int,
     slot_mod: int,
     result: dict,
@@ -425,6 +524,7 @@ def request_metric_row(
     return {
         "ablation": ablation,
         "seed": seed,
+        "cycle": cycle,
         "epoch": epoch,
         "slot_mod": slot_mod,
         "template_id": request.get("template_id"),
@@ -453,6 +553,7 @@ def request_metric_row(
 def request_hop_metric_rows(
     ablation: str,
     seed: int,
+    cycle: int,
     epoch: int,
     slot_mod: int,
     result: dict,
@@ -483,6 +584,7 @@ def request_hop_metric_rows(
         row = {
             "ablation": ablation,
             "seed": seed,
+            "cycle": cycle,
             "epoch": epoch,
             "slot_mod": slot_mod,
             "template_id": request.get("template_id"),
@@ -799,8 +901,16 @@ def aggregate_outputs(
     summaries: list[dict],
 ) -> dict:
     write_csv(args.output_dir / "slot_metrics_by_seed.csv", all_slot_rows)
+    write_csv(
+        args.output_dir / "cycle_request_metrics_by_seed.csv",
+        cycle_request_metric_rows(all_slot_rows),
+    )
     write_csv(args.output_dir / "request_metrics_by_seed.csv", all_request_rows)
-    write_csv(args.output_dir / "request_hop_metrics_by_seed.csv", all_hop_rows)
+    write_csv(
+        args.output_dir / "request_hop_metrics_by_seed.csv",
+        all_hop_rows,
+        REQUEST_HOP_METRIC_FIELDNAMES,
+    )
     cycle_rows = [cycle_metric_row(summary) for summary in summaries]
     write_csv(args.output_dir / "cycle_metrics_by_seed.csv", cycle_rows)
     final_summary = {
@@ -808,6 +918,7 @@ def aggregate_outputs(
         "seeds": seeds,
         "output_dir": args.output_dir,
         "slot_metrics_csv": args.output_dir / "slot_metrics_by_seed.csv",
+        "cycle_request_metrics_csv": args.output_dir / "cycle_request_metrics_by_seed.csv",
         "request_metrics_csv": args.output_dir / "request_metrics_by_seed.csv",
         "request_hop_metrics_csv": args.output_dir / "request_hop_metrics_by_seed.csv",
         "cycle_metrics_csv": args.output_dir / "cycle_metrics_by_seed.csv",
@@ -827,11 +938,26 @@ def load_seed_outputs(output_dir: Path, seeds: list[int]) -> tuple[list[dict], l
     summaries = []
     for seed in seeds:
         seed_output_dir = output_dir / f"seed_{seed}"
-        slot_rows = read_csv(seed_output_dir / "slot_metrics.csv")
-        request_rows = read_csv(seed_output_dir / "request_metrics.csv")
-        hop_rows = read_csv(seed_output_dir / "request_hop_metrics.csv")
+        slot_path = seed_output_dir / "slot_metrics.csv"
+        request_path = seed_output_dir / "request_metrics.csv"
+        hop_path = seed_output_dir / "request_hop_metrics.csv"
+        slot_rows = read_csv(slot_path)
+        request_rows = read_csv(request_path)
+        if not hop_path.exists():
+            raise SystemExit(
+                f"Missing seed hop metrics: {hop_path}. "
+                "Rerun the experiment so each seed writes request_hop_metrics.csv."
+            )
+        hop_rows = read_csv(hop_path)
         if not slot_rows:
-            raise SystemExit(f"Missing seed slot metrics: {seed_output_dir / 'slot_metrics.csv'}")
+            raise SystemExit(f"Missing seed slot metrics: {slot_path}")
+        if not request_rows:
+            raise SystemExit(f"Missing seed request metrics: {request_path}")
+        if has_successful_requests(request_rows) and not hop_rows:
+            raise SystemExit(
+                f"Seed has feasible requests but no hop metrics: {hop_path}. "
+                "Rerun with the updated full_cycle_seed_distribution.py."
+            )
         all_slot_rows.extend(canonicalize_ablation_row(row) for row in slot_rows)
         all_request_rows.extend(canonicalize_ablation_row(row) for row in request_rows)
         all_hop_rows.extend(canonicalize_ablation_row(row) for row in hop_rows)
@@ -901,6 +1027,7 @@ def run_seed(
 
     for epoch in range(1, slot_count + 1):
         absolute_slot = epoch - 1
+        cycle = absolute_slot // slot_count + 1
         slot_mod = absolute_slot % slot_count
         arrivals, next_request_id, arrival_info = generate_arrivals_for_slot(
             args, arrival_rng, env.context, templates, absolute_slot, next_request_id
@@ -946,8 +1073,16 @@ def run_seed(
         row = {
             "ablation": args.ablation,
             "seed": seed,
+            "cycle": cycle,
             "epoch": epoch,
             "slot_mod": slot_mod,
+            "chain_length_filter": args.chain_length_filter,
+            "arrival_mode": args.arrival_mode,
+            "arrival_lambda_total_per_slot": (
+                total_arrival_lambda(args, config, len(templates))
+                if args.arrival_mode == "total_per_slot"
+                else ""
+            ),
             "slot_start_time_s": absolute_slot * slot_duration,
             "slot_duration_s": slot_duration,
             "arrival_count": arrival_info["arrival_count"],
@@ -984,12 +1119,12 @@ def run_seed(
         }
         slot_rows.append(row)
         request_rows.extend(
-            request_metric_row(args.ablation, seed, epoch, slot_mod, result)
+            request_metric_row(args.ablation, seed, cycle, epoch, slot_mod, result)
             for result in results
         )
         for result in results:
             hop_rows.extend(
-                request_hop_metric_rows(args.ablation, seed, epoch, slot_mod, result)
+                request_hop_metric_rows(args.ablation, seed, cycle, epoch, slot_mod, result)
             )
         env.context["routing_cache"]["route_results"].clear()
         env.context.get("route_estimate_cache", {}).clear()
@@ -1008,6 +1143,11 @@ def run_seed(
         "ablation": args.ablation,
         "seed": seed,
         "run_dir": run_dir,
+        "slot_metrics_csv": seed_output_dir / "slot_metrics.csv",
+        "request_metrics_csv": seed_output_dir / "request_metrics.csv",
+        "request_hop_metrics_csv": seed_output_dir / "request_hop_metrics.csv",
+        "cycle_request_metrics_csv": seed_output_dir / "cycle_request_metrics.csv",
+        "request_hop_metric_row_count": len(hop_rows),
         "slot_count": slot_count,
         "slot_duration_s": slot_duration,
         "request_template_csv": template_csv,
@@ -1040,9 +1180,20 @@ def run_seed(
             env.context.get("route_estimate_cache_stats", {})
         ),
     }
+    if has_successful_requests(request_rows) and not hop_rows:
+        raise SystemExit(
+            f"Generated feasible requests for ablation={args.ablation} seed={seed} "
+            "but no hop-level metrics were captured. "
+            "Check result['route_details'] and result['execution_plan'] generation."
+        )
     write_csv(seed_output_dir / "slot_metrics.csv", slot_rows)
+    write_csv(seed_output_dir / "cycle_request_metrics.csv", cycle_request_metric_rows(slot_rows))
     write_csv(seed_output_dir / "request_metrics.csv", request_rows)
-    write_csv(seed_output_dir / "request_hop_metrics.csv", hop_rows)
+    write_csv(
+        seed_output_dir / "request_hop_metrics.csv",
+        hop_rows,
+        REQUEST_HOP_METRIC_FIELDNAMES,
+    )
     (seed_output_dir / "summary.json").write_text(
         json.dumps(jsonable(summary), ensure_ascii=False, indent=2),
         encoding="utf-8",
