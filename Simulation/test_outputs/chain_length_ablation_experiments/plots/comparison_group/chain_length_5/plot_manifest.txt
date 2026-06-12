@@ -1,0 +1,2 @@
+/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/plots/comparison_group/chain_length_5/latency_metrics.png
+/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/plots/comparison_group/chain_length_5/energy_metrics.png

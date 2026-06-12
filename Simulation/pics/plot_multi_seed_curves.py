@@ -13,8 +13,11 @@ try:
 
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-except ModuleNotFoundError:  # pragma: no cover - depends on local plotting env
+except ModuleNotFoundError as exc:  # pragma: no cover - depends on local plotting env
     plt = None
+    MATPLOTLIB_IMPORT_ERROR = exc
+else:
+    MATPLOTLIB_IMPORT_ERROR = None
 
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
@@ -57,10 +60,7 @@ def parse_args() -> argparse.Namespace:
         "--output-dir",
         type=Path,
         default=DEFAULT_OUTPUT_DIR,
-        help=(
-            "Directory where figures will be written. PNG is used when "
-            "matplotlib is installed; otherwise SVG fallback files are written."
-        ),
+        help="Directory where PNG figures will be written.",
     )
     parser.add_argument(
         "--mode",
@@ -89,6 +89,18 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     return parser.parse_args()
+
+
+def raise_matplotlib_required() -> None:
+    detail = (
+        f" Reason: {type(MATPLOTLIB_IMPORT_ERROR).__name__}: {MATPLOTLIB_IMPORT_ERROR}"
+        if MATPLOTLIB_IMPORT_ERROR is not None
+        else ""
+    )
+    raise SystemExit(
+        "matplotlib is required to generate PNG figures; SVG fallback output "
+        f"has been disabled.{detail}"
+    )
 
 
 def parse_seed_list(value: str) -> list[str]:
@@ -228,8 +240,7 @@ def save_line_plot(
     singles: list[tuple[str, list[int], list[float]]] | None = None,
 ) -> None:
     if plt is None:
-        save_line_plot_svg(path.with_suffix(".svg"), title, ylabel, aggregate, singles)
-        return
+        raise_matplotlib_required()
 
     path.parent.mkdir(parents=True, exist_ok=True)
     fig, ax = plt.subplots(figsize=(12, 6), dpi=160)
@@ -427,8 +438,7 @@ def aggregate_action_counts(runs: list[RunData]) -> tuple[list[str], list[float]
 
 def save_action_distribution(path: Path, runs: list[RunData], title: str) -> None:
     if plt is None:
-        save_action_distribution_svg(path.with_suffix(".svg"), runs, title)
-        return
+        raise_matplotlib_required()
 
     path.parent.mkdir(parents=True, exist_ok=True)
     actions, means, stds = aggregate_action_counts(runs)
@@ -574,6 +584,8 @@ def plot_single(runs: list[RunData], args: argparse.Namespace) -> None:
 
 
 def main() -> None:
+    if plt is None:
+        raise_matplotlib_required()
     args = parse_args()
     args.window = max(1, int(args.window))
     runs = load_runs(args)

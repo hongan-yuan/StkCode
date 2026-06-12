@@ -1,0 +1,104 @@
+ablation=SC-NFV seed=45 [------------------------]   0.17% 1/606 elapsed=00:09 eta=1:25:52 arrivals=7 success=1.000
+ablation=SC-NFV seed=45 [#-----------------------]   4.13% 25/606 elapsed=02:30 eta=58:16 arrivals=6 success=1.000
+ablation=SC-NFV seed=45 [##----------------------]   8.25% 50/606 elapsed=05:11 eta=57:36 arrivals=4 success=1.000
+ablation=SC-NFV seed=45 [###---------------------]  12.38% 75/606 elapsed=07:58 eta=56:24 arrivals=6 success=1.000
+ablation=SC-NFV seed=45 [####--------------------]  16.50% 100/606 elapsed=10:44 eta=54:17 arrivals=5 success=1.000
+ablation=SC-NFV seed=45 [#####-------------------]  20.63% 125/606 elapsed=13:34 eta=52:13 arrivals=9 success=1.000
+ablation=SC-NFV seed=45 [######------------------]  24.75% 150/606 elapsed=16:02 eta=48:43 arrivals=4 success=1.000
+ablation=SC-NFV seed=45 [#######-----------------]  28.88% 175/606 elapsed=19:01 eta=46:49 arrivals=1 success=1.000
+ablation=SC-NFV seed=45 [########----------------]  33.00% 200/606 elapsed=21:39 eta=43:57 arrivals=3 success=1.000
+ablation=SC-NFV seed=45 [#########---------------]  37.13% 225/606 elapsed=24:53 eta=42:09 arrivals=6 success=1.000
+ablation=SC-NFV seed=45 [##########--------------]  41.25% 250/606 elapsed=27:40 eta=39:24 arrivals=6 success=1.000
+ablation=SC-NFV seed=45 [###########-------------]  45.38% 275/606 elapsed=30:37 eta=36:51 arrivals=6 success=1.000
+ablation=SC-NFV seed=45 [############------------]  49.50% 300/606 elapsed=33:37 eta=34:17 arrivals=4 success=1.000
+ablation=SC-NFV seed=45 [#############-----------]  53.63% 325/606 elapsed=36:05 eta=31:12 arrivals=4 success=1.000
+ablation=SC-NFV seed=45 [##############----------]  57.76% 350/606 elapsed=38:46 eta=28:22 arrivals=3 success=1.000
+ablation=SC-NFV seed=45 [###############---------]  61.88% 375/606 elapsed=41:34 eta=25:36 arrivals=7 success=1.000
+ablation=SC-NFV seed=45 [################--------]  66.01% 400/606 elapsed=44:44 eta=23:02 arrivals=2 success=1.000
+ablation=SC-NFV seed=45 [#################-------]  70.13% 425/606 elapsed=48:04 eta=20:28 arrivals=3 success=1.000
+ablation=SC-NFV seed=45 [##################------]  74.26% 450/606 elapsed=50:53 eta=17:38 arrivals=3 success=1.000
+ablation=SC-NFV seed=45 [###################-----]  78.38% 475/606 elapsed=53:39 eta=14:48 arrivals=5 success=1.000
+ablation=SC-NFV seed=45 [####################----]  82.51% 500/606 elapsed=56:35 eta=12:00 arrivals=2 success=1.000
+ablation=SC-NFV seed=45 [#####################---]  86.63% 525/606 elapsed=59:46 eta=09:13 arrivals=7 success=1.000
+ablation=SC-NFV seed=45 [######################--]  90.76% 550/606 elapsed=1:02:17 eta=06:20 arrivals=3 success=1.000
+ablation=SC-NFV seed=45 [#######################-]  94.88% 575/606 elapsed=1:05:06 eta=03:31 arrivals=4 success=1.000
+ablation=SC-NFV seed=45 [########################]  99.01% 600/606 elapsed=1:07:39 eta=00:41 arrivals=3 success=1.000
+ablation=SC-NFV seed=45 [########################] 100.00% 606/606 elapsed=1:08:27 eta=00:00 arrivals=5 success=1.000
+{
+  "seeds": [
+    45
+  ],
+  "seed_summaries": [
+    {
+      "ablation": "SC-NFV",
+      "seed": 45,
+      "run_dir": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_45",
+      "slot_count": 606,
+      "slot_duration_s": 10.0,
+      "request_template_csv": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_45/request_templates.csv",
+      "request_templates_loaded": true,
+      "request_template_count": 14,
+      "original_request_template_count": 14,
+      "chain_length_filter": null,
+      "arrival_mode": "per_template",
+      "arrival_lambda_total_per_slot": null,
+      "checkpoint": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_45/ppo_gnn_latest.pth",
+      "checkpoint_loaded": false,
+      "checkpoint_load_error": "",
+      "execution_agent": "SCNFVChainingOrbitExecutionAgent",
+      "service_routing_strategy": "min_cost_max_flow",
+      "bandit_redeployment_enabled": true,
+      "bandit_arm_stats": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_45/bandit_arm_stats.csv",
+      "bandit_loaded_arm_count": 779,
+      "arrival_lambda_per_pattern_per_slot": 0.35,
+      "overall_summary": {
+        "request_count": 3044,
+        "feasible_count": 3044,
+        "success_rate": 1.0,
+        "average_end_to_end_delay_s": 42.48662852474006,
+        "p95_end_to_end_delay_s": 83.00082068281245,
+        "average_energy_j": 1685.7335771298146,
+        "average_communication_delay_s": 1.911714560399101,
+        "average_slot_crossings": 0.16902495497813225,
+        "route_mode_counts": {
+          "min_cost_max_flow": 26645,
+          "local": 564
+        }
+      },
+      "delay_margin_summary": {
+        "deadline_accepted_count": 3043,
+        "deadline_acceptance_rate": 0.9996714848883048,
+        "delay_margin_mean": 0.5173913365800343,
+        "delay_margin_max": 1.010543894078943,
+        "delay_margin_jain_fairness": 0.9505789089169101
+      },
+      "bandit_summary": {
+        "total_pulls": 5281,
+        "known_arm_count": 796,
+        "positive_arm_count": 796,
+        "average_arm_reward": 1.1475503299192906,
+        "total_applied_actions": 240,
+        "total_execution_feedback_updates": 2640,
+        "total_failed_replica_observations": 0,
+        "known_failed_replica_count": 0,
+        "known_service_pressure_metric_count": 30,
+        "total_applied_add_count": 36,
+        "total_applied_move_count": 204,
+        "last_applied_action_count": 4,
+        "last_applied_move_count": 4
+      },
+      "routing_cache_summary": {
+        "route_result_hits": 26886,
+        "route_result_misses": 637445,
+        "shortest_path_hits": 0,
+        "shortest_path_misses": 0,
+        "precomputed_slots": 606,
+        "precomputed_nodes": 180
+      },
+      "route_estimate_cache_summary": {
+        "hits": 60754,
+        "misses": 636602
+      }
+    }
+  ]
+}

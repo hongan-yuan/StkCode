@@ -1,0 +1,2 @@
+/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/cross_slot_plots/comparison_group/latency_cross_slot.png
+/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/cross_slot_plots/comparison_group/energy_cross_slot.png

@@ -10,10 +10,10 @@ from .execution_agent import CandidateDecision, ServiceExecutionAgent
 
 
 class FairnessAwareGreedyVNFExecutionAgent(ServiceExecutionAgent):
-    """Fairness-NFV adapted baseline.
+    """Fair-NFV adapted baseline.
 
     This implements a lightweight adaptation of FAGD_MASC from the
-    Fairness-NFV paper. For each time slot, it greedily builds a VNF mapping
+    Fair-NFV paper. For each time slot, it greedily builds a VNF mapping
     plan for active SFC requests. Each stage selects a deployed replica and a
     shortest/least-cost route while minimizing the worst normalized delay
     margin among requests already planned in the slot.

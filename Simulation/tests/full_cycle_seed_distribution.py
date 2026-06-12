@@ -17,8 +17,11 @@ try:
 
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-except ModuleNotFoundError:  # pragma: no cover - depends on local plotting env
+except ModuleNotFoundError as exc:  # pragma: no cover - depends on local plotting env
     plt = None
+    MATPLOTLIB_IMPORT_ERROR = exc
+else:
+    MATPLOTLIB_IMPORT_ERROR = None
 
 from ..agents.migration import ReplicaPlacementMigrationAgent
 from ..agents.baselines import (
@@ -27,6 +30,12 @@ from ..agents.baselines import (
     ServicePressureExecutionAgent,
 )
 from ..agents.fairness_nfv import FairnessAwareGreedyVNFExecutionAgent
+from ..ablation_names import (
+    ABLATION_NAME_MAP,
+    OFFICIAL_ABLATIONS,
+    canonical_ablation_name,
+    canonicalize_ablation_row,
+)
 from ..agents.ppo_gnn_agent import PPOGNNExecutionAgent
 from ..config import SimulationConfig
 from ..core.env import SimulationEnvironment
@@ -57,16 +66,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seeds", default="42 43 44 45")
     parser.add_argument(
         "--ablation",
-        choices=(
-            "full",
-            "no_bandit",
-            "shortest_hop_routing",
-            "nearest_replica",
-            "service_pressure",
-            "sc_nfv",
-            "fairness_nfv_greedy",
-        ),
-        default="full",
+        choices=tuple(dict.fromkeys((*OFFICIAL_ABLATIONS, *ABLATION_NAME_MAP))),
+        default="ELARA",
         help="Evaluation variant to run.",
     )
     parser.add_argument("--model-root", type=Path, default=DEFAULT_MODEL_ROOT)
@@ -160,7 +161,9 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Read existing seed_<seed> outputs and only regenerate merged CSV/plots.",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    args.ablation = canonical_ablation_name(args.ablation)
+    return args
 
 
 class TaskProgress:
@@ -335,11 +338,11 @@ def build_config(
     )
     if args.arrival_lambda is not None:
         kwargs["request_arrival_lambda_per_pattern_per_slot"] = args.arrival_lambda
-    if args.ablation == "shortest_hop_routing":
+    if args.ablation == "ELARA-SH":
         kwargs["service_routing_strategy"] = "shortest_hop_per_slot"
-    elif args.ablation == "fairness_nfv_greedy":
+    elif args.ablation == "Fair-NFV":
         kwargs["service_routing_strategy"] = "shortest_hop_per_slot"
-    elif args.ablation == "service_pressure":
+    elif args.ablation == "SP-Routing":
         kwargs["service_routing_strategy"] = "service_pressure"
     else:
         kwargs["service_routing_strategy"] = "min_cost_max_flow"
@@ -447,6 +450,67 @@ def request_metric_row(
     }
 
 
+def request_hop_metric_rows(
+    ablation: str,
+    seed: int,
+    epoch: int,
+    slot_mod: int,
+    result: dict,
+) -> list[dict]:
+    if not result.get("feasible", False):
+        return []
+    request = result["request"]
+    execution_by_stage = {
+        int(step["stage"]): step
+        for step in result.get("execution_plan", [])
+        if str(step.get("stage", "")).isdigit()
+    }
+    rows = []
+    for route in result.get("route_details", []):
+        stage = route.get("stage")
+        if stage == "destination" or not str(stage).isdigit():
+            continue
+        stage_index = int(stage)
+        compute = execution_by_stage.get(stage_index, {})
+        queue_delay_s = compute.get("queue_delay_s", "")
+        compute_delay_s = compute.get("compute_delay_s", "")
+        compute_total_delay_s = ""
+        if isinstance(queue_delay_s, (int, float)) and isinstance(compute_delay_s, (int, float)):
+            compute_total_delay_s = queue_delay_s + compute_delay_s
+        communication_delay_s = route.get("communication_delay_s", "")
+        communication_energy_j = route.get("communication_energy_j", "")
+        compute_energy_j = compute.get("compute_energy_j", "")
+        row = {
+            "ablation": ablation,
+            "seed": seed,
+            "epoch": epoch,
+            "slot_mod": slot_mod,
+            "template_id": request.get("template_id"),
+            "request_id": request["request_id"],
+            "chain_length": len(request["services"]),
+            "hop_index": stage_index + 1,
+            "service_id": compute.get("service_id", ""),
+            "source_node": route.get("source_node", ""),
+            "target_node": route.get("target_node", ""),
+            "route_mode": route.get("route_mode", ""),
+            "communication_delay_s": communication_delay_s,
+            "transmission_delay_s": route.get("transmission_delay_s", ""),
+            "propagation_delay_s": route.get("propagation_delay_s", ""),
+            "queue_delay_s": queue_delay_s,
+            "compute_delay_s": compute_delay_s,
+            "compute_total_delay_s": compute_total_delay_s,
+            "communication_energy_j": communication_energy_j,
+            "compute_energy_j": compute_energy_j,
+            "slot_crossings": route.get("slot_crossings", ""),
+        }
+        if isinstance(communication_delay_s, (int, float)) and isinstance(compute_total_delay_s, (int, float)):
+            row["hop_total_delay_s"] = communication_delay_s + compute_total_delay_s
+        if isinstance(communication_energy_j, (int, float)) and isinstance(compute_energy_j, (int, float)):
+            row["hop_total_energy_j"] = communication_energy_j + compute_energy_j
+        rows.append(row)
+    return rows
+
+
 def flatten_route_counts(route_mode_counts: dict) -> dict:
     return {
         f"route_mode_{mode}_count": count
@@ -551,13 +615,13 @@ def route_mode_counts_for_results(results: list[dict]) -> Counter:
 
 
 def build_execution_agent(args: argparse.Namespace, config: SimulationConfig, run_dir: Path):
-    if args.ablation == "nearest_replica":
+    if args.ablation == "ELARA-NR":
         return NearestReplicaExecutionAgent(config), False, ""
-    if args.ablation == "service_pressure":
+    if args.ablation == "SP-Routing":
         return ServicePressureExecutionAgent(config), False, ""
-    if args.ablation == "sc_nfv":
+    if args.ablation == "SC-NFV":
         return SCNFVChainingOrbitExecutionAgent(config), False, ""
-    if args.ablation == "fairness_nfv_greedy":
+    if args.ablation == "Fair-NFV":
         return FairnessAwareGreedyVNFExecutionAgent(config), False, ""
 
     agent = PPOGNNExecutionAgent(
@@ -700,6 +764,16 @@ def plot_distribution(
     filename_stem: str,
     title: str,
 ) -> Path:
+    if plt is None:
+        detail = (
+            f" Reason: {type(MATPLOTLIB_IMPORT_ERROR).__name__}: {MATPLOTLIB_IMPORT_ERROR}"
+            if MATPLOTLIB_IMPORT_ERROR is not None
+            else ""
+        )
+        raise SystemExit(
+            "matplotlib is required to generate PNG figures; SVG fallback output "
+            f"has been disabled.{detail}"
+        )
     values_by_seed = {
         seed: finite_values(
             [
@@ -711,12 +785,8 @@ def plot_distribution(
         for seed in seeds
     }
     output_dir.mkdir(parents=True, exist_ok=True)
-    if plt is not None:
-        path = output_dir / f"{filename_stem}.png"
-        plot_distribution_matplotlib(path, seeds, values_by_seed, ylabel, title)
-    else:
-        path = output_dir / f"{filename_stem}.svg"
-        plot_distribution_svg(path, seeds, values_by_seed, ylabel, title)
+    path = output_dir / f"{filename_stem}.png"
+    plot_distribution_matplotlib(path, seeds, values_by_seed, ylabel, title)
     return path
 
 
@@ -725,39 +795,22 @@ def aggregate_outputs(
     seeds: list[int],
     all_slot_rows: list[dict],
     all_request_rows: list[dict],
+    all_hop_rows: list[dict],
     summaries: list[dict],
 ) -> dict:
     write_csv(args.output_dir / "slot_metrics_by_seed.csv", all_slot_rows)
     write_csv(args.output_dir / "request_metrics_by_seed.csv", all_request_rows)
+    write_csv(args.output_dir / "request_hop_metrics_by_seed.csv", all_hop_rows)
     cycle_rows = [cycle_metric_row(summary) for summary in summaries]
     write_csv(args.output_dir / "cycle_metrics_by_seed.csv", cycle_rows)
-    delay_plot = plot_distribution(
-        args.output_dir,
-        seeds,
-        all_slot_rows,
-        "average_end_to_end_delay_s",
-        "Slot mean end-to-end delay (s)",
-        "slot_mean_delay_distribution_by_seed",
-        "Full-cycle slot-mean delay distribution by seed",
-    )
-    energy_plot = plot_distribution(
-        args.output_dir,
-        seeds,
-        all_slot_rows,
-        "average_energy_j",
-        "Slot mean energy (J)",
-        "slot_mean_energy_distribution_by_seed",
-        "Full-cycle slot-mean energy distribution by seed",
-    )
     final_summary = {
         "ablation": args.ablation,
         "seeds": seeds,
         "output_dir": args.output_dir,
         "slot_metrics_csv": args.output_dir / "slot_metrics_by_seed.csv",
         "request_metrics_csv": args.output_dir / "request_metrics_by_seed.csv",
+        "request_hop_metrics_csv": args.output_dir / "request_hop_metrics_by_seed.csv",
         "cycle_metrics_csv": args.output_dir / "cycle_metrics_by_seed.csv",
-        "delay_plot": delay_plot,
-        "energy_plot": energy_plot,
         "seed_summaries": summaries,
     }
     (args.output_dir / "summary.json").write_text(
@@ -767,22 +820,28 @@ def aggregate_outputs(
     return final_summary
 
 
-def load_seed_outputs(output_dir: Path, seeds: list[int]) -> tuple[list[dict], list[dict], list[dict]]:
+def load_seed_outputs(output_dir: Path, seeds: list[int]) -> tuple[list[dict], list[dict], list[dict], list[dict]]:
     all_slot_rows = []
     all_request_rows = []
+    all_hop_rows = []
     summaries = []
     for seed in seeds:
         seed_output_dir = output_dir / f"seed_{seed}"
         slot_rows = read_csv(seed_output_dir / "slot_metrics.csv")
         request_rows = read_csv(seed_output_dir / "request_metrics.csv")
+        hop_rows = read_csv(seed_output_dir / "request_hop_metrics.csv")
         if not slot_rows:
             raise SystemExit(f"Missing seed slot metrics: {seed_output_dir / 'slot_metrics.csv'}")
-        all_slot_rows.extend(slot_rows)
-        all_request_rows.extend(request_rows)
+        all_slot_rows.extend(canonicalize_ablation_row(row) for row in slot_rows)
+        all_request_rows.extend(canonicalize_ablation_row(row) for row in request_rows)
+        all_hop_rows.extend(canonicalize_ablation_row(row) for row in hop_rows)
         summary_path = seed_output_dir / "summary.json"
         if summary_path.exists():
-            summaries.append(json.loads(summary_path.read_text(encoding="utf-8")))
-    return all_slot_rows, all_request_rows, summaries
+            summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            if "ablation" in summary:
+                summary["ablation"] = canonical_ablation_name(summary["ablation"])
+            summaries.append(summary)
+    return all_slot_rows, all_request_rows, all_hop_rows, summaries
 
 
 def run_seed(
@@ -790,14 +849,14 @@ def run_seed(
     seed: int,
     index: int,
     seeds: list[int],
-) -> tuple[list[dict], list[dict], dict]:
+) -> tuple[list[dict], list[dict], list[dict], dict]:
     run_dir = run_dir_for_seed(args, seeds, seed, index)
     seed_output_dir = args.output_dir / f"seed_{seed}"
     config = build_config(args, seed, run_dir, seed_output_dir)
     bandit_agent = ReplicaPlacementMigrationAgent(config)
     bandit_stats = run_dir / args.bandit_stats_name
     bandit_loaded_count = 0
-    bandit_enabled = args.ablation != "no_bandit"
+    bandit_enabled = args.ablation != "ELARA-NB"
     if bandit_enabled and not args.no_load_bandit and bandit_stats.exists():
         bandit_loaded_count = bandit_agent.load_arm_stats(bandit_stats)
 
@@ -825,6 +884,7 @@ def run_seed(
 
     slot_rows: list[dict] = []
     request_rows: list[dict] = []
+    hop_rows: list[dict] = []
     all_results: list[dict] = []
     next_request_id = 1
     cumulative_request_count = 0
@@ -927,6 +987,10 @@ def run_seed(
             request_metric_row(args.ablation, seed, epoch, slot_mod, result)
             for result in results
         )
+        for result in results:
+            hop_rows.extend(
+                request_hop_metric_rows(args.ablation, seed, epoch, slot_mod, result)
+            )
         env.context["routing_cache"]["route_results"].clear()
         env.context.get("route_estimate_cache", {}).clear()
 
@@ -978,11 +1042,12 @@ def run_seed(
     }
     write_csv(seed_output_dir / "slot_metrics.csv", slot_rows)
     write_csv(seed_output_dir / "request_metrics.csv", request_rows)
+    write_csv(seed_output_dir / "request_hop_metrics.csv", hop_rows)
     (seed_output_dir / "summary.json").write_text(
         json.dumps(jsonable(summary), ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
-    return slot_rows, request_rows, summary
+    return slot_rows, request_rows, hop_rows, summary
 
 
 def main() -> None:
@@ -991,20 +1056,22 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     if args.plot_only:
-        all_slot_rows, all_request_rows, summaries = load_seed_outputs(args.output_dir, seeds)
+        all_slot_rows, all_request_rows, all_hop_rows, summaries = load_seed_outputs(args.output_dir, seeds)
         final_summary = aggregate_outputs(
-            args, seeds, all_slot_rows, all_request_rows, summaries
+            args, seeds, all_slot_rows, all_request_rows, all_hop_rows, summaries
         )
         print(json.dumps(jsonable(final_summary), ensure_ascii=False, indent=2))
         return
 
     all_slot_rows: list[dict] = []
     all_request_rows: list[dict] = []
+    all_hop_rows: list[dict] = []
     summaries: list[dict] = []
     for index, seed in enumerate(seeds):
-        slot_rows, request_rows, summary = run_seed(args, seed, index, seeds)
+        slot_rows, request_rows, hop_rows, summary = run_seed(args, seed, index, seeds)
         all_slot_rows.extend(slot_rows)
         all_request_rows.extend(request_rows)
+        all_hop_rows.extend(hop_rows)
         summaries.append(summary)
 
     if args.skip_aggregate:
@@ -1012,7 +1079,7 @@ def main() -> None:
         return
 
     final_summary = aggregate_outputs(
-        args, seeds, all_slot_rows, all_request_rows, summaries
+        args, seeds, all_slot_rows, all_request_rows, all_hop_rows, summaries
     )
     print(json.dumps(jsonable(final_summary), ensure_ascii=False, indent=2))
 

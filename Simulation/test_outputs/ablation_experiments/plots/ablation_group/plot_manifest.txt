@@ -1,0 +1,2 @@
+/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/ablation_group/latency_metrics.png
+/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/ablation_group/energy_metrics.png

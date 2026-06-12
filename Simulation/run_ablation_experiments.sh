@@ -6,8 +6,8 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 PYTHON_BIN="${PYTHON_BIN:-python}"
 SEEDS="${SEEDS:-42 43 44 45}"
-RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv fairness_nfv_greedy}}"
-MERGE_ABLATIONS="${MERGE_ABLATIONS:-full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv fairness_nfv_greedy}"
+RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-ELARA ELARA-NB ELARA-NR ELARA-SH Fair-NFV SP-Routing SC-NFV}}"
+MERGE_ABLATIONS="${MERGE_ABLATIONS:-ELARA ELARA-NB ELARA-NR ELARA-SH Fair-NFV SP-Routing SC-NFV}"
 GPUS="${GPUS:-0 1 2 3}"
 MODEL_ROOT="${MODEL_ROOT:-${SCRIPT_DIR}/multi_seed_runs}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-${SCRIPT_DIR}/test_outputs/ablation_experiments}"
@@ -230,7 +230,20 @@ import sys
 from pathlib import Path
 
 output_root = Path(sys.argv[1])
-ablations = sys.argv[2].split()
+name_map = {
+    "full": "ELARA",
+    "no_bandit": "ELARA-NB",
+    "shortest_hop_routing": "ELARA-SH",
+    "nearest_replica": "ELARA-NR",
+    "service_pressure": "SP-Routing",
+    "sc_nfv": "SC-NFV",
+    "fairness_nfv_greedy": "Fair-NFV",
+}
+
+def canonical_ablation_name(name):
+    return name_map.get(name, name)
+
+ablations = [canonical_ablation_name(name) for name in sys.argv[2].split()]
 
 def read_rows(path):
     if not path.exists():
@@ -252,21 +265,26 @@ def write_rows(path, rows):
 
 slot_rows = []
 request_rows = []
+hop_rows = []
 cycle_rows = []
 for ablation in ablations:
     variant_dir = output_root / ablation
     for row in read_rows(variant_dir / "slot_metrics_by_seed.csv"):
-        row.setdefault("ablation", ablation)
+        row["ablation"] = canonical_ablation_name(row.get("ablation", ablation))
         slot_rows.append(row)
     for row in read_rows(variant_dir / "request_metrics_by_seed.csv"):
-        row.setdefault("ablation", ablation)
+        row["ablation"] = canonical_ablation_name(row.get("ablation", ablation))
         request_rows.append(row)
+    for row in read_rows(variant_dir / "request_hop_metrics_by_seed.csv"):
+        row["ablation"] = canonical_ablation_name(row.get("ablation", ablation))
+        hop_rows.append(row)
     for row in read_rows(variant_dir / "cycle_metrics_by_seed.csv"):
-        row.setdefault("ablation", ablation)
+        row["ablation"] = canonical_ablation_name(row.get("ablation", ablation))
         cycle_rows.append(row)
 
 write_rows(output_root / "all_ablation_slot_metrics.csv", slot_rows)
 write_rows(output_root / "all_ablation_request_metrics.csv", request_rows)
+write_rows(output_root / "all_ablation_request_hop_metrics.csv", hop_rows)
 write_rows(output_root / "all_ablation_cycle_metrics.csv", cycle_rows)
 
 metric_columns = [

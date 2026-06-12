@@ -1,11 +1,4 @@
-/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/ablation_metric_summary.png
-/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/task_completion_rate_by_slot.png
-/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/average_end_to_end_delay_s_by_slot.png
-/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/average_energy_j_by_slot.png
-/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/p95_end_to_end_delay_s_by_slot.png
-/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/average_communication_delay_s_by_slot.png
-/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/average_slot_crossings_by_slot.png
-/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/task_completion_rate_distribution.png
-/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/average_end_to_end_delay_s_distribution.png
-/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/average_energy_j_distribution.png
-/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/p95_end_to_end_delay_s_distribution.png
+/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/ablation_group/latency_metrics.png
+/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/ablation_group/energy_metrics.png
+/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/comparison_group/latency_metrics.png
+/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/plots/comparison_group/energy_metrics.png

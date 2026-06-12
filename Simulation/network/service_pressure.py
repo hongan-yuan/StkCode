@@ -139,7 +139,7 @@ def _path_delay_energy_capacity(
 
 
 class ServicePressureBackpressureRouter:
-    """Packet-pressure route estimator for the Service Pressure baseline.
+    """Packet-pressure route estimator for the SP-Routing baseline.
 
     The production router in ``routing.py`` remains untouched. This class keeps
     the baseline close to the paper's local C/T-node backpressure rule by

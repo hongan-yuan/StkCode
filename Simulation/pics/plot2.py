@@ -45,11 +45,10 @@ def import_matplotlib():
 
         return plt
     except Exception as exc:  # pragma: no cover - depends on local environment
-        print(
-            "matplotlib is unavailable; falling back to dependency-free SVG output. "
-            f"Reason: {type(exc).__name__}: {exc}"
+        raise SystemExit(
+            "matplotlib is required to generate PNG figures; SVG fallback output "
+            f"has been disabled. Reason: {type(exc).__name__}: {exc}"
         )
-        return None
 
 
 def read_csv_rows(path: Path) -> list[dict]:
@@ -225,7 +224,7 @@ def save_svg_fallback(rows: list[dict], action_rows: list[dict], output_dir: Pat
 
     paths = [
         save_svg_line_chart(
-            output_dir / "ppo_average_reward_per_request.svg",
+            output_dir / "ppo_average_reward_per_request.disabled",
             "PPO-Agent Average Reward Per Request",
             epochs,
             [
@@ -235,7 +234,7 @@ def save_svg_fallback(rows: list[dict], action_rows: list[dict], output_dir: Pat
             "Reward / request",
         ),
         save_svg_line_chart(
-            output_dir / "slot_arrival_count.svg",
+            output_dir / "slot_arrival_count.disabled",
             "Request Arrivals Per Slot",
             arrival_epochs,
             [
@@ -245,14 +244,14 @@ def save_svg_fallback(rows: list[dict], action_rows: list[dict], output_dir: Pat
             "Count / total reward",
         ),
         save_svg_line_chart(
-            output_dir / "ppo_success_curve.svg",
+            output_dir / "ppo_success_curve.disabled",
             "PPO-Agent Success Rate",
             epochs,
             [("Success rate", moving_average(success_rates, window), "#059669")],
             "Success rate",
         ),
         save_svg_line_chart(
-            output_dir / "bandit_learning_curve.svg",
+            output_dir / "bandit_learning_curve.disabled",
             "Bandit Strategy Learning Quality",
             epochs,
             [
@@ -266,7 +265,7 @@ def save_svg_fallback(rows: list[dict], action_rows: list[dict], output_dir: Pat
 
     counts = Counter(row.get("action", "unknown") or "unknown" for row in action_rows)
     bar_path = save_svg_bar_chart(
-        output_dir / "bandit_action_distribution.svg",
+        output_dir / "bandit_action_distribution.disabled",
         "Bandit Migration Action Distribution",
         counts,
     )
@@ -481,22 +480,17 @@ def main() -> None:
         )
 
     bandit_action_rows = read_csv_rows(args.input_dir / "bandit_actions.csv")
-    if plt is None:
-        saved_paths = save_svg_fallback(
-            training_rows, bandit_action_rows, args.output_dir, args.window
-        )
-    else:
-        saved_paths = [
-            save_ppo_reward_curve(plt, training_rows, args.output_dir, args.window),
-            save_load_diagnostics(plt, training_rows, args.output_dir, args.window),
-            save_ppo_diagnostics(plt, training_rows, args.output_dir, args.window),
-            save_bandit_learning_curve(plt, training_rows, args.output_dir, args.window),
-        ]
-        action_path = save_bandit_action_distribution(
-            plt, bandit_action_rows, args.output_dir
-        )
-        if action_path is not None:
-            saved_paths.append(action_path)
+    saved_paths = [
+        save_ppo_reward_curve(plt, training_rows, args.output_dir, args.window),
+        save_load_diagnostics(plt, training_rows, args.output_dir, args.window),
+        save_ppo_diagnostics(plt, training_rows, args.output_dir, args.window),
+        save_bandit_learning_curve(plt, training_rows, args.output_dir, args.window),
+    ]
+    action_path = save_bandit_action_distribution(
+        plt, bandit_action_rows, args.output_dir
+    )
+    if action_path is not None:
+        saved_paths.append(action_path)
 
     for path in saved_paths:
         print(path)

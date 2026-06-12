@@ -59,11 +59,10 @@ def import_matplotlib():
 
         return plt
     except Exception as exc:  # pragma: no cover - depends on local environment
-        print(
-            "matplotlib is unavailable; falling back to dependency-free SVG output. "
-            f"Reason: {type(exc).__name__}: {exc}"
+        raise SystemExit(
+            "matplotlib is required to generate PNG figures; SVG fallback output "
+            f"has been disabled. Reason: {type(exc).__name__}: {exc}"
         )
-        return None
 
 
 def read_csv_rows(path: Path) -> list[dict]:
@@ -212,7 +211,7 @@ def save_svg_slot_load_diagnostics(rows: list[dict], output_dir: Path, window: i
     total_rewards = [to_float(row.get("total_reward")) for row in rows]
     rewards_per_request = [to_float(row.get("average_reward_per_request")) for row in rows]
 
-    path = output_dir / "slot_load_diagnostics.svg"
+    path = output_dir / "slot_load_diagnostics.disabled"
     width, panel_height, margin = 980, 300, 64
     height = panel_height * 3 + 76
     panels = [
@@ -297,7 +296,7 @@ def save_svg_ppo_training_diagnostics(rows: list[dict], output_dir: Path, window
     success_rates = [to_float(row.get("success_rate")) for row in rows]
     losses = [to_float(row.get("ppo_loss")) for row in rows]
 
-    path = output_dir / "ppo_training_diagnostics.svg"
+    path = output_dir / "ppo_training_diagnostics.disabled"
     width, panel_height, margin = 980, 300, 64
     height = panel_height * 2 + 76
     panels = [
@@ -372,7 +371,7 @@ def save_svg_fallback(rows: list[dict], action_rows: list[dict], output_dir: Pat
         save_svg_slot_load_diagnostics(rows, output_dir, window),
         save_svg_ppo_training_diagnostics(rows, output_dir, window),
         save_svg_line_chart(
-            output_dir / "ppo_average_reward_per_request.svg",
+            output_dir / "ppo_average_reward_per_request.disabled",
             "PPO-Agent Average Reward Per Request",
             epochs,
             [
@@ -386,7 +385,7 @@ def save_svg_fallback(rows: list[dict], action_rows: list[dict], output_dir: Pat
             "Reward / request",
         ),
         save_svg_line_chart(
-            output_dir / "bandit_learning_curve.svg",
+            output_dir / "bandit_learning_curve.disabled",
             "Bandit Strategy Learning Quality",
             epochs,
             [
@@ -400,7 +399,7 @@ def save_svg_fallback(rows: list[dict], action_rows: list[dict], output_dir: Pat
 
     counts = Counter(row.get("action", "unknown") or "unknown" for row in action_rows)
     bar_path = save_svg_bar_chart(
-        output_dir / "bandit_action_distribution.svg",
+        output_dir / "bandit_action_distribution.disabled",
         "Bandit Migration Action Distribution",
         counts,
     )
@@ -419,12 +418,12 @@ def save_svg_request_failure_charts(request_rows: list[dict], output_dir: Path) 
     by_reason = Counter(row.get("failure_reason", "unknown") or "unknown" for row in failed_rows)
     paths = []
     template_path = save_svg_bar_chart(
-        output_dir / "failed_requests_by_template.svg",
+        output_dir / "failed_requests_by_template.disabled",
         "Failed Requests by Template",
         by_template,
     )
     reason_path = save_svg_bar_chart(
-        output_dir / "failed_requests_by_reason.svg",
+        output_dir / "failed_requests_by_reason.disabled",
         "Failed Requests by Reason",
         by_reason,
     )
@@ -747,39 +746,32 @@ def main() -> None:
 
     bandit_action_rows = read_csv_rows(args.input_dir / "bandit_actions.csv")
     request_rows = read_csv_rows(args.input_dir / "request_metrics.csv")
-    if plt is None:
-        saved_paths = save_svg_fallback(
-            training_rows, bandit_action_rows, args.output_dir, args.window
+    saved_paths = [
+        save_slot_load_diagnostics(plt, training_rows, args.output_dir, args.window),
+        save_ppo_diagnostics(plt, training_rows, args.output_dir, args.window),
+        save_ppo_average_reward_per_request(
+            plt, training_rows, args.output_dir, args.window
+        ),
+        save_bandit_learning_curve(plt, training_rows, args.output_dir, args.window),
+    ]
+    action_path = save_bandit_action_distribution(
+        plt, bandit_action_rows, args.output_dir
+    )
+    if action_path is not None:
+        saved_paths.append(action_path)
+    if args.extra_diagnostics:
+        saved_paths.extend(
+            [
+                save_ppo_reward_curve(plt, training_rows, args.output_dir, args.window),
+                save_request_load_failure_curve(
+                    plt, training_rows, args.output_dir, args.window
+                ),
+                save_failure_awareness_curve(
+                    plt, training_rows, args.output_dir, args.window
+                ),
+            ]
         )
-        if args.extra_diagnostics:
-            saved_paths.extend(save_svg_request_failure_charts(request_rows, args.output_dir))
-    else:
-        saved_paths = [
-            save_slot_load_diagnostics(plt, training_rows, args.output_dir, args.window),
-            save_ppo_diagnostics(plt, training_rows, args.output_dir, args.window),
-            save_ppo_average_reward_per_request(
-                plt, training_rows, args.output_dir, args.window
-            ),
-            save_bandit_learning_curve(plt, training_rows, args.output_dir, args.window),
-        ]
-        action_path = save_bandit_action_distribution(
-            plt, bandit_action_rows, args.output_dir
-        )
-        if action_path is not None:
-            saved_paths.append(action_path)
-        if args.extra_diagnostics:
-            saved_paths.extend(
-                [
-                    save_ppo_reward_curve(plt, training_rows, args.output_dir, args.window),
-                    save_request_load_failure_curve(
-                        plt, training_rows, args.output_dir, args.window
-                    ),
-                    save_failure_awareness_curve(
-                        plt, training_rows, args.output_dir, args.window
-                    ),
-                ]
-            )
-            saved_paths.extend(save_request_failure_distribution(plt, request_rows, args.output_dir))
+        saved_paths.extend(save_request_failure_distribution(plt, request_rows, args.output_dir))
 
     for path in saved_paths:
         print(path)

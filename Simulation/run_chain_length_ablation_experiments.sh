@@ -7,7 +7,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PYTHON_BIN="${PYTHON_BIN:-python}"
 CHAIN_LENGTHS="${CHAIN_LENGTHS:-5 10 15}"
 SEEDS="${SEEDS:-42 43 44 45}"
-RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-full no_bandit shortest_hop_routing nearest_replica service_pressure sc_nfv fairness_nfv_greedy}}"
+RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-ELARA ELARA-NB ELARA-NR ELARA-SH Fair-NFV SP-Routing SC-NFV}}"
 GPUS="${GPUS:-0 1 2 3}"
 MODEL_ROOT="${MODEL_ROOT:-${SCRIPT_DIR}/multi_seed_runs}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-${SCRIPT_DIR}/test_outputs/chain_length_ablation_experiments}"
@@ -234,7 +234,20 @@ from pathlib import Path
 
 output_root = Path(sys.argv[1])
 chain_lengths = sys.argv[2].split()
-ablations = sys.argv[3].split()
+name_map = {
+    "full": "ELARA",
+    "no_bandit": "ELARA-NB",
+    "shortest_hop_routing": "ELARA-SH",
+    "nearest_replica": "ELARA-NR",
+    "service_pressure": "SP-Routing",
+    "sc_nfv": "SC-NFV",
+    "fairness_nfv_greedy": "Fair-NFV",
+}
+
+def canonical_ablation_name(name):
+    return name_map.get(name, name)
+
+ablations = [canonical_ablation_name(name) for name in sys.argv[3].split()]
 
 def read_rows(path):
     if not path.exists():
@@ -271,6 +284,7 @@ metric_columns = [
 
 all_slot_rows = []
 all_request_rows = []
+all_hop_rows = []
 all_cycle_rows = []
 all_summary_rows = []
 
@@ -278,27 +292,34 @@ for chain_length in chain_lengths:
     length_dir = output_root / f"chain_length_{chain_length}"
     length_slot_rows = []
     length_request_rows = []
+    length_hop_rows = []
     length_cycle_rows = []
     for ablation in ablations:
         variant_dir = length_dir / ablation
         for row in read_rows(variant_dir / "slot_metrics_by_seed.csv"):
-            row.setdefault("ablation", ablation)
+            row["ablation"] = canonical_ablation_name(row.get("ablation", ablation))
             row["chain_length_filter"] = chain_length
             length_slot_rows.append(row)
             all_slot_rows.append(row)
         for row in read_rows(variant_dir / "request_metrics_by_seed.csv"):
-            row.setdefault("ablation", ablation)
+            row["ablation"] = canonical_ablation_name(row.get("ablation", ablation))
             row["chain_length_filter"] = chain_length
             length_request_rows.append(row)
             all_request_rows.append(row)
+        for row in read_rows(variant_dir / "request_hop_metrics_by_seed.csv"):
+            row["ablation"] = canonical_ablation_name(row.get("ablation", ablation))
+            row["chain_length_filter"] = chain_length
+            length_hop_rows.append(row)
+            all_hop_rows.append(row)
         for row in read_rows(variant_dir / "cycle_metrics_by_seed.csv"):
-            row.setdefault("ablation", ablation)
+            row["ablation"] = canonical_ablation_name(row.get("ablation", ablation))
             row.setdefault("chain_length_filter", chain_length)
             length_cycle_rows.append(row)
             all_cycle_rows.append(row)
 
     write_rows(length_dir / "all_ablation_slot_metrics.csv", length_slot_rows)
     write_rows(length_dir / "all_ablation_request_metrics.csv", length_request_rows)
+    write_rows(length_dir / "all_ablation_request_hop_metrics.csv", length_hop_rows)
     write_rows(length_dir / "all_ablation_cycle_metrics.csv", length_cycle_rows)
 
     for ablation in ablations:
@@ -325,6 +346,7 @@ for chain_length in chain_lengths:
 
 write_rows(output_root / "all_chain_length_slot_metrics.csv", all_slot_rows)
 write_rows(output_root / "all_chain_length_request_metrics.csv", all_request_rows)
+write_rows(output_root / "all_chain_length_request_hop_metrics.csv", all_hop_rows)
 write_rows(output_root / "all_chain_length_cycle_metrics.csv", all_cycle_rows)
 write_rows(output_root / "chain_length_ablation_metric_summary.csv", all_summary_rows)
 PY

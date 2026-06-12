@@ -89,7 +89,7 @@ class NearestReplicaExecutionAgent(ServiceExecutionAgent):
 
 
 class ServicePressureExecutionAgent(ServiceExecutionAgent):
-    """Service Pressure baseline with local queue-differential routing.
+    """SP-Routing baseline with local queue-differential routing.
 
     The baseline keeps an explicit virtual backlog per satellite/service label
     and uses ``ServicePressureBackpressureRouter`` for service-stage and egress
