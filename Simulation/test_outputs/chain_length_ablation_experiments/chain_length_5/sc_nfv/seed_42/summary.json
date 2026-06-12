@@ -1,0 +1,72 @@
+{
+  "ablation": "sc_nfv",
+  "seed": 42,
+  "run_dir": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_42",
+  "slot_count": 606,
+  "slot_duration_s": 10.0,
+  "request_template_csv": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_42/request_templates.csv",
+  "request_templates_loaded": true,
+  "request_template_count": 8,
+  "original_request_template_count": 14,
+  "chain_length_filter": 5,
+  "arrival_mode": "total_per_slot",
+  "arrival_lambda_total_per_slot": 4.9,
+  "checkpoint": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_42/ppo_gnn_latest.pth",
+  "checkpoint_loaded": false,
+  "checkpoint_load_error": "",
+  "execution_agent": "SCNFVChainingOrbitExecutionAgent",
+  "service_routing_strategy": "min_cost_max_flow",
+  "bandit_redeployment_enabled": true,
+  "bandit_arm_stats": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_42/bandit_arm_stats.csv",
+  "bandit_loaded_arm_count": 638,
+  "arrival_lambda_per_pattern_per_slot": 0.35,
+  "overall_summary": {
+    "request_count": 3035,
+    "feasible_count": 3035,
+    "success_rate": 1.0,
+    "average_end_to_end_delay_s": 26.700494411593994,
+    "p95_end_to_end_delay_s": 38.892894790226705,
+    "average_energy_j": 1110.908109255251,
+    "average_communication_delay_s": 1.6778578756465705,
+    "average_slot_crossings": 0.15513454146073585,
+    "route_mode_counts": {
+      "min_cost_max_flow": 18101,
+      "local": 109
+    }
+  },
+  "delay_margin_summary": {
+    "deadline_accepted_count": 3035,
+    "deadline_acceptance_rate": 1.0,
+    "delay_margin_mean": 0.4854635347562549,
+    "delay_margin_max": 0.950978477955141,
+    "delay_margin_jain_fairness": 0.9538348775538339
+  },
+  "bandit_summary": {
+    "total_pulls": 5284,
+    "known_arm_count": 698,
+    "positive_arm_count": 695,
+    "average_arm_reward": 1.120598146927955,
+    "total_applied_actions": 240,
+    "total_execution_feedback_updates": 2640,
+    "total_failed_replica_observations": 0,
+    "known_failed_replica_count": 0,
+    "known_service_pressure_metric_count": 24,
+    "total_applied_add_count": 31,
+    "total_applied_move_count": 209,
+    "last_applied_action_count": 4,
+    "last_applied_move_count": 4,
+    "last_unresolved_arm_count": 2
+  },
+  "routing_cache_summary": {
+    "route_result_hits": 17881,
+    "route_result_misses": 481739,
+    "shortest_path_hits": 0,
+    "shortest_path_misses": 0,
+    "precomputed_slots": 606,
+    "precomputed_nodes": 180
+  },
+  "route_estimate_cache_summary": {
+    "hits": 42507,
+    "misses": 480933
+  }
+}

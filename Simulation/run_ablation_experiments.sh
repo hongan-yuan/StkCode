@@ -275,7 +275,6 @@ metric_columns = [
     "average_end_to_end_delay_s",
     "average_energy_j",
     "p95_end_to_end_delay_s",
-    "p95_energy_j",
     "average_communication_delay_s",
     "average_slot_crossings",
     "average_reward_per_request",

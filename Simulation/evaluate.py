@@ -271,7 +271,6 @@ def main() -> None:
             "average_end_to_end_delay_s": summary["average_end_to_end_delay_s"],
             "p95_end_to_end_delay_s": summary["p95_end_to_end_delay_s"],
             "average_energy_j": summary["average_energy_j"],
-            "p95_energy_j": summary["p95_energy_j"],
             "average_communication_delay_s": summary["average_communication_delay_s"],
             "average_slot_crossings": summary["average_slot_crossings"],
             **flatten_route_counts(summary["route_mode_counts"]),

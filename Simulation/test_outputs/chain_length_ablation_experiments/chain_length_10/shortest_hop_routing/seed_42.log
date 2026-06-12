@@ -1,0 +1,105 @@
+ablation=shortest_hop_routing seed=42 [------------------------]   0.17% 1/606 elapsed=00:03 eta=29:45 arrivals=5 success=1.000
+ablation=shortest_hop_routing seed=42 [#-----------------------]   4.13% 25/606 elapsed=01:16 eta=29:18 arrivals=4 success=1.000
+ablation=shortest_hop_routing seed=42 [##----------------------]   8.25% 50/606 elapsed=02:47 eta=30:59 arrivals=5 success=1.000
+ablation=shortest_hop_routing seed=42 [###---------------------]  12.38% 75/606 elapsed=04:04 eta=28:47 arrivals=1 success=1.000
+ablation=shortest_hop_routing seed=42 [####--------------------]  16.50% 100/606 elapsed=05:26 eta=27:29 arrivals=3 success=1.000
+ablation=shortest_hop_routing seed=42 [#####-------------------]  20.63% 125/606 elapsed=06:43 eta=25:50 arrivals=4 success=1.000
+ablation=shortest_hop_routing seed=42 [######------------------]  24.75% 150/606 elapsed=07:58 eta=24:13 arrivals=4 success=1.000
+ablation=shortest_hop_routing seed=42 [#######-----------------]  28.88% 175/606 elapsed=09:31 eta=23:26 arrivals=7 success=1.000
+ablation=shortest_hop_routing seed=42 [########----------------]  33.00% 200/606 elapsed=10:45 eta=21:50 arrivals=2 success=1.000
+ablation=shortest_hop_routing seed=42 [#########---------------]  37.13% 225/606 elapsed=12:11 eta=20:37 arrivals=5 success=1.000
+ablation=shortest_hop_routing seed=42 [##########--------------]  41.25% 250/606 elapsed=13:16 eta=18:54 arrivals=6 success=1.000
+ablation=shortest_hop_routing seed=42 [###########-------------]  45.38% 275/606 elapsed=14:36 eta=17:34 arrivals=5 success=1.000
+ablation=shortest_hop_routing seed=42 [############------------]  49.50% 300/606 elapsed=15:51 eta=16:10 arrivals=6 success=1.000
+ablation=shortest_hop_routing seed=42 [#############-----------]  53.63% 325/606 elapsed=17:01 eta=14:43 arrivals=4 success=1.000
+ablation=shortest_hop_routing seed=42 [##############----------]  57.76% 350/606 elapsed=18:24 eta=13:27 arrivals=3 success=1.000
+ablation=shortest_hop_routing seed=42 [###############---------]  61.88% 375/606 elapsed=19:45 eta=12:10 arrivals=4 success=1.000
+ablation=shortest_hop_routing seed=42 [################--------]  66.01% 400/606 elapsed=21:03 eta=10:50 arrivals=0 success=0.000
+ablation=shortest_hop_routing seed=42 [#################-------]  70.13% 425/606 elapsed=22:31 eta=09:36 arrivals=5 success=1.000
+ablation=shortest_hop_routing seed=42 [##################------]  74.26% 450/606 elapsed=24:03 eta=08:20 arrivals=8 success=1.000
+ablation=shortest_hop_routing seed=42 [###################-----]  78.38% 475/606 elapsed=25:25 eta=07:01 arrivals=5 success=1.000
+ablation=shortest_hop_routing seed=42 [####################----]  82.51% 500/606 elapsed=26:49 eta=05:41 arrivals=5 success=1.000
+ablation=shortest_hop_routing seed=42 [#####################---]  86.63% 525/606 elapsed=28:15 eta=04:22 arrivals=6 success=1.000
+ablation=shortest_hop_routing seed=42 [######################--]  90.76% 550/606 elapsed=29:24 eta=03:00 arrivals=5 success=1.000
+ablation=shortest_hop_routing seed=42 [#######################-]  94.88% 575/606 elapsed=30:45 eta=01:39 arrivals=4 success=1.000
+ablation=shortest_hop_routing seed=42 [########################]  99.01% 600/606 elapsed=32:01 eta=00:19 arrivals=6 success=1.000
+ablation=shortest_hop_routing seed=42 [########################] 100.00% 606/606 elapsed=32:17 eta=00:00 arrivals=3 success=1.000
+{
+  "seeds": [
+    42
+  ],
+  "seed_summaries": [
+    {
+      "ablation": "shortest_hop_routing",
+      "seed": 42,
+      "run_dir": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_42",
+      "slot_count": 606,
+      "slot_duration_s": 10.0,
+      "request_template_csv": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_42/request_templates.csv",
+      "request_templates_loaded": true,
+      "request_template_count": 4,
+      "original_request_template_count": 14,
+      "chain_length_filter": 10,
+      "arrival_mode": "total_per_slot",
+      "arrival_lambda_total_per_slot": 4.9,
+      "checkpoint": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_42/ppo_gnn_latest.pth",
+      "checkpoint_loaded": true,
+      "checkpoint_load_error": "",
+      "execution_agent": "PPOGNNExecutionAgent",
+      "service_routing_strategy": "shortest_hop_per_slot",
+      "bandit_redeployment_enabled": true,
+      "bandit_arm_stats": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_42/bandit_arm_stats.csv",
+      "bandit_loaded_arm_count": 638,
+      "arrival_lambda_per_pattern_per_slot": 0.35,
+      "overall_summary": {
+        "request_count": 2932,
+        "feasible_count": 2920,
+        "success_rate": 0.9959072305593452,
+        "average_end_to_end_delay_s": 65.65436403218287,
+        "p95_end_to_end_delay_s": 93.96117443592175,
+        "average_energy_j": 1952.7935314822025,
+        "average_communication_delay_s": 3.4504753665502945,
+        "average_slot_crossings": 0.34590570719602975,
+        "route_mode_counts": {
+          "shortest_hop_per_slot": 31288,
+          "local": 952
+        }
+      },
+      "delay_margin_summary": {
+        "deadline_accepted_count": 2843,
+        "deadline_acceptance_rate": 0.9736301369863014,
+        "delay_margin_mean": 0.6565436403218285,
+        "delay_margin_max": 1.329646757075593,
+        "delay_margin_jain_fairness": 0.9483247365817224
+      },
+      "bandit_summary": {
+        "total_pulls": 5288,
+        "known_arm_count": 651,
+        "positive_arm_count": 648,
+        "average_arm_reward": 1.181767709250023,
+        "total_applied_actions": 240,
+        "total_execution_feedback_updates": 2640,
+        "total_failed_replica_observations": 12,
+        "known_failed_replica_count": 9,
+        "known_service_pressure_metric_count": 20,
+        "total_applied_add_count": 9,
+        "total_applied_move_count": 231,
+        "last_applied_action_count": 4,
+        "last_applied_move_count": 4,
+        "last_unresolved_arm_count": 3
+      },
+      "routing_cache_summary": {
+        "route_result_hits": 30857,
+        "route_result_misses": 418506,
+        "shortest_path_hits": 0,
+        "shortest_path_misses": 0,
+        "precomputed_slots": 606,
+        "precomputed_nodes": 180
+      },
+      "route_estimate_cache_summary": {
+        "hits": 127886,
+        "misses": 416795
+      }
+    }
+  ]
+}

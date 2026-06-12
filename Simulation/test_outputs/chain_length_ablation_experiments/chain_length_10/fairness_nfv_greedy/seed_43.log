@@ -1,0 +1,104 @@
+ablation=fairness_nfv_greedy seed=43 [------------------------]   0.17% 1/606 elapsed=00:00 eta=01:50 arrivals=3 success=1.000
+ablation=fairness_nfv_greedy seed=43 [#-----------------------]   4.13% 25/606 elapsed=00:05 eta=02:03 arrivals=6 success=1.000
+ablation=fairness_nfv_greedy seed=43 [##----------------------]   8.25% 50/606 elapsed=00:11 eta=02:01 arrivals=5 success=1.000
+ablation=fairness_nfv_greedy seed=43 [###---------------------]  12.38% 75/606 elapsed=00:17 eta=02:01 arrivals=6 success=1.000
+ablation=fairness_nfv_greedy seed=43 [####--------------------]  16.50% 100/606 elapsed=00:24 eta=02:00 arrivals=5 success=1.000
+ablation=fairness_nfv_greedy seed=43 [#####-------------------]  20.63% 125/606 elapsed=00:30 eta=01:54 arrivals=5 success=1.000
+ablation=fairness_nfv_greedy seed=43 [######------------------]  24.75% 150/606 elapsed=00:37 eta=01:52 arrivals=7 success=1.000
+ablation=fairness_nfv_greedy seed=43 [#######-----------------]  28.88% 175/606 elapsed=00:44 eta=01:47 arrivals=1 success=1.000
+ablation=fairness_nfv_greedy seed=43 [########----------------]  33.00% 200/606 elapsed=00:49 eta=01:39 arrivals=5 success=1.000
+ablation=fairness_nfv_greedy seed=43 [#########---------------]  37.13% 225/606 elapsed=00:56 eta=01:35 arrivals=7 success=1.000
+ablation=fairness_nfv_greedy seed=43 [##########--------------]  41.25% 250/606 elapsed=01:03 eta=01:30 arrivals=6 success=1.000
+ablation=fairness_nfv_greedy seed=43 [###########-------------]  45.38% 275/606 elapsed=01:09 eta=01:24 arrivals=4 success=1.000
+ablation=fairness_nfv_greedy seed=43 [############------------]  49.50% 300/606 elapsed=01:16 eta=01:17 arrivals=8 success=1.000
+ablation=fairness_nfv_greedy seed=43 [#############-----------]  53.63% 325/606 elapsed=01:23 eta=01:11 arrivals=1 success=1.000
+ablation=fairness_nfv_greedy seed=43 [##############----------]  57.76% 350/606 elapsed=01:29 eta=01:05 arrivals=4 success=1.000
+ablation=fairness_nfv_greedy seed=43 [###############---------]  61.88% 375/606 elapsed=01:36 eta=00:59 arrivals=6 success=1.000
+ablation=fairness_nfv_greedy seed=43 [################--------]  66.01% 400/606 elapsed=01:43 eta=00:53 arrivals=10 success=1.000
+ablation=fairness_nfv_greedy seed=43 [#################-------]  70.13% 425/606 elapsed=01:49 eta=00:46 arrivals=3 success=1.000
+ablation=fairness_nfv_greedy seed=43 [##################------]  74.26% 450/606 elapsed=01:57 eta=00:40 arrivals=3 success=1.000
+ablation=fairness_nfv_greedy seed=43 [###################-----]  78.38% 475/606 elapsed=02:04 eta=00:34 arrivals=4 success=1.000
+ablation=fairness_nfv_greedy seed=43 [####################----]  82.51% 500/606 elapsed=02:10 eta=00:28 arrivals=6 success=1.000
+ablation=fairness_nfv_greedy seed=43 [#####################---]  86.63% 525/606 elapsed=02:17 eta=00:21 arrivals=4 success=1.000
+ablation=fairness_nfv_greedy seed=43 [######################--]  90.76% 550/606 elapsed=02:23 eta=00:15 arrivals=4 success=1.000
+ablation=fairness_nfv_greedy seed=43 [#######################-]  94.88% 575/606 elapsed=02:30 eta=00:08 arrivals=6 success=1.000
+ablation=fairness_nfv_greedy seed=43 [########################]  99.01% 600/606 elapsed=02:36 eta=00:02 arrivals=3 success=1.000
+ablation=fairness_nfv_greedy seed=43 [########################] 100.00% 606/606 elapsed=02:38 eta=00:00 arrivals=7 success=1.000
+{
+  "seeds": [
+    43
+  ],
+  "seed_summaries": [
+    {
+      "ablation": "fairness_nfv_greedy",
+      "seed": 43,
+      "run_dir": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_43",
+      "slot_count": 606,
+      "slot_duration_s": 10.0,
+      "request_template_csv": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_43/request_templates.csv",
+      "request_templates_loaded": true,
+      "request_template_count": 4,
+      "original_request_template_count": 14,
+      "chain_length_filter": 10,
+      "arrival_mode": "total_per_slot",
+      "arrival_lambda_total_per_slot": 4.9,
+      "checkpoint": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_43/ppo_gnn_latest.pth",
+      "checkpoint_loaded": false,
+      "checkpoint_load_error": "",
+      "execution_agent": "FairnessAwareGreedyVNFExecutionAgent",
+      "service_routing_strategy": "shortest_hop_per_slot",
+      "bandit_redeployment_enabled": true,
+      "bandit_arm_stats": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_43/bandit_arm_stats.csv",
+      "bandit_loaded_arm_count": 656,
+      "arrival_lambda_per_pattern_per_slot": 0.35,
+      "overall_summary": {
+        "request_count": 2884,
+        "feasible_count": 2884,
+        "success_rate": 1.0,
+        "average_end_to_end_delay_s": 49.61490710681984,
+        "p95_end_to_end_delay_s": 65.0104817326046,
+        "average_energy_j": 2216.5568622854444,
+        "average_communication_delay_s": 1.6513389753105532,
+        "average_slot_crossings": 0.16032026226200982,
+        "route_mode_counts": {
+          "shortest_hop_per_slot": 30288,
+          "local": 1436
+        }
+      },
+      "delay_margin_summary": {
+        "deadline_accepted_count": 2884,
+        "deadline_acceptance_rate": 1.0,
+        "delay_margin_mean": 0.4961490710681976,
+        "delay_margin_max": 0.8190494285207354,
+        "delay_margin_jain_fairness": 0.9717556729984285
+      },
+      "bandit_summary": {
+        "total_pulls": 5305,
+        "known_arm_count": 667,
+        "positive_arm_count": 663,
+        "average_arm_reward": 1.1741306790937336,
+        "total_applied_actions": 240,
+        "total_execution_feedback_updates": 2640,
+        "total_failed_replica_observations": 0,
+        "known_failed_replica_count": 0,
+        "known_service_pressure_metric_count": 24,
+        "total_applied_add_count": 13,
+        "total_applied_move_count": 227,
+        "last_applied_action_count": 4,
+        "last_applied_move_count": 4
+      },
+      "routing_cache_summary": {
+        "route_result_hits": 31718,
+        "route_result_misses": 402474,
+        "shortest_path_hits": 0,
+        "shortest_path_misses": 0,
+        "precomputed_slots": 606,
+        "precomputed_nodes": 180
+      },
+      "route_estimate_cache_summary": {
+        "hits": 139697,
+        "misses": 399245
+      }
+    }
+  ]
+}
