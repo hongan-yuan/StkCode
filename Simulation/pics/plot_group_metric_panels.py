@@ -250,11 +250,11 @@ def plot_metric_panel(
     hop_ylabel: str,
 ) -> None:
     grouped = values_by_ablation(request_rows, ablations, metric_column)
-    fig, axes = plt.subplots(2, 2, figsize=(13.2, 8.2), constrained_layout=True)
-    plot_bar(axes[0, 0], grouped, ablations, mean, mean_title, value_ylabel)
-    plot_bar(axes[0, 1], grouped, ablations, p95, p95_title, value_ylabel)
-    plot_violin(axes[1, 0], grouped, ablations, violin_title, value_ylabel)
-    plot_hop_panel(axes[1, 1], hop_rows, ablations, compute_column, communication_column, hop_title, hop_ylabel)
+    fig, axes = plt.subplots(1, 4, figsize=(22.0, 4.8), constrained_layout=True)
+    plot_bar(axes[0], grouped, ablations, mean, mean_title, value_ylabel)
+    plot_bar(axes[1], grouped, ablations, p95, p95_title, value_ylabel)
+    plot_violin(axes[2], grouped, ablations, violin_title, value_ylabel)
+    plot_hop_panel(axes[3], hop_rows, ablations, compute_column, communication_column, hop_title, hop_ylabel)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, bbox_inches="tight")
     plt.close(fig)
