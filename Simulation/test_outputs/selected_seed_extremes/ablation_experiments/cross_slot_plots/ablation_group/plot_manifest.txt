@@ -1,0 +1,2 @@
+/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/test_outputs/selected_seed_extremes/ablation_experiments/cross_slot_plots/ablation_group/latency_cross_slot.png
+/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/test_outputs/selected_seed_extremes/ablation_experiments/cross_slot_plots/ablation_group/energy_cross_slot.png
