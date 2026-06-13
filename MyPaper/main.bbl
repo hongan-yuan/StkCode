@@ -1,0 +1,204 @@
+\begin{thebibliography}{10}
+
+\bibitem{xiao2022leo}
+Z.~Xiao, J.~Yang, T.~Mao, C.~Xu, R.~Zhang, Z.~Han, and X.-G. Xia, ``Leo
+  satellite access network (leo-san) towards 6g: Challenges and approaches,''
+  {\em IEEE Wireless Communications}, 2022.
+
+\bibitem{net_char_StarLink_LEO}
+S.~Ma, Y.~C. Chou, H.~Zhao, L.~Chen, X.~Ma, and J.~Liu, ``Network
+  characteristics of leo satellite constellations: A starlink-based measurement
+  from end users,'' in {\em IEEE INFOCOM 2023 - IEEE Conference on Computer
+  Communications}, pp.~1--10, 2023.
+
+\bibitem{mi2019intelligent}
+W.~Mi and Y.~Fang, ``Intelligent remote sensing satellite and remote sensing
+  image real-time service,'' {\em Acta Geodaetica et Cartographica Sinica},
+  vol.~48, no.~12, p.~1586, 2019.
+
+\bibitem{shen2023survey}
+Z.~Shen, J.~Jin, C.~Tan, A.~Tagami, S.~Wang, Q.~Li, Q.~Zheng, and J.~Yuan, ``A
+  survey of next-generation computing technologies in space-air-ground
+  integrated networks,'' {\em ACM Comput. Surv.}, vol.~56, no.~1, pp.~1--40,
+  2023.
+
+\bibitem{satellite_sys_survey}
+H.~Al-Hraishawi, H.~Chougrani, S.~Kisseleff, E.~Lagunas, and S.~Chatzinotas,
+  ``A survey on nongeostationary satellite systems: The communication
+  perspective,'' {\em IEEE Communications Surveys \& Tutorials}, vol.~25,
+  no.~1, pp.~101--132, 2023.
+
+\bibitem{progress_challenge_RS_satellite}
+B.~Zhang, Y.~Wu, B.~Zhao, J.~Chanussot, D.~Hong, J.~Yao, and L.~Gao, ``Progress
+  and challenges in intelligent remote sensing satellite systems,'' {\em IEEE
+  Journal of Selected Topics in Applied Earth Observations and Remote Sensing},
+  vol.~15, pp.~1814--1822, 2022.
+
+\bibitem{SAG_survey_6g}
+H.~Guo, J.~Li, J.~Liu, N.~Tian, and N.~Kato, ``A survey on space-air-ground-sea
+  integrated network security in 6g,'' {\em IEEE Communications Surveys \&
+  Tutorials}, vol.~24, no.~1, pp.~53--87, 2022.
+
+\bibitem{survey_on_nextg_comp_tech_SAGIN}
+Z.~Shen, J.~Jin, C.~Tan, A.~Tagami, S.~Wang, Q.~Li, Q.~Zheng, and J.~Yuan, ``A
+  survey of next-generation computing technologies in space-air-ground
+  integrated networks,'' {\em ACM Comput. Surv.}, vol.~56, aug 2023.
+
+\bibitem{sate_fed_edge_learning}
+Y.~Shi, L.~Zeng, J.~Zhu, Y.~Zhou, C.~Jiang, and K.~B. Letaief, ``Satellite
+  federated edge learning: Architecture design and convergence analysis,'' {\em
+  IEEE Transactions on Wireless Communications}, pp.~1--1, 2024.
+
+\bibitem{li2023leo}
+Y.~Li, M.~Wang, K.~Hwang, Z.~Li, and T.~Ji, ``Leo satellite constellation for
+  global-scale remote sensing with on-orbit cloud {AI} computing,'' {\em IEEE
+  J. Sel. Top. Appl. Earth Obs. Remote Sens.}, vol.~16, pp.~9369 -- 9381, 2023.
+
+\bibitem{tronchetti2015legal}
+F.~Tronchetti, ``Legal aspects of satellite remote sensing,'' in {\em Handbook
+  of Space Law}, pp.~501--553, Edward Elgar Publishing, 2015.
+
+\bibitem{jia2022collaborative}
+M.~Jia, L.~Zhang, J.~Wu, S.~Meng, and Q.~Guo, ``Collaborative
+  satellite-terrestrial edge computing network for everyone-centric customized
+  services,'' {\em IEEE Netw.}, vol.~37, no.~5, pp.~197--205, 2022.
+
+\bibitem{leyva2023satellite}
+I.~Leyva-Mayorga, M.~Martinez-Gost, M.~Moretti, A.~P{\'e}rez-Neira, M.~{\'A}.
+  V{\'a}zquez, P.~Popovski, and B.~Soret, ``Satellite edge computing for
+  real-time and very-high resolution earth observation,'' {\em IEEE
+  Transactions on Communications}, vol.~71, no.~10, pp.~6180--6194, 2023.
+
+\bibitem{Docker}
+D.~Merkel {\em et~al.}, ``Docker: lightweight linux containers for consistent
+  development and deployment,'' {\em Linux j}, vol.~239, no.~2, p.~2, 2014.
+
+\bibitem{salah2016evolution}
+T.~Salah, M.~J. Zemerly, C.~Y. Yeun, M.~Al-Qutayri, and Y.~Al-Hammadi, ``The
+  evolution of distributed systems towards microservices architecture,'' in
+  {\em 2016 11th International Conference for Internet Technology and Secured
+  Transactions (ICITST)}, pp.~318--325, IEEE, 2016.
+
+\bibitem{3D_assets_microservice}
+A.~Ruiz-Zafra, J.~Pigueiras-del Real, M.~Noguera, L.~Chung, D.~G. Barres, and
+  K.~Benghazi, ``Servitization of customized 3d assets and performance
+  comparison of services and microservices implementations,'' {\em IEEE
+  Transactions on Services Computing}, vol.~17, no.~1, pp.~194--208, 2024.
+
+\bibitem{joint_orbit_comp_comm4data_Download}
+Q.~Ouyang, N.~Ye, J.~Gao, A.~Wang, and L.~Zhao, ``Joint in-orbit computation
+  and communication for minimizing download time from leo satellites,'' {\em
+  IEEE Transactions on Mobile Computing}, vol.~23, no.~5, pp.~3950--3963, 2024.
+
+\bibitem{geoAIasMicroService}
+J.~Wang, ``Towards geoai as a containerized microservice,'' in {\em Proceedings
+  of the 31st ACM International Conference on Advances in Geographic
+  Information Systems}, pp.~1--2, 2023.
+
+\bibitem{cubesat_comm}
+N.~Saeed, A.~Elzanaty, H.~Almorad, H.~Dahrouj, T.~Y. Al-Naffouri, and M.-S.
+  Alouini, ``Cubesat communications: Recent advances and future challenges,''
+  {\em IEEE Communications Surveys \& Tutorials}, vol.~22, no.~3,
+  pp.~1839--1862, 2020.
+
+\bibitem{uplink_interference_tsinghua}
+H.~Jia, Z.~Ni, C.~Jiang, L.~Kuang, and J.~Lu, ``Uplink interference and
+  performance analysis for megasatellite constellation,'' {\em IEEE Internet of
+  Things Journal}, vol.~9, no.~6, pp.~4318--4329, 2022.
+
+\bibitem{sate_computing_case_study}
+C.~Wang, Y.~Zhang, Q.~Li, A.~Zhou, and S.~Wang, ``Satellite computing: A case
+  study of cloud-native satellites,'' in {\em 2023 IEEE International
+  Conference on Edge Computing and Communications (EDGE)}, pp.~262--270, 2023.
+
+\bibitem{energy_efficient_routing_tsinghua}
+Y.~Yang, M.~Xu, D.~Wang, and Y.~Wang, ``Towards energy-efficient routing in
+  satellite networks,'' {\em IEEE Journal on Selected Areas in Communications},
+  vol.~34, no.~12, pp.~3869--3886, 2016.
+
+\bibitem{energy_drain_attact_on_satellite}
+Y.~Zhang, Q.~Wu, Z.~Lai, Y.~Deng, H.~Li, Y.~Li, and J.~Liu, ``Energy drain
+  attack in satellite internet constellations,'' in {\em 2023 IEEE/ACM 31st
+  International Symposium on Quality of Service (IWQoS)}, pp.~1--10, 2023.
+
+\bibitem{optim_svc_dep_req_reouting_in_MEC}
+K.~Peng, L.~Wang, J.~He, C.~Cai, and M.~Hu, ``Joint optimization of service
+  deployment and request routing for microservices in mobile edge computing,''
+  {\em IEEE Transactions on Services Computing}, vol.~17, no.~3,
+  pp.~1016--1028, 2024.
+
+\bibitem{optim_svc_req_routing_inst_place4microsvc}
+Y.~Yu, J.~Yang, C.~Guo, H.~Zheng, and J.~He, ``Joint optimization of service
+  request routing and instance placement in the microservice system,'' {\em
+  Journal of Network and Computer Applications}, vol.~147, p.~102441, 2019.
+
+\bibitem{sfc_optim_deploy_link_influence}
+W.~Guo, H.~Hu, and Y.~Liu, ``Service function chain optimization deployment
+  mechanism based on node and link influence,'' in {\em 2019 IEEE 7th
+  International Conference on Computer Science and Network Technology
+  (ICCSNT)}, pp.~385--389, 2019.
+
+\bibitem{cao_comp_routing}
+J.~Cao, S.~Zhang, Q.~Chen, H.~Wang, M.~Wang, and N.~Liu, ``Computing-aware
+  routing for leo satellite networks: A transmission and computation
+  integration approach,'' {\em IEEE Transactions on Vehicular Technology},
+  vol.~72, no.~12, pp.~16607--16623, 2023.
+
+\bibitem{energy_alloc_addmission_ctrl4comm_satellite}
+A.~Fu, E.~Modiano, and J.~Tsitsiklis, ``'optimal energy allocation and
+  admission control for communications satellites,'' {\em IEEE/ACM Transactions
+  on Networking}, vol.~11, no.~3, pp.~488--500, 2003.
+
+\bibitem{appro_algo4DST}
+M.~Charikar, C.~Chekuri, T.~yat Cheung, Z.~Dai, A.~Goel, S.~Guha, and M.~Li,
+  ``Approximation algorithms for directed steiner problems,'' {\em Journal of
+  Algorithms}, vol.~33, no.~1, pp.~73--91, 1999.
+
+\bibitem{redu_DST}
+M.~Medard, S.~Finn, R.~Barry, and R.~Gallager, ``Redundant trees for preplanned
+  recovery in arbitrary vertex-redundant or edge-redundant graphs,'' {\em
+  IEEE/ACM Transactions on Networking}, vol.~7, no.~5, pp.~641--652, 1999.
+
+\bibitem{space_asisit_comp_offload4IoTApp}
+N.~Cheng, F.~Lyu, W.~Quan, C.~Zhou, H.~He, W.~Shi, and X.~Shen,
+  ``Space/aerial-assisted computing offloading for iot applications: A
+  learning-based approach,'' {\em IEEE Journal on Selected Areas in
+  Communications}, vol.~37, no.~5, pp.~1117--1129, 2019.
+
+\bibitem{IPIS_sate}
+I.~Leyva-Mayorga, B.~Soret, and P.~Popovski, ``Inter-plane inter-satellite
+  connectivity in dense leo constellations,'' {\em IEEE Transactions on
+  Wireless Communications}, vol.~20, no.~6, pp.~3430--3443, 2021.
+
+\bibitem{laser_sate}
+A.~Polishuk and S.~Arnon, ``Optimization of a laser satellite communication
+  system with an optical preamplifier,'' {\em J. Opt. Soc. Am. A}, vol.~21,
+  pp.~1307--1315, Jul 2004.
+
+\bibitem{ye2024galaxy}
+S.~Ye, J.~Du, L.~Zeng, W.~Ou, X.~Chu, Y.~Lu, and X.~Chen, ``Galaxy: A
+  resource-efficient collaborative edge ai system for in-situ transformer
+  inference,'' {\em arXiv preprint arXiv:2405.17245}, 2024.
+
+\bibitem{SAG_integ_net}
+B.~Shang, Y.~Yi, and L.~Liu, ``Computing over space-air-ground integrated
+  networks: Challenges and opportunities,'' {\em IEEE Network}, vol.~35, no.~4,
+  pp.~302--309, 2021.
+
+\bibitem{optim4server_svc_place_in_STIECN}
+Y.~Gao, Z.~Yan, K.~Zhao, T.~de~Cola, and W.~Li, ``Joint optimization of server
+  and service selection in satellite-terrestrial integrated edge computing
+  networks,'' {\em IEEE Transactions on Vehicular Technology}, vol.~73, no.~2,
+  pp.~2740--2754, 2024.
+
+\bibitem{telesat_constellation}
+I.~Del~Portillo, B.~G. Cameron, and E.~F. Crawley, ``A technical comparison of
+  three low earth orbit satellite constellation systems to provide global
+  broadband,'' {\em Acta astronautica}, vol.~159, pp.~123--135, 2019.
+
+\bibitem{channel_model}
+S.~Nie and I.~F. Akyildiz, ``Channel modeling and analysis of
+  inter-small-satellite links in terahertz band space networks,'' {\em IEEE
+  Transactions on Communications}, vol.~69, no.~12, pp.~8585--8599, 2021.
+
+\end{thebibliography}
