@@ -155,39 +155,43 @@ Consequently, each orbital plane accommodates $N = A/P$ satellites.
 A satellite node is uniquely identified by its orbital plane index $p$ and its intra-plane position index $n$, denoted by $v_{p,n}$. 
 The set of satellite nodes in the constellation is thus formally defined as $\mathcal{V}=\{v_{p,n}\mid p=1,\ldots,P,\ n=1,\ldots,N\}$.
 To capture the high dynamism of the satellite network, we discretize the constellation's operational period into a set of time slots, denoted by $\mathcal{T} = \{0, 1, \ldots, T-1\}$, with a uniform slot duration $\Delta$. 
-For any continuous-time instant $\tau$, the corresponding time slot index is mapped as $s(\tau) = \left\lfloor \tau/\Delta \right\rfloor \bmod T$. 
-Adopting a snapshot-based modeling approach, we assume that the network state, including satellite positions, ISL availability, and nominal link capacities, remains quasi-static within a single time slot, and only evolves at the slot boundaries governed by orbital mechanics. 
+For any continuous-time instant $\tau$, the corresponding time slot index is mapped as $s(\tau) = \left\lfloor \tau/\Delta \right\rfloor \bmod T$.
+% \begin{align}
+%   s(\tau) = \left\lfloor \tau/\Delta \right\rfloor \bmod T.
+%   \label{eq:time_slot_index}
+% \end{align}
+Adopting a snapshot-based modeling approach, we assume that the network state, including satellite positions, ISL availability, and nominal link capacities, remains quasi-static within a single time slot, and only evolves at the slot boundaries governed by orbital mechanics.
 Thus, the time-varying network topology during slot $t \in \mathcal{T}$ is formally defined as a dynamic graph $\mathcal{G}(t) = \big(\mathcal{V}, \mathcal{E}(t)\big)$, where $\mathcal{E}(t)$ represents the set of feasible ISLs at slot $t$.
 % Geometrically, the position of $v_{p,n}$ at slot $t$ is defined in spherical coordinates as $(H+R_E, \mho_p, \nu_{p,n}(t))$, where $R_E$ is the Earth's radius, $\mho_p$ is the $p$-th plane's right ascension of the ascending node (RAAN), and $\nu_{p,n}(t)$ is its orbital phase.
 
 \subsection{ISL Communication Model}
-We assume that each satellite is equipped with four laser optical terminals: two positioned along the roll axis for intra-plane ISLs, and two along the pitch axis for cross-plane ISLs. 
+We assume that each satellite is equipped with four laser optical terminals: two positioned along the roll axis for intra-plane ISLs, and two along the pitch axis for cross-plane ISLs.
 
 \paragraph{ISL Connectivity Constraints}
-Intra-plane ISLs are connected by a satellite $v_{p,n}$ to its adjacent neighbors $v_{p,n^-}$ and $v_{p,n^+}$ within the same orbital plane, where $n^{\pm} = ( (n \pm 1 - 1) \bmod N )+1$. 
+Intra-plane ISLs are connected by a satellite $v_{p,n}$ to its adjacent neighbors $v_{p,n^-}$ and $v_{p,n^+}$ within the same orbital plane, where $n^{\pm} = ( (n \pm 1 - 1) \bmod N )+1$.
 Since satellites within the same plane share identical orbital velocities, their relative physical distances remain invariant, forming highly stable ISLs with each other.
 
-Conversely, cross-plane ISLs connecting satellites in adjacent orbital planes are inherently dynamic.  
-Constrained by the physical and kinematic limits of onboard laser communication terminals (LCTs), the availability of a cross-plane link $e=(u,v)$ jointly depends on line-of-sight (LoS) occlusion, mechanical tracking thresholds, and polar exclusions. 
+Conversely, cross-plane ISLs connecting satellites in adjacent orbital planes are inherently dynamic.
+Constrained by the physical and kinematic limits of onboard laser communication terminals (LCTs), the availability of a cross-plane link $e=(u,v)$ jointly depends on line-of-sight (LoS) occlusion, mechanical tracking thresholds, and polar exclusions.
 Formally, its existence at time slot $t$ is defined as:
 \begin{equation}
-e\in \mathcal{E}(t) \iff \left\{ 
+e\in \mathcal{E}(t) \iff \left\{
 \begin{array}{l}
-d_{u,v}(t) \le d_{\text{max}}, \\ 
-\theta_{u,v}(t) \le \theta_{\text{max}}, \\ 
+d_{u,v}(t) \le d_{\text{max}}, \\
+\theta_{u,v}(t) \le \theta_{\text{max}}, \\
 \max\big(|\varphi_u(t)|, |\varphi_v(t)|\big) \le \varphi_{\text{max}}.
 \end{array}
 \right.
 \label{eq:cross_link_indicator}
 \end{equation}
-In \eqref{eq:cross_link_indicator}, $d_{u,v}(t)$ represents the LoS distance between satellites $u$ and $v$ at time slot $t$, and $d_{\text{max}}$ represents the theoretical maximum distance before terrestrial occlusion. 
-The variable $\theta_{u,v}(t)$ denotes the relative tracking angle, which is bounded by the maximum tolerable hardware threshold $\theta_{\text{max}}$. 
-The third constraint enforces a polar exclusion zone parameterized by a latitude boundary $\varphi_{\text{max}}$ (e.g., $70^{\circ}$). 
+In \eqref{eq:cross_link_indicator}, $d_{u,v}(t)$ represents the LoS distance between satellites $u$ and $v$ at time slot $t$, and $d_{\text{max}}$ represents the theoretical maximum distance before terrestrial occlusion.
+The variable $\theta_{u,v}(t)$ denotes the relative tracking angle, which is bounded by the maximum tolerable hardware threshold $\theta_{\text{max}}$.
+The third constraint enforces a polar exclusion zone parameterized by a latitude boundary $\varphi_{\text{max}}$ (e.g., $70^{\circ}$).
 This mechanism disconnects satellites entering polar regions, mitigating the severe pointing dynamics and extreme Doppler shifts inherent to high-inclination orbits.
 
 
 \paragraph{ISL Capacity Model}
-Unlike ground networks with stable capacities, the transmission rate of laser ISLs is distance-dependent due to geometric propagation loss. 
+Unlike ground networks with stable capacities, the transmission rate of laser ISLs is distance-dependent due to geometric propagation loss.
 % Under the Free-Space Optical (FSO) communication model, the received optical power $P_{e}^{\text{rx}}(t)$ at satellite $v$ transmitted from satellite $u$ is formalized by the Friis transmission equation variant:
 Under the Free-Space Optical (FSO) communication model, the received optical power $P_{e}^{\text{rx}}(t)$ at satellite $v$ transmitted from satellite $u$ is formalized as:
 \begin{equation}
@@ -200,162 +204,100 @@ Consequently, the real-time Signal-to-Noise Ratio (SNR) of the link $e$ at time 
 \gamma_{e}(t) = \frac{\left({R}_{\text{pd}} \cdot P_{e}^{\text{rx}}(t)\right)^2}{\sigma_{\text{sh}}^2 + \sigma_{\text{th}}^2},
 \label{eq:snr_formal}
 \end{equation}
-where ${R}_{\text{pd}}$ is the photodiode responsivity, while $\sigma_{\text{sh}}^2$ and $\sigma_{\text{th}}^2$ denote the shot and thermal noise variances, respectively. 
+where ${R}_{\text{pd}}$ is the photodiode responsivity, while $\sigma_{\text{sh}}^2$ and $\sigma_{\text{th}}^2$ denote the shot and thermal noise variances, respectively.
 % According to the Shannon-Hartley theorem, the achievable transmission capacity $R_{e}(t)$ (in bits per second) is constrained by:
-According to the Shannon-Hartley theorem, the achievable transmission capacity $R_{e}(t)$ is constrained by:
+According to the Shannon-Hartley theorem, the achievable transmission capacity $R^0_{e}(t)$ is constrained by:
 \begin{equation}
-R_{e}(t) =  B_{e} \log_2 \left( 1 + \gamma_{e}(t) \right),
+R^0_{e}(t) =  B_{e} \log_2 \left( 1 + \gamma_{e}(t) \right),
 \label{eq:shannon_capacity}
 \end{equation}
-where $B_{e}$ is the modulation bandwidth. 
+where $B_{e}$ is the modulation bandwidth.
 
+\paragraph{ISL Delay Model}
+The nominal rate $R^0_e(t)$ in \eqref{eq:shannon_capacity} could be degraded in practice by transient channel fading and traffic contention.
+To capture these factors, we introduce a scaling factor $\eta_e(t)\in(0,1]$ to formulate the effective data rate as $R_e(t)=\eta_e(t)R^0_e(t)$.
+When transmitting a data block of size $B$ over link $e$ during slot $t$, the aggregate link-level communication delay comprises queuing, transmission, and propagation delays:
+\begin{equation}
+    T_e^{\text{cm}}(B,t) = \tau_e^{\text{qe}}(t) + \tau_e^{\text{tr}}(t) + \tau_e^{\text{pr}}(t).
+    \label{eq:link_delay_elara}
+\end{equation}
+Here, $\tau_e^{\text{qe}}(t)$ denotes the queuing delay, which can be dynamically estimated via lightweight queue-length probing.
+The transmission delay is given by $\tau_e^{\text{tr}}(t) = B / R_e(t)$, and the propagation delay is $\tau_e^{\text{pr}}(t)=d_e(t)/c$, with $c$ being the speed of light in vacuum.
+% Crucially, this abstraction enables ELARA to implicitly account for network congestion without incurring the prohibitive overhead of tracking individual background flows.
 
-\subsection{Background Communication Load}
-\label{subsec:background_comm_model}
-
-Operational satellite networks carry traffic beyond the explicitly simulated service chains.
-For each link $e$ in slot $t$, the number of background communication jobs follows
-\begin{equation}
-N_e(t)\sim \text{Poisson}(\lambda_e\Delta),
-\end{equation}
-and the aggregate background demand is
-\begin{equation}
-B_e^{\text{bg}}(t)=\sum_{j=1}^{N_e(t)}S_{e,j}(t),
-\end{equation}
-where $S_{e,j}(t)$ is the size of the $j$-th background transfer.
-The background utilization is
-\begin{equation}
-\rho_e(t)=
-\min\left\{
-\frac{B_e^{\text{bg}}(t)}{R_e(t)\Delta},
-\rho_{\max}^{\text{link}}
-\right\}.
-\label{eq:link_utilization_elara}
-\end{equation}
-The effective rate is
-\begin{equation}
-\begin{aligned}
-R_e^{\text{eff}}(t)&=R_e(t)\eta_e(t),\\
-\eta_e(t)&=\max\{\eta_{\min},\exp(-\kappa_{\text{link}}\rho_e(t))\}.
-\end{aligned}
-\label{eq:effective_rate_elara}
-\end{equation}
-The queueing delay caused by the same background load is approximated as
-\begin{equation}
-\tau_e^{\text{queue}}(t)
-=
-D_0^{\text{link}}
-\frac{\rho_e(t)}{1-\rho_e(t)+\epsilon}.
-\label{eq:link_queue_elara}
-\end{equation}
-Since $R_e^{\text{eff}}(t)$ already captures the rate degradation induced by $\rho_e(t)$, ELARA computes link capacity directly from $R_e^{\text{eff}}(t)$ and does not apply another $(1-\rho_e(t))$ factor.
+% This compact model allows ELARA to account for link contention without explicitly modeling every concurrent background flow.
 
 \subsection{Onboard Computing Model}
 \label{subsec:compute_model_elara}
 
-Each satellite $v$ has nominal computing capacity $F_v$.
-Its effective capacity changes over time because of background onboard tasks, payload activity, thermal constraints, and power-management states.
-We model the compute-load state as a Markov chain
-\begin{equation}
-Z_v(t)\in\{\text{Idle},\text{Light},\text{Medium},\text{Heavy}\},
-\end{equation}
-with transition probability
-\begin{equation}
-\Pr[Z_v(t+1)=b\mid Z_v(t)=a]=P_v[a,b].
-\end{equation}
-Each state corresponds to a utilization range and a computing discount factor $\xi_v(t)$.
-The effective computing capacity is
-\begin{equation}
-F_v^{\text{eff}}(t)=F_v\xi_v(t).
-\label{eq:effective_compute_elara}
-\end{equation}
-Let $\rho_v^c(t)$ denote the compute utilization caused by background tasks.
-The waiting time before a service can be executed on $v$ is
-\begin{equation}
-W_v(t)
-=
-D_0^{\text{comp}}
-\frac{\rho_v^c(t)}{1-\rho_v^c(t)+\epsilon}.
-\label{eq:compute_wait_elara}
-\end{equation}
-For microservice $m$ with CPU demand $C_m$, the computing delay and energy on satellite $v$ are
-\begin{equation}
-T_m^{\text{comp}}(v,t)
-=
-W_v(t)+\frac{C_m}{F_v^{\text{eff}}(t)},
-\label{eq:compute_delay_elara}
-\end{equation}
-and
-\begin{equation}
-E_m^{\text{comp}}(v,t)
-=
-P_v^{\text{comp}}\frac{C_m}{F_v^{\text{eff}}(t)},
-\label{eq:compute_energy_elara}
-\end{equation}
-where $P_v^{\text{comp}}$ is the active computing power.
+Let $F^0_v$ denote the nominal computing capacity of satellite $v$.
+In practice, the available computational resources are often constrained by background payload tasks, operating system overhead, and thermal throttling.
+To capture these hardware and software limitations, we introduce a computational efficiency factor $\xi_v(t)\in(0,1]$ and define the effective dynamic computing capacity as $F_v(t) = \xi_v(t)F^0_v$.
 
-\subsection{Microservice Replicas and Service Requests}
+Let $\tau^{\text{qe}}_v(t)$ denote the queuing delay experienced before microservice $m$ is scheduled for execution on satellite $v$.
+We formulate the total computation delay as:
+\begin{equation}
+    T_m^{\text{cp}}(v,t) = \tau^{\text{qe}}_v(t) + \tau^{\text{cp}}_v(t).
+    \label{eq:compute_delay_elara}
+\end{equation}
+Here, the queuing delay $\tau^{\text{qe}}_v(t)$ is a monotonically increasing function of the pending task queue length on satellite $v$ at slot $t$.
+The actual execution delay is given by $\tau^{\text{cp}}_v(t) = C_m / {F_v(t)}$, where $C_m$ denotes the number of CPU cycles required by microservice $m$.
+Correspondingly, the computational energy consumption is defined as:
+\begin{equation}
+    E_m^{\text{cp}}(v,t) = P_v^{\text{cp}} \frac{C_m}{F_v(t)},
+    \label{eq:compute_energy_elara}
+\end{equation}
+where $P_v^{\text{cp}}$ is the operational computing power of the satellite.
+
+
+\subsection{Microservice and Service Request Models}
 \label{subsec:microservice_request_elara}
+To facilitate flexible application management within the SCPN, complex applications are decoupled into a set of fine-grained, loosely coupled microservices, denoted by $\mathcal{M}$.
+Each microservice $m \in \mathcal{M}$ is characterized by its computational demand $C_m$ (in CPU cycles), container image size $I_m$, and storage requirement $S_m$.
+For robust load balancing and fault tolerance, multiple replicas of each microservice are distributed across the satellite constellation.
 
-The application functionality is decomposed into a set of stateless microservices
+We define a binary decision variable $x_{m,v}(t)$ to indicate if microservice $m$ is deployed on satellite $v$ during time slot $t$:
 \begin{equation}
-\mathcal{M}=\{m_1,m_2,\ldots,m_M\}.
+    x_{m,v}(t) =
+    \begin{cases}
+    1, & \text{if is deployed,}\\
+    0, & \text{otherwise}.
+    \end{cases}
 \end{equation}
-Each microservice $m$ has CPU demand $C_m$, container image size $I_m$, and storage demand $S_m$.
-Let
+Accordingly, the subset of satellite nodes hosting a valid replica of microservice $m$ at slot $t$ is given by:
 \begin{equation}
-x_{m,v}(t)=
-\begin{cases}
-1, & \text{if a replica of }m\text{ is deployed on }v\text{ in slot }t,\\
-0, & \text{otherwise}.
-\end{cases}
+    \mathcal{R}_m(t) = \{v \in \mathcal{V} \mid x_{m,v}(t) = 1\}.
 \end{equation}
-The replica set of $m$ is
+To ensure service availability while preventing excessive resource consumption, the total number of deployed replicas for any microservice must be bounded within predefined thresholds, $r_m^{\text{min}}$ and $r_m^{\text{max}}$:
 \begin{equation}
-\mathcal{R}_m(t)=\{v\in\mathcal{V}\mid x_{m,v}(t)=1\}.
+    r_m^{\text{min}} \leq \sum_{v\in\mathcal{V}} x_{m,v}(t) \leq r_m^{\text{max}}, \quad \forall m \in \mathcal{M}.
+    \label{eq:replica_count_elara}
 \end{equation}
-Replica deployment satisfies
+Furthermore, the aggregate storage footprint of all replicas hosted on a single satellite must not exceed its onboard storage capacity $S_v^{\text{max}}$:
 \begin{equation}
-r_m^{\min}\leq \sum_{v\in\mathcal{V}}x_{m,v}(t)\leq r_m^{\max},
-\quad \forall m\in\mathcal{M},
-\label{eq:replica_count_elara}
+    \sum_{m\in\mathcal{M}} x_{m,v}(t) S_m \leq S_v^{\text{max}}, \quad \forall v \in \mathcal{V}.
+    \label{eq:storage_elara}
 \end{equation}
-and
-\begin{equation}
-\sum_{m\in\mathcal{M}}x_{m,v}(t)S_m\leq S_v^{\max},
-\quad \forall v\in\mathcal{V}.
-\label{eq:storage_elara}
-\end{equation}
-The stateless assumption allows replica addition, removal, and migration without inter-replica state synchronization.
 
-An incoming request is an ordered service chain
-\begin{equation}
-r=\langle v_s,m_1,m_2,\ldots,m_L,v_d,\tau_{\text{arr}}\rangle,
-\end{equation}
-where $v_s$ and $v_d$ are the source and destination satellites, $m_i$ is the $i$-th required microservice, $L$ is the chain length, and $\tau_{\text{arr}}$ is the continuous arrival time.
+It is worth noting that all microservices operate in a stateless manner, which can be dynamically added, removed, or migrated without incurring the prohibitive communication overhead of inter-replica state synchronization.
+
+Let $r=\langle v_s,m_1,m_2,\ldots,m_L,v_d,\tau_{\text{arr}}\rangle$ denote an incoming request, where $v_s$ and $v_d$ are the source and destination satellites, $m_i$ is the $i$-th required microservice, $L$ is the chain length, and $\tau_{\text{arr}}$ is the continuous arrival time.
 Request $r$ has a deadline $D_r$.
 Let $B_{r,i}$ be the data volume transmitted before executing $m_i$, and let $B_{r,L+1}$ be the final output data transmitted from the last selected replica to $v_d$.
-The service chain is non-pipelined: $m_{i+1}$ can start only after $m_i$ has completed and the corresponding intermediate data has arrived.
+In this paper, we set the service chain to be executed sequentially, where $m_{i+1}$ can start only after $m_i$ has completed and the corresponding intermediate data has arrived.
 
-\subsection{Cross-slot Execution Model}
+\subsection{Cross-slot Request Execution Model}
 \label{subsec:cross_slot_execution_elara}
 
 ELARA maintains each service chain in continuous time.
-Before executing $m_i$, the request state is
-\begin{equation}
-\sigma_{r,i}=(u_{r,i},\tau_{r,i},i),
-\end{equation}
-where $u_{r,i}$ is the satellite currently holding the data and $\tau_{r,i}$ is the decision time.
-The controller selects an execution satellite
-\begin{equation}
-v_{r,i}\in\mathcal{R}_{m_i}(s(\tau_{r,i})).
-\end{equation}
-The data $B_{r,i}$ is routed from $u_{r,i}$ to $v_{r,i}$.
+Before executing $m_i$, the request state is $\sigma_{r,i}=(u_{r,i},\tau_{r,i},i)$, where $u_{r,i}$ is the satellite currently holding the data that used as input for $m_i$, $\tau_{r,i}$ is the decision time.
+The controller needs to select an execution satellite $v_{r,i}\in\mathcal{R}_{m_i}(s(\tau_{r,i}))$.
+The data $B_{r,i}$ is then routed from $u_{r,i}$ to $v_{r,i}$ for executing $m_i$.
 Since transmission may cross slot boundaries, routing is recomputed whenever the slot changes.
-Let $T_{r,i}^{\text{route}}$ and $E_{r,i}^{\text{route}}$ denote the communication delay and energy for this hop.
-The data arrival time at the selected replica is
+Let $T_{r,i}^{\text{ru}}$ and $E_{r,i}^{\text{ru}}$ denote the communication delay and energy consumption for this hop.
+The data arrival time at the selected replica is:
 \begin{equation}
-\tau_{r,i}^{\text{arr}}=\tau_{r,i}+T_{r,i}^{\text{route}}.
+\tau_{r,i}^{\text{arr}}=\tau_{r,i}+T_{r,i}^{\text{ru}}.
 \end{equation}
 The computing completion time is
 \begin{equation}
@@ -363,7 +305,7 @@ The computing completion time is
 =
 \tau_{r,i}^{\text{arr}}
 +
-T_{m_i}^{\text{comp}}\big(v_{r,i},s(\tau_{r,i}^{\text{arr}})\big).
+T_{m_i}^{\text{cp}}\big(v_{r,i},s(\tau_{r,i}^{\text{arr}})\big).
 \end{equation}
 Then $u_{r,i+1}=v_{r,i}$ and $\tau_{r,i+1}=\tau_{r,i}^{\text{fin}}$.
 After $m_L$ finishes, the output data is routed from $v_{r,L}$ to $v_d$.
@@ -374,15 +316,39 @@ T_r^{\text{e2e}}=\tau_r^{\text{out}}-\tau_{\text{arr}},
 \end{equation}
 where $\tau_r^{\text{out}}$ is the time when the final output reaches $v_d$.
 
+\subsection{Cross-slot Request Execution Model}
+\label{subsec:cross_slot_execution_elara}
+
+ELARA tracks the execution of each microservice chain continuously in the temporal domain.
+Prior to executing the $i$-th microservice $m_i$, the state of request $r$ is defined by the tuple $\sigma_{r,i} = (u_{r,i}, \tau_{r,i}, i)$, where $u_{r,i}$ denotes the satellite hosting the intermediate input data required for $m_i$, and $\tau_{r,i}$ represents the scheduling decision epoch.
+The controller must select a target execution replica $v_{r,i} \in \mathcal{R}_{m_i}\big(s(\tau_{r,i})\big)$, after which the data block $B_{r,i}$ is routed from $u_{r,i}$ to $v_{r,i}$.
+
+Crucially, when the transmitted data volume $B_{r,i}$ exceeds the remaining stability window of the current time slot, the communication process inevitably spans across multiple slot boundaries.
+To accurately capture this cross-slot dynamic, the total routing delay $T_{r,i}^{\text{ru}}$ and the corresponding energy consumption $E_{r,i}^{\text{ru}}$ for this hop are formulated by accumulating the piecewise fractional transmission costs over the entire sequence of spanned topological slots.
+Consequently, the data arrival time at the selected replica is given by:
+\begin{equation}
+    \tau_{r,i}^{\text{arr}} = \tau_{r,i} + T_{r,i}^{\text{ru}}.
+\end{equation}
+Following the onboard computation model, the execution completion time is evaluated under the topological slot corresponding to the data arrival:
+\begin{equation}
+    \tau_{r,i}^{\text{fin}} = \tau_{r,i}^{\text{arr}} + T_{m_i}^{\text{cp}}\big(v_{r,i}, s(\tau_{r,i}^{\text{arr}})\big).
+\end{equation}
+The request state then advances to the subsequent microservice hop, setting $u_{r,i+1} = v_{r,i}$ and the new decision epoch to $\tau_{r,i+1} = \tau_{r,i}^{\text{fin}}$.
+
+Upon the successful completion of the terminal microservice $m_L$, the final output data is routed to the destination satellite $v_d$.
+The overall end-to-end latency for request $r$ is formulated as:
+\begin{equation}
+    T_r^{\text{e2e}} = \tau_r^{\text{out}} - \tau_{r}^{\text{arr}},
+    \label{eq:e2e_latency_elara}
+\end{equation}
+where $\tau_r^{\text{out}}$ designates the exact time the final output reaches $v_d$, and $\tau_{r}^{\text{arr}}$ is the initial arrival time of the request to the constellation.
+
 \section{Problem Formulation}
-\label{sec:problem_formulation_new}
 \label{sec:problem_formulation}
-\label{sec:E2CR4Micro}
-\label{sec:prob_form}
 
 We formulate energy- and latency-aware service routing with adaptive replica redeployment.
 The online controller jointly determines which replica executes each microservice, how data is routed across time-varying ISLs, and when service replicas should be added, removed, or moved.
-The formulation captures the ELARA design without assuming full knowledge of future requests or future background loads.
+The formulation captures the ELARA design without assuming full knowledge of future requests, future queue states, or future link-rate fluctuations.
 
 \subsection{Decision Variables}
 \label{subsec:decision_variables_elara}
@@ -428,14 +394,14 @@ For remove actions, the service must still have at least $r_m^{\min}$ replicas a
 \subsection{Latency, Energy, and Migration Cost}
 \label{subsec:cost_model_elara}
 
-For one unit of data on link $e$ in slot $t$, the unit delay cost is
+For one unit of data on link $e$ in slot $t$, the unit delay cost follows the communication-delay decomposition in \eqref{eq:link_delay_elara}:
 \begin{equation}
 c_e^{T}(t)=
 \frac{1}{R_e^{\text{eff}}(t)}
 +
 \tau_e^{\text{prop}}(t)
 +
-\tau_e^{\text{queue}}(t)
+\tau_e^{\text{wait}}(t)
 +
 \tau^{\text{sw}},
 \label{eq:unit_delay_elara}
@@ -467,21 +433,21 @@ E_r^{\text{route}}=\sum_{i=1}^{L+1}E_{r,i}^{\text{route}}.
 \end{equation}
 The computation delay and energy are
 \begin{equation}
-T_r^{\text{comp}}
+T_r^{\text{cp}}
 =
 \sum_{i=1}^{L}\sum_{v\in\mathcal{V}}
-z_{r,i,v}T_{m_i}^{\text{comp}}\big(v,s(\tau_{r,i}^{\text{arr}})\big),
+z_{r,i,v}T_{m_i}^{\text{cp}}\big(v,s(\tau_{r,i}^{\text{arr}})\big),
 \end{equation}
 and
 \begin{equation}
-E_r^{\text{comp}}
+E_r^{\text{cp}}
 =
 \sum_{i=1}^{L}\sum_{v\in\mathcal{V}}
-z_{r,i,v}E_{m_i}^{\text{comp}}\big(v,s(\tau_{r,i}^{\text{arr}})\big).
+z_{r,i,v}E_{m_i}^{\text{cp}}\big(v,s(\tau_{r,i}^{\text{arr}})\big).
 \end{equation}
 Thus,
 \begin{equation}
-E_r^{\text{total}}=E_r^{\text{route}}+E_r^{\text{comp}}.
+E_r^{\text{total}}=E_r^{\text{route}}+E_r^{\text{cp}}.
 \label{eq:total_energy_elara}
 \end{equation}
 
@@ -563,7 +529,7 @@ T_r^{\text{e2e}}\leq D_r \quad \text{or}\quad
 \end{align}
 \end{subequations}
 In \eqref{eq:p1_flow_elara}, $b_{r,i,u}(t)$ is the net flow balance for routing hop $i$ of request $r$: it is positive at the current source, negative at the selected execution or destination node, and zero at relay satellites.
-The formulation is online because the controller observes the current topology, deployment state, and background load, while future requests and future background loads are unknown.
+The formulation is online because the controller observes the current topology, deployment state, link queues, and compute queues, while future requests and future queue dynamics are unknown.
 
 \subsection{Problem Hardness}
 \label{subsec:problem_hardness_elara}
@@ -572,7 +538,7 @@ The formulation is online because the controller observes the current topology, 
 Problem $\mathbf{P1}$ is NP-hard.
 
 \textit{Sketch.}
-Consider a restricted case with a single time slot, fixed replica deployment, no background load, and no redeployment.
+Consider a restricted case with a single time slot, fixed replica deployment, fixed effective link rates and compute capacities, and no redeployment.
 The controller still needs to select one replica for each service in a chain and connect consecutive selected replicas with feasible paths to minimize joint computation and communication cost.
 This restricted case contains the classical service placement and routing problem as a special case and can encode constrained shortest-path and facility-location-like decisions.
 Therefore, the restricted problem is NP-hard, and the full problem with cross-slot routing, stochastic load, and adaptive redeployment is at least as hard.

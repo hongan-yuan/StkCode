@@ -16,6 +16,9 @@
 \providecommand \oddpage@label [2]{}
 \@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{}\protected@file@percent }
 \newlabel{sec:intro}{{I}{1}{}{section.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Space and terrestrial network topology.}}{1}{}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:net_topo}{{1}{1}{}{figure.1}{}}
 \citation{optim_svc_dep_req_reouting_in_MEC,optim_svc_req_routing_inst_place4microsvc,sfc_optim_deploy_link_influence}
 \citation{cao_comp_routing,energy_efficient_routing_tsinghua,energy_alloc_addmission_ctrl4comm_satellite}
 \citation{appro_algo4DST,redu_DST}
@@ -28,14 +31,11 @@
 \citation{energy_alloc_addmission_ctrl4comm_satellite}
 \citation{optim4server_svc_place_in_STIECN}
 \citation{energy_efficient_routing_tsinghua}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Space and terrestrial network topology.}}{2}{}\protected@file@percent }
-\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{fig:net_topo}{{1}{2}{}{figure.1}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {II}Related Work}{2}{}\protected@file@percent }
 \newlabel{sec:related_work}{{II}{2}{}{section.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {III}System Model}{3}{}\protected@file@percent }
-\newlabel{sec:sys_model_new}{{III}{3}{}{section.3}{}}
-\newlabel{sec:sys_model}{{III}{3}{}{section.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {III}System Model}{2}{}\protected@file@percent }
+\newlabel{sec:sys_model_new}{{III}{2}{}{section.3}{}}
+\newlabel{sec:sys_model}{{III}{2}{}{section.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}LEO Constellation and Time-slotted Topology}{3}{}\protected@file@percent }
 \newlabel{subsec:constellation_model_new}{{\mbox  {III-A}}{3}{}{subsection.3.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}ISL Communication Model}{3}{}\protected@file@percent }
@@ -45,98 +45,96 @@
 \newlabel{eq:received_power}{{2}{3}{}{equation.2}{}}
 \newlabel{eq:snr_formal}{{3}{3}{}{equation.3}{}}
 \newlabel{eq:shannon_capacity}{{4}{3}{}{equation.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Background Communication Load}{3}{}\protected@file@percent }
-\newlabel{subsec:background_comm_model}{{\mbox  {III-C}}{3}{}{subsection.3.3}{}}
-\newlabel{eq:link_utilization_elara}{{7}{4}{}{equation.7}{}}
-\newlabel{eq:effective_rate_elara}{{8}{4}{}{equation.8}{}}
-\newlabel{eq:link_queue_elara}{{9}{4}{}{equation.9}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-D}}Onboard Computing Model}{4}{}\protected@file@percent }
-\newlabel{subsec:compute_model_elara}{{\mbox  {III-D}}{4}{}{subsection.3.4}{}}
-\newlabel{eq:effective_compute_elara}{{12}{4}{}{equation.12}{}}
-\newlabel{eq:compute_wait_elara}{{13}{4}{}{equation.13}{}}
-\newlabel{eq:compute_delay_elara}{{14}{4}{}{equation.14}{}}
-\newlabel{eq:compute_energy_elara}{{15}{4}{}{equation.15}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-E}}Microservice Replicas and Service Requests}{4}{}\protected@file@percent }
-\newlabel{subsec:microservice_request_elara}{{\mbox  {III-E}}{4}{}{subsection.3.5}{}}
-\newlabel{eq:replica_count_elara}{{19}{4}{}{equation.19}{}}
-\newlabel{eq:storage_elara}{{20}{4}{}{equation.20}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-F}}Cross-slot Execution Model}{4}{}\protected@file@percent }
-\newlabel{subsec:cross_slot_execution_elara}{{\mbox  {III-F}}{4}{}{subsection.3.6}{}}
-\newlabel{eq:e2e_latency_elara}{{26}{5}{}{equation.26}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {IV}Problem Formulation}{5}{}\protected@file@percent }
-\newlabel{sec:problem_formulation_new}{{IV}{5}{}{section.4}{}}
-\newlabel{sec:problem_formulation}{{IV}{5}{}{section.4}{}}
-\newlabel{sec:E2CR4Micro}{{IV}{5}{}{section.4}{}}
-\newlabel{sec:prob_form}{{IV}{5}{}{section.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Decision Variables}{5}{}\protected@file@percent }
-\newlabel{subsec:decision_variables_elara}{{\mbox  {IV-A}}{5}{}{subsection.4.1}{}}
-\newlabel{eq:unique_execution_elara}{{28}{5}{}{equation.28}{}}
-\newlabel{eq:execution_feasible_elara}{{29}{5}{}{equation.29}{}}
-\newlabel{eq:capacity_elara}{{30}{5}{}{equation.30}{}}
+\newlabel{eq:effective_rate_elara}{{5}{3}{}{equation.5}{}}
+\newlabel{eq:link_delay_elara}{{6}{3}{}{equation.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Onboard Computing Model}{3}{}\protected@file@percent }
+\newlabel{subsec:compute_model_elara}{{\mbox  {III-C}}{3}{}{subsection.3.3}{}}
+\newlabel{eq:effective_compute_elara}{{7}{3}{}{equation.7}{}}
+\newlabel{eq:compute_delay_elara}{{8}{4}{}{equation.8}{}}
+\newlabel{eq:compute_energy_elara}{{9}{4}{}{equation.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-D}}Microservice Replicas and Service Requests}{4}{}\protected@file@percent }
+\newlabel{subsec:microservice_request_elara}{{\mbox  {III-D}}{4}{}{subsection.3.4}{}}
+\newlabel{eq:replica_count_elara}{{13}{4}{}{equation.13}{}}
+\newlabel{eq:storage_elara}{{14}{4}{}{equation.14}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-E}}Cross-slot Execution Model}{4}{}\protected@file@percent }
+\newlabel{subsec:cross_slot_execution_elara}{{\mbox  {III-E}}{4}{}{subsection.3.5}{}}
+\newlabel{eq:e2e_latency_elara}{{20}{4}{}{equation.20}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Problem Formulation}{4}{}\protected@file@percent }
+\newlabel{sec:problem_formulation_new}{{IV}{4}{}{section.4}{}}
+\newlabel{sec:problem_formulation}{{IV}{4}{}{section.4}{}}
+\newlabel{sec:E2CR4Micro}{{IV}{4}{}{section.4}{}}
+\newlabel{sec:prob_form}{{IV}{4}{}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Decision Variables}{4}{}\protected@file@percent }
+\newlabel{subsec:decision_variables_elara}{{\mbox  {IV-A}}{4}{}{subsection.4.1}{}}
+\newlabel{eq:unique_execution_elara}{{22}{4}{}{equation.22}{}}
+\newlabel{eq:execution_feasible_elara}{{23}{4}{}{equation.23}{}}
+\newlabel{eq:capacity_elara}{{24}{4}{}{equation.24}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Latency, Energy, and Migration Cost}{5}{}\protected@file@percent }
 \newlabel{subsec:cost_model_elara}{{\mbox  {IV-B}}{5}{}{subsection.4.2}{}}
-\newlabel{eq:unit_delay_elara}{{32}{5}{}{equation.32}{}}
-\newlabel{eq:unit_energy_elara}{{33}{5}{}{equation.33}{}}
-\newlabel{eq:edge_cost_elara}{{34}{5}{}{equation.34}{}}
-\newlabel{eq:route_cost_elara}{{35}{5}{}{equation.35}{}}
-\newlabel{eq:total_energy_elara}{{38}{5}{}{equation.38}{}}
-\newlabel{eq:migration_cost_elara}{{39}{5}{}{equation.39}{}}
+\newlabel{eq:unit_delay_elara}{{26}{5}{}{equation.26}{}}
+\newlabel{eq:unit_energy_elara}{{27}{5}{}{equation.27}{}}
+\newlabel{eq:edge_cost_elara}{{28}{5}{}{equation.28}{}}
+\newlabel{eq:route_cost_elara}{{29}{5}{}{equation.29}{}}
+\newlabel{eq:total_energy_elara}{{32}{5}{}{equation.32}{}}
+\newlabel{eq:migration_cost_elara}{{33}{5}{}{equation.33}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Optimization Objective}{5}{}\protected@file@percent }
 \newlabel{subsec:optimization_problem_elara}{{\mbox  {IV-C}}{5}{}{subsection.4.3}{}}
-\newlabel{eq:request_cost_elara}{{40}{5}{}{equation.40}{}}
-\newlabel{eq:problem_elara}{{41}{5}{}{equation.41}{}}
-\newlabel{eq:p1_obj_elara}{{41a}{5}{}{equation.1}{}}
-\newlabel{eq:p1_exec_elara}{{41b}{5}{}{equation.2}{}}
-\newlabel{eq:p1_cap_elara}{{41c}{5}{}{equation.3}{}}
-\newlabel{eq:p1_flow_elara}{{41d}{5}{}{equation.4}{}}
-\newlabel{eq:p1_deploy_elara}{{41e}{5}{}{equation.5}{}}
-\newlabel{eq:p1_action_elara}{{41f}{5}{}{equation.6}{}}
-\newlabel{eq:p1_deadline_elara}{{41g}{5}{}{equation.7}{}}
+\newlabel{eq:request_cost_elara}{{34}{5}{}{equation.34}{}}
+\newlabel{eq:problem_elara}{{35}{5}{}{equation.35}{}}
+\newlabel{eq:p1_obj_elara}{{35a}{5}{}{equation.1}{}}
+\newlabel{eq:p1_exec_elara}{{35b}{5}{}{equation.2}{}}
+\newlabel{eq:p1_cap_elara}{{35c}{5}{}{equation.3}{}}
+\newlabel{eq:p1_flow_elara}{{35d}{5}{}{equation.4}{}}
+\newlabel{eq:p1_deploy_elara}{{35e}{5}{}{equation.5}{}}
+\newlabel{eq:p1_action_elara}{{35f}{5}{}{equation.6}{}}
+\newlabel{eq:p1_deadline_elara}{{35g}{5}{}{equation.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Problem Hardness}{5}{}\protected@file@percent }
+\newlabel{subsec:problem_hardness_elara}{{\mbox  {IV-D}}{5}{}{subsection.4.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Energy-aware Service Routing Algorithm for Microservices in the SCPN}{5}{}\protected@file@percent }
+\newlabel{sec:algo}{{V}{5}{}{section.5}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Abstract the computation process from colocated microservice and satellite deployment.}}{6}{}\protected@file@percent }
 \newlabel{fig:ms_split}{{2}{6}{}{figure.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Problem Hardness}{6}{}\protected@file@percent }
-\newlabel{subsec:problem_hardness_elara}{{\mbox  {IV-D}}{6}{}{subsection.4.4}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {V}Energy-aware Service Routing Algorithm for Microservices in the SCPN}{6}{}\protected@file@percent }
-\newlabel{sec:algo}{{V}{6}{}{section.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Augmented Satellite-Microservice Sub-Graph Construction}{6}{}\protected@file@percent }
-\newlabel{sec:algo_constr_subg}{{\mbox  {V-A}}{6}{}{subsection.5.1}{}}
 \@writefile{loa}{\contentsline {algocf}{\numberline {1}{\ignorespaces Augmented Satellite-Microservice Connected Subgraph Construction Algorithm.}}{6}{}\protected@file@percent }
 \newlabel{algo:aug_graph_construc}{{1}{6}{}{algocf.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Augmented Satellite-Microservice Sub-Graph Construction}{6}{}\protected@file@percent }
+\newlabel{sec:algo_constr_subg}{{\mbox  {V-A}}{6}{}{subsection.5.1}{}}
+\newlabel{eq:comm_link_weight1}{{36}{6}{}{subsection.5.1}{}}
+\newlabel{eq:comm_link_weight2}{{37}{6}{}{subsection.5.1}{}}
 \citation{appro_algo4DST,redu_DST}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Build the relay routing paths for neighbor microservices that are deployed on non-adjacent satellites.}}{7}{}\protected@file@percent }
 \newlabel{fig:satellite_routing}{{3}{7}{}{figure.3}{}}
-\newlabel{eq:comm_link_weight1}{{42}{7}{}{subsection.5.1}{}}
-\newlabel{eq:comm_link_weight2}{{43}{7}{}{subsection.5.1}{}}
 \@writefile{loa}{\contentsline {algocf}{\numberline {2}{\ignorespaces Approximated Solution for Minimized Spanning Directed Steiner Arborescence.}}{7}{}\protected@file@percent }
 \newlabel{algo:DST}{{2}{7}{}{algocf.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}DST-based Service Routing Algorithm}{7}{}\protected@file@percent }
 \newlabel{sec:adopted_algo}{{\mbox  {V-B}}{7}{}{subsection.5.2}{}}
+\@writefile{loa}{\contentsline {algocf}{\numberline {3}{\ignorespaces Generate the Inter-Satellite Relay Routing Scheme Algorithm (\textbf  {GISRA}).}}{7}{}\protected@file@percent }
+\newlabel{algo:GISRA}{{3}{7}{}{algocf.3}{}}
 \citation{telesat_constellation}
+\citation{cao_comp_routing}
+\citation{channel_model,IPIS_sate,laser_sate}
 \citation{cao_comp_routing}
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces The overview of solution workflow of tree-based request topology.}}{8}{}\protected@file@percent }
 \newlabel{fig:wk_flow}{{4}{8}{}{figure.4}{}}
-\@writefile{loa}{\contentsline {algocf}{\numberline {3}{\ignorespaces Generate the Inter-Satellite Relay Routing Scheme Algorithm (\textbf  {GISRA}).}}{8}{}\protected@file@percent }
-\newlabel{algo:GISRA}{{3}{8}{}{algocf.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Algorithm Complexity Analysis}{8}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {VI}Performance Evaluation}{8}{}\protected@file@percent }
 \newlabel{sec:eval}{{VI}{8}{}{section.6}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-A}}Experiment Setup}{8}{}\protected@file@percent }
-\citation{channel_model,IPIS_sate,laser_sate}
-\citation{cao_comp_routing}
-\newlabel{fig:chain_miro}{{5(a)}{9}{}{subfigure.5.1}{}}
-\newlabel{sub@fig:chain_miro}{{(a)}{9}}
-\newlabel{fig:stree_micro}{{5(b)}{9}{}{subfigure.5.2}{}}
-\newlabel{sub@fig:stree_micro}{{(b)}{9}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces The overview of service request topologies from terrestrial stations.}}{9}{}\protected@file@percent }
-\newlabel{fig:svc_requests}{{5}{9}{}{figure.5}{}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Chained and Treed topologies.}}}{9}{}\protected@file@percent }
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Sophisticated-Treed (Soph-Treed) topology.}}}{9}{}\protected@file@percent }
+\newlabel{fig:chain_miro}{{5(a)}{8}{}{subfigure.5.1}{}}
+\newlabel{sub@fig:chain_miro}{{(a)}{8}}
+\newlabel{fig:stree_micro}{{5(b)}{8}{}{subfigure.5.2}{}}
+\newlabel{sub@fig:stree_micro}{{(b)}{8}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces The overview of service request topologies from terrestrial stations.}}{8}{}\protected@file@percent }
+\newlabel{fig:svc_requests}{{5}{8}{}{figure.5}{}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Chained and Treed topologies.}}}{8}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Sophisticated-Treed (Soph-Treed) topology.}}}{8}{}\protected@file@percent }
+\citation{energy_efficient_routing_tsinghua}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-B}}Experimental Results}{9}{}\protected@file@percent }
 \newlabel{sec:exp_result}{{\mbox  {VI-B}}{9}{}{subsection.6.2}{}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {VI-B}1}Effectiveness}{9}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {VI-B}2}Impact of constellation scales}{9}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {VI-B}3}Impact of transmitter power}{9}{}\protected@file@percent }
-\citation{energy_efficient_routing_tsinghua}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {VI-B}4}Impact of faulty satellites}{9}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {VI-B}5}Impact of microservice deployment schemes}{9}{}\protected@file@percent }
 \newlabel{fig:constellation72}{{6(a)}{10}{}{subfigure.6.1}{}}
 \newlabel{sub@fig:constellation72}{{(a)}{10}}
 \newlabel{fig:constellation48}{{6(b)}{10}{}{subfigure.6.2}{}}
@@ -159,35 +157,28 @@
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Chained service topology.}}}{10}{}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Treed service topology.}}}{10}{}\protected@file@percent }
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {Sophisticated Treed service topology.}}}{10}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {VI-B}4}Impact of faulty satellites}{10}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {VI-B}5}Impact of microservice deployment schemes}{10}{}\protected@file@percent }
-\newlabel{fig:robust_chain}{{8(a)}{11}{}{subfigure.8.1}{}}
-\newlabel{sub@fig:robust_chain}{{(a)}{11}}
-\newlabel{fig:robust_tree}{{8(b)}{11}{}{subfigure.8.2}{}}
-\newlabel{sub@fig:robust_tree}{{(b)}{11}}
-\newlabel{fig:robust_stree}{{8(c)}{11}{}{subfigure.8.3}{}}
-\newlabel{sub@fig:robust_stree}{{(c)}{11}}
-\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Performance comparison on energy-cost under different configurations on number of faulty satellites for dynamic service request topologies.}}{11}{}\protected@file@percent }
-\newlabel{fig:robust}{{8}{11}{}{figure.8}{}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Robustness over faulty satellites (Chain).}}}{11}{}\protected@file@percent }
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Robustness over faulty satellites (Tree).}}}{11}{}\protected@file@percent }
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {Robustness over faulty satellites (Soph Tree).}}}{11}{}\protected@file@percent }
-\newlabel{fig:svc_replica_chain}{{9(a)}{11}{}{subfigure.9.1}{}}
-\newlabel{sub@fig:svc_replica_chain}{{(a)}{11}}
-\newlabel{fig:svc_replica_tree}{{9(b)}{11}{}{subfigure.9.2}{}}
-\newlabel{sub@fig:svc_replica_tree}{{(b)}{11}}
-\newlabel{fig:svc_replica_stree}{{9(c)}{11}{}{subfigure.9.3}{}}
-\newlabel{sub@fig:svc_replica_stree}{{(c)}{11}}
-\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Performance comparison on energy-cost under different configurations on number of replicas of microservices for dynamic service request topologies.}}{11}{}\protected@file@percent }
-\newlabel{fig:svc_replica}{{9}{11}{}{figure.9}{}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Microservice scale (Chain).}}}{11}{}\protected@file@percent }
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Microservice scale (Tree).}}}{11}{}\protected@file@percent }
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {Microservice scale (Soph Tree).}}}{11}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {VI-B}6}Adaptability and stability}{11}{}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Energy distribution of Soph Tree.}}{11}{}\protected@file@percent }
-\newlabel{fig:StreeDist}{{10}{11}{}{figure.10}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {VII}Conclusion}{11}{}\protected@file@percent }
-\newlabel{sec:conclusion}{{VII}{11}{}{section.7}{}}
+\newlabel{fig:robust_chain}{{8(a)}{10}{}{subfigure.8.1}{}}
+\newlabel{sub@fig:robust_chain}{{(a)}{10}}
+\newlabel{fig:robust_tree}{{8(b)}{10}{}{subfigure.8.2}{}}
+\newlabel{sub@fig:robust_tree}{{(b)}{10}}
+\newlabel{fig:robust_stree}{{8(c)}{10}{}{subfigure.8.3}{}}
+\newlabel{sub@fig:robust_stree}{{(c)}{10}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Performance comparison on energy-cost under different configurations on number of faulty satellites for dynamic service request topologies.}}{10}{}\protected@file@percent }
+\newlabel{fig:robust}{{8}{10}{}{figure.8}{}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Robustness over faulty satellites (Chain).}}}{10}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Robustness over faulty satellites (Tree).}}}{10}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {Robustness over faulty satellites (Soph Tree).}}}{10}{}\protected@file@percent }
+\newlabel{fig:svc_replica_chain}{{9(a)}{10}{}{subfigure.9.1}{}}
+\newlabel{sub@fig:svc_replica_chain}{{(a)}{10}}
+\newlabel{fig:svc_replica_tree}{{9(b)}{10}{}{subfigure.9.2}{}}
+\newlabel{sub@fig:svc_replica_tree}{{(b)}{10}}
+\newlabel{fig:svc_replica_stree}{{9(c)}{10}{}{subfigure.9.3}{}}
+\newlabel{sub@fig:svc_replica_stree}{{(c)}{10}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Performance comparison on energy-cost under different configurations on number of replicas of microservices for dynamic service request topologies.}}{10}{}\protected@file@percent }
+\newlabel{fig:svc_replica}{{9}{10}{}{figure.9}{}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Microservice scale (Chain).}}}{10}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Microservice scale (Tree).}}}{10}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {Microservice scale (Soph Tree).}}}{10}{}\protected@file@percent }
 \bibstyle{ieeetr}
 \bibdata{ref.bib}
 \bibcite{xiao2022leo}{1}
@@ -214,6 +205,12 @@
 \bibcite{energy_efficient_routing_tsinghua}{22}
 \bibcite{energy_drain_attact_on_satellite}{23}
 \bibcite{optim_svc_dep_req_reouting_in_MEC}{24}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Energy distribution of Soph Tree.}}{11}{}\protected@file@percent }
+\newlabel{fig:StreeDist}{{10}{11}{}{figure.10}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {VI-B}6}Adaptability and stability}{11}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Conclusion}{11}{}\protected@file@percent }
+\newlabel{sec:conclusion}{{VII}{11}{}{section.7}{}}
+\@writefile{toc}{\contentsline {section}{References}{11}{}\protected@file@percent }
 \bibcite{optim_svc_req_routing_inst_place4microsvc}{25}
 \bibcite{sfc_optim_deploy_link_influence}{26}
 \bibcite{cao_comp_routing}{27}
@@ -224,9 +221,8 @@
 \bibcite{IPIS_sate}{32}
 \bibcite{laser_sate}{33}
 \bibcite{ye2024galaxy}{34}
-\@writefile{toc}{\contentsline {section}{References}{12}{}\protected@file@percent }
 \bibcite{SAG_integ_net}{35}
 \bibcite{optim4server_svc_place_in_STIECN}{36}
 \bibcite{telesat_constellation}{37}
 \bibcite{channel_model}{38}
-\gdef \@abspage@last{13}
+\gdef \@abspage@last{12}
