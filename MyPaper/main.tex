@@ -78,14 +78,14 @@ Furthermore, considering the potential computational resource constraints of a s
 Specifically, thanks to the development of containerization technologies and the evolution of microservice architectures \cite{Docker,salah2016evolution,3D_assets_microservice}, the functional modules of the user applications, which are traditionally deployed in terrestrial data centers to process raw data postback from satellites, \cite{joint_orbit_comp_comm4data_Download}, can now be decomposed into stateless microservices and packaged as independent and isolated containers \cite{geoAIasMicroService}. 
 These services can then be dispatched to computing nodes of the SCPN for on-board computation so as to reduce the transmission delay caused by limited bandwidth and vulnerable channel conditions between ground and space networks \cite{cubesat_comm,uplink_interference_tsinghua}. 
 
-\begin{figure*}[!htbp]
+\begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.92\textwidth]{figs/sys_scenario2.pdf}
+\includegraphics[width=0.92\linewidth]{figs/sys_scenario2.pdf}
 \vspace{-0.1cm}
 \caption{Space and terrestrial network topology.}
 \label{fig:net_topo}
 \vspace{-0.3cm}
-\end{figure*}
+\end{figure}
 
 
 However, unlike terrestrial computing nodes with adequate computing resources and power supply. 
@@ -145,43 +145,70 @@ Efficient but shortsighted, these proposed algorithms cannot adapt to diverse ro
 We consider a space computing power network (SCPN) composed of a Walker-Delta LEO constellation, onboard computing resources, and laser inter-satellite links (ISLs).
 User tasks are represented as ordered microservice chains.
 Each microservice can have multiple stateless replicas deployed on different satellites, and a request may therefore be executed collaboratively by multiple satellites.
-The key distinction from terrestrial edge systems is that the SCPN simultaneously exhibits predictable but fast topology dynamics, intermittent cross-plane ISLs, limited onboard compute and storage resources, and time-varying background communication and computation loads.
+The key distinction from terrestrial edge systems is that the SCPN simultaneously exhibits predictable but fast topology dynamics, intermittent cross-plane ISLs, limited onboard compute and storage resources, and time-varying communication conditions.
 
 \subsection{LEO Constellation and Time-slotted Topology}
 \label{subsec:constellation_model_new}
 
 We consider a Walker-Delta constellation parameterized by $\mathcal{W}=(A/P/G,H,I)$, where $A$ is the total number of satellites, $P$ is the number of orbital planes, $G$ is the inter-plane phasing factor, $H$ is the orbital altitude, and $I$ is the inclination.
-Each plane contains $N=A/P$ satellites.
-The satellite set is
-\begin{equation}
-\mathcal{V}=\{v_{p,n}\mid p=1,\ldots,P,\ n=1,\ldots,N\}.
-\end{equation}
-The constellation period is divided into quasi-static time slots
-\begin{equation}
-\mathcal{T}=\{0,1,\ldots,T-1\},
-\end{equation}
-with slot duration $\Delta$.
-For any continuous time $\tau$, the corresponding slot is
-\begin{equation}
-s(\tau)=\left\lfloor \tau/\Delta \right\rfloor \bmod T .
-\end{equation}
-Within a slot, satellite positions, ISL availability, and nominal link rates are assumed to be stable; across slots, they evolve according to orbital motion.
-The topology in slot $t$ is represented by
-\begin{equation}
-\mathcal{G}(t)=\big(\mathcal{V},\mathcal{E}(t)\big),
-\end{equation}
-where $\mathcal{E}(t)$ is the set of available directed ISLs.
+Consequently, each orbital plane accommodates $N = A/P$ satellites. 
+A satellite node is uniquely identified by its orbital plane index $p$ and its intra-plane position index $n$, denoted by $v_{p,n}$. 
+The set of satellite nodes in the constellation is thus formally defined as $\mathcal{V}=\{v_{p,n}\mid p=1,\ldots,P,\ n=1,\ldots,N\}$.
+To capture the high dynamism of the satellite network, we discretize the constellation's operational period into a set of time slots, denoted by $\mathcal{T} = \{0, 1, \ldots, T-1\}$, with a uniform slot duration $\Delta$. 
+For any continuous-time instant $\tau$, the corresponding time slot index is mapped as $s(\tau) = \left\lfloor \tau/\Delta \right\rfloor \bmod T$. 
+Adopting a snapshot-based modeling approach, we assume that the network state, including satellite positions, ISL availability, and nominal link capacities, remains quasi-static within a single time slot, and only evolves at the slot boundaries governed by orbital mechanics. 
+Thus, the time-varying network topology during slot $t \in \mathcal{T}$ is formally defined as a dynamic graph $\mathcal{G}(t) = \big(\mathcal{V}, \mathcal{E}(t)\big)$, where $\mathcal{E}(t)$ represents the set of feasible ISLs at slot $t$.
+% Geometrically, the position of $v_{p,n}$ at slot $t$ is defined in spherical coordinates as $(H+R_E, \mho_p, \nu_{p,n}(t))$, where $R_E$ is the Earth's radius, $\mho_p$ is the $p$-th plane's right ascension of the ascending node (RAAN), and $\nu_{p,n}(t)$ is its orbital phase.
 
-Intra-plane ISLs connect adjacent satellites in the same orbital plane and are relatively stable.
-Cross-plane ISLs connect satellites in neighboring planes and are time-varying due to line-of-sight constraints, pointing and tracking limitations, relative motion, and polar-region link release.
-For link $e=(u,v)\in\mathcal{E}(t)$, let $d_e(t)$ be its physical distance and $R_e(t)$ be its nominal rate.
-The propagation delay is
+\subsection{ISL Communication Model}
+We assume that each satellite is equipped with four laser optical terminals: two positioned along the roll axis for intra-plane ISLs, and two along the pitch axis for cross-plane ISLs. 
+
+\paragraph{ISL Connectivity Constraints}
+Intra-plane ISLs are connected by a satellite $v_{p,n}$ to its adjacent neighbors $v_{p,n^-}$ and $v_{p,n^+}$ within the same orbital plane, where $n^{\pm} = ( (n \pm 1 - 1) \bmod N )+1$. 
+Since satellites within the same plane share identical orbital velocities, their relative physical distances remain invariant, forming highly stable ISLs with each other.
+
+Conversely, cross-plane ISLs connecting satellites in adjacent orbital planes are inherently dynamic.  
+Constrained by the physical and kinematic limits of onboard laser communication terminals (LCTs), the availability of a cross-plane link $e=(u,v)$ jointly depends on line-of-sight (LoS) occlusion, mechanical tracking thresholds, and polar exclusions. 
+Formally, its existence at time slot $t$ is defined as:
 \begin{equation}
-\tau_e^{\text{prop}}(t)=d_e(t)/c,
-\label{eq:prop_delay_elara}
+e\in \mathcal{E}(t) \iff \left\{ 
+\begin{array}{l}
+d_{u,v}(t) \le d_{\text{max}}, \\ 
+\theta_{u,v}(t) \le \theta_{\text{max}}, \\ 
+\max\big(|\varphi_u(t)|, |\varphi_v(t)|\big) \le \varphi_{\text{max}}.
+\end{array}
+\right.
+\label{eq:cross_link_indicator}
 \end{equation}
-where $c$ is the speed of light.
-The nominal rate $R_e(t)$ can be obtained from distance-dependent free-space optical channel models or precomputed constellation link traces.
+In \eqref{eq:cross_link_indicator}, $d_{u,v}(t)$ represents the LoS distance between satellites $u$ and $v$ at time slot $t$, and $d_{\text{max}}$ represents the theoretical maximum distance before terrestrial occlusion. 
+The variable $\theta_{u,v}(t)$ denotes the relative tracking angle, which is bounded by the maximum tolerable hardware threshold $\theta_{\text{max}}$. 
+The third constraint enforces a polar exclusion zone parameterized by a latitude boundary $\varphi_{\text{max}}$ (e.g., $70^{\circ}$). 
+This mechanism disconnects satellites entering polar regions, mitigating the severe pointing dynamics and extreme Doppler shifts inherent to high-inclination orbits.
+
+
+\paragraph{ISL Capacity Model}
+Unlike ground networks with stable capacities, the transmission rate of laser ISLs is distance-dependent due to geometric propagation loss. 
+% Under the Free-Space Optical (FSO) communication model, the received optical power $P_{e}^{\text{rx}}(t)$ at satellite $v$ transmitted from satellite $u$ is formalized by the Friis transmission equation variant:
+Under the Free-Space Optical (FSO) communication model, the received optical power $P_{e}^{\text{rx}}(t)$ at satellite $v$ transmitted from satellite $u$ is formalized as:
+\begin{equation}
+P_{e}^{\text{rx}}(t) = P^{\text{tx}} G^{\text{tx}} G^{\text{rx}} \eta_{\text{tx}} \eta_{\text{rx}} \left(\frac{\lambda}{4\pi d_{u,v}(t)}\right)^2,
+\label{eq:received_power}
+\end{equation}
+where $P^{\text{tx}}$ is the nominal laser transmit power, $G^{\text{tx}}$ and $G^{\text{rx}}$ represent the optical gains of the transmitter and receiver apertures respectively, $\lambda$ is the laser wavelength, and $\eta_{\text{tx}}, \eta_{\text{rx}}$ denote the optical efficiency factors.
+Consequently, the real-time Signal-to-Noise Ratio (SNR) of the link $e$ at time slot $t$ is formulated as:
+\begin{equation}
+\gamma_{e}(t) = \frac{\left({R}_{\text{pd}} \cdot P_{e}^{\text{rx}}(t)\right)^2}{\sigma_{\text{sh}}^2 + \sigma_{\text{th}}^2},
+\label{eq:snr_formal}
+\end{equation}
+where ${R}_{\text{pd}}$ is the photodiode responsivity, while $\sigma_{\text{sh}}^2$ and $\sigma_{\text{th}}^2$ denote the shot and thermal noise variances, respectively. 
+% According to the Shannon-Hartley theorem, the achievable transmission capacity $R_{e}(t)$ (in bits per second) is constrained by:
+According to the Shannon-Hartley theorem, the achievable transmission capacity $R_{e}(t)$ is constrained by:
+\begin{equation}
+R_{e}(t) =  B_{e} \log_2 \left( 1 + \gamma_{e}(t) \right),
+\label{eq:shannon_capacity}
+\end{equation}
+where $B_{e}$ is the modulation bandwidth. 
+
 
 \subsection{Background Communication Load}
 \label{subsec:background_comm_model}
