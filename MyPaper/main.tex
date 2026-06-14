@@ -70,13 +70,14 @@ Modern LEO mega-constellations, consisting of hundreds to thousands of LEO satel
 Meanwhile, advancements in remote sensing and chip technology have enabled modern LEO satellites to be equipped with high-performance imaging and intelligent computing payloads \cite{mi2019intelligent, shen2023survey}, thus supporting ubiquitous intelligent services such as weather forecasting, environmental monitoring, and national security \cite{satellite_sys_survey, progress_challenge_RS_satellite}. 
 Hundreds to thousands of satellite computing nodes collectively form the SCPN, where the strategic allocation of sensing, communication, and computing resources to efficiently fulfill diverse intelligent service requests has emerged as a critical challenge in the context of 6G integrated space-air-ground networks \cite{SAG_survey_6g}.
 
-Particularly, due to the large-scale deployment of LEO satellites, advancements in satellite remote sensing and data analytics technology, and the high image resolution afforded by the lower orbital altitude, LEO satellite remote sensing services have demonstrated unprecedented momentum. These services continuously generate massive amounts of data featuring multiple formats and modalities, catering to extensive user demands \cite{survey_on_nextg_comp_tech_SAGIN,sate_fed_edge_learning, li2023leo}. This paper illustrates these application scenarios as depicted in Fig. \ref{fig:net_topo}. 
+Particularly, due to the large-scale deployment of LEO satellites, advancements in satellite remote sensing and data analytics technology, and the high image resolution afforded by the lower orbital altitude, LEO satellite remote sensing services have demonstrated unprecedented momentum. These services continuously generate massive amounts of data featuring multiple formats and modalities, catering to extensive user demands \cite{survey_on_nextg_comp_tech_SAGIN,sate_fed_edge_learning, li2023leo}.
+This paper illustrates these application scenarios as depicted in Fig.~\ref{fig:net_topo}.
 
-Due to the enormous and continuously growing volume of remote sensing data, downloading all satellite data to the ground for centralized processing consumes substantial satellite-to-ground communication resources and may cause congestion for other services. 
-Therefore, leveraging onboard computational resources to perform partial or complete processing of remote sensing tasks and then downloading the computational results to the ground can save communication resources and mitigate privacy and security risks associated with downloading raw data \cite{tronchetti2015legal}. 
-Furthermore, considering the potential computational resource constraints of a single satellite, the multi-satellite collaborative computing paradigm has emerged as a mainstream research focus \cite{jia2022collaborative, leyva2023satellite}. 
-Specifically, thanks to the development of containerization technologies and the evolution of microservice architectures \cite{Docker,salah2016evolution,3D_assets_microservice}, the functional modules of the user applications, which are traditionally deployed in terrestrial data centers to process raw data postback from satellites, \cite{joint_orbit_comp_comm4data_Download}, can now be decomposed into stateless microservices and packaged as independent and isolated containers \cite{geoAIasMicroService}. 
-These services can then be dispatched to computing nodes of the SCPN for on-board computation so as to reduce the transmission delay caused by limited bandwidth and vulnerable channel conditions between ground and space networks \cite{cubesat_comm,uplink_interference_tsinghua}. 
+Due to the enormous and continuously growing volume of remote sensing data, downloading all satellite data to the ground for centralized processing consumes substantial satellite-to-ground communication resources and may cause congestion for other services.
+Therefore, leveraging onboard computational resources to perform partial or complete processing of remote sensing tasks and then downloading the computational results to the ground can save communication resources and mitigate privacy and security risks associated with downloading raw data \cite{tronchetti2015legal}.
+Furthermore, considering the potential computational resource constraints of a single satellite, the multi-satellite collaborative computing paradigm has emerged as a mainstream research focus \cite{jia2022collaborative, leyva2023satellite}.
+Specifically, thanks to the development of containerization technologies and the evolution of microservice architectures \cite{Docker,salah2016evolution,3D_assets_microservice}, the functional modules of the user applications, which are traditionally deployed in terrestrial data centers to process raw data postback from satellites, \cite{joint_orbit_comp_comm4data_Download}, can now be decomposed into stateless microservices and packaged as independent and isolated containers \cite{geoAIasMicroService}.
+These services can then be dispatched to computing nodes of the SCPN for on-board computation so as to reduce the transmission delay caused by limited bandwidth and vulnerable channel conditions between ground and space networks \cite{cubesat_comm,uplink_interference_tsinghua}.
 
 \begin{figure}[!htbp]
 \centering
@@ -88,32 +89,32 @@ These services can then be dispatched to computing nodes of the SCPN for on-boar
 \end{figure}
 
 
-However, unlike terrestrial computing nodes with adequate computing resources and power supply. 
-The SCPN nodes present unique limitations, i.e., constrained computing resources and poor power supply. 
-On the one hand, satellites can only be equipped with limited computing and storage resources as a consequence of the constraints of size and weight, as well as the damage risk caused to circuit boards by intense radiation in space \cite{sate_computing_case_study}. 
-On the other hand, the energy supply for satellites is primarily derived from solar energy harvesting, which is utilized for various satellite functions, including attitude control, transceivers, cameras, and processors. 
-% Due to the significant temperature variations in different positions in space, the energy system also needs to manage thermal control. 
+However, unlike terrestrial computing nodes with adequate computing resources and power supply.
+The SCPN nodes present unique limitations, i.e., constrained computing resources and poor power supply.
+On the one hand, satellites can only be equipped with limited computing and storage resources as a consequence of the constraints of size and weight, as well as the damage risk caused to circuit boards by intense radiation in space \cite{sate_computing_case_study}.
+On the other hand, the energy supply for satellites is primarily derived from solar energy harvesting, which is utilized for various satellite functions, including attitude control, transceivers, cameras, and processors.
+% Due to the significant temperature variations in different positions in space, the energy system also needs to manage thermal control.
 Furthermore, considering the area of solar panels, the efficiency of the materials used for energy harvesting, and hardware degradation, the battery power available for satellites is extremely limited compared to the energy supply available to terrestrial servers. \cite{energy_efficient_routing_tsinghua,energy_drain_attact_on_satellite}.
 
 
-Hence, different from terrestrial settings \cite{optim_svc_dep_req_reouting_in_MEC, optim_svc_req_routing_inst_place4microsvc, sfc_optim_deploy_link_influence}, the energy efficiency should be given high priority and regarded as the main concern when devising the routing schemes in the SCPN \cite{cao_comp_routing,energy_efficient_routing_tsinghua,energy_alloc_addmission_ctrl4comm_satellite}. 
+Hence, different from terrestrial settings \cite{optim_svc_dep_req_reouting_in_MEC, optim_svc_req_routing_inst_place4microsvc, sfc_optim_deploy_link_influence}, the energy efficiency should be given high priority and regarded as the main concern when devising the routing schemes in the SCPN \cite{cao_comp_routing,energy_efficient_routing_tsinghua,energy_alloc_addmission_ctrl4comm_satellite}.
 To this end, this work presents an energy-aware service routing algorithm for microservices in the SCPN, aiming to minimize energy consumption in both computation and communication to meet the task requirements of terrestrial clients.
-Specifically, we first model the service routing problem as a Directed Steiner Tree (DST) on the directed graph, which is a classic combinatorial optimization problem and has been proved to be NP-hard \cite{appro_algo4DST, redu_DST}, then design a series of heuristic-based algorithms to obtain the approximate optimal solution for the service routing problem in the SCPN. 
+Specifically, we first model the service routing problem as a Directed Steiner Tree (DST) on the directed graph, which is a classic combinatorial optimization problem and has been proved to be NP-hard \cite{appro_algo4DST, redu_DST}, then design a series of heuristic-based algorithms to obtain the approximate optimal solution for the service routing problem in the SCPN.
 
 
 Our main contributions are summarized as follows:
 \begin{itemize}
 \item \textbf{Service Routing Modeling in the SCPN}: We identify satellite energy consumption as a critical bottleneck of microservice routing in the SCPN. To this end, we meticulously model the satellite energy consumption associated with microservice communication and computation as well as mathematically formulate the energy resource optimization problem for satellite microservices.
-\item \textbf{Augmented Satellite-Microservice Subgraph Construction}: We propose an innovative augmented satellite-microservice subgraph construction method, which equivalently transforms the original problem into a classical DST problem in graph theory, thereby elucidating the mathematical essence of this engineering challenge. 
+\item \textbf{Augmented Satellite-Microservice Subgraph Construction}: We propose an innovative augmented satellite-microservice subgraph construction method, which equivalently transforms the original problem into a classical DST problem in graph theory, thereby elucidating the mathematical essence of this engineering challenge.
 In addition to microservice scenarios, this method is also applicable to other routing problems that jointly optimize the computational and communication resource costs.
 \item \textbf{Heuristic Algorithms for the DST Problem}: We implement a series of heuristic algorithms to approximate the optimal solution for the NP-hard DST problem. Extensive experiments demonstrate that our proposed algorithm not only significantly outperforms baseline algorithms in energy efficiency but also exhibits remarkable stability, thereby validating the efficacy of our augmented graph construction methodology.
-% attempting to greedily address the original problem in terms of energy cost 
+% attempting to greedily address the original problem in terms of energy cost
 \end{itemize}
 
 
-The remainder of this paper is organized as follows. 
+The remainder of this paper is organized as follows.
 Section \ref{sec:related_work} reviews the related works.
-Section \ref{sec:sys_model} presents the system models. 
+Section \ref{sec:sys_model} presents the system models.
 The problem formulation is introduced in Section \ref{sec:E2CR4Micro}.
 Section \ref{sec:algo} details the proposed heuristic algorithms.
 Section \ref{sec:eval} shows and analyses the experiment results.
@@ -123,9 +124,9 @@ Section \ref{sec:conclusion} draws the conclusion.
 \label{sec:related_work}
 %\subsection{Satellite (space) edge computing (energy-aware)}
 Recent advancements in satellite technology have significantly promoted its computing and transmitting capabilities, enabling satellites to undertake some elementary tasks \cite{survey_on_nextg_comp_tech_SAGIN}.
-The construction of ISLs, in particular, enables interconnected satellites to form the SCPN with pooled computing resources, supporting intricate missions with enhanced performance demands \cite{space_asisit_comp_offload4IoTApp,leyva2023satellite, sate_computing_case_study} 
+The construction of ISLs, in particular, enables interconnected satellites to form the SCPN with pooled computing resources, supporting intricate missions with enhanced performance demands \cite{space_asisit_comp_offload4IoTApp,leyva2023satellite, sate_computing_case_study}
 and facilitating a global response to requests from anywhere at any time\cite{IPIS_sate, laser_sate}.
-In addition, 
+In addition,
 % due to the poor power system of satellites,
 careful energy management is necessary for satellites to realize sustainable development \cite{energy_efficient_routing_tsinghua, energy_drain_attact_on_satellite}.
 
@@ -145,16 +146,16 @@ Efficient but shortsighted, these proposed algorithms cannot adapt to diverse ro
 We consider a space computing power network (SCPN) composed of a Walker-Delta LEO constellation, onboard computing resources, and laser inter-satellite links (ISLs).
 User tasks are represented as ordered microservice chains.
 Each microservice can have multiple stateless replicas deployed on different satellites, and a request may therefore be executed collaboratively by multiple satellites.
-The key distinction from terrestrial edge systems is that the SCPN simultaneously exhibits predictable but fast topology dynamics, intermittent cross-plane ISLs, limited onboard compute and storage resources, and time-varying communication conditions.
+% The key distinction from terrestrial edge systems is that the SCPN simultaneously exhibits predictable but fast topology dynamics, intermittent cross-plane ISLs, limited onboard compute and storage resources, and time-varying communication conditions.
 
 \subsection{LEO Constellation and Time-slotted Topology}
 \label{subsec:constellation_model_new}
 
-We consider a Walker-Delta constellation parameterized by $\mathcal{W}=(A/P/G,H,I)$, where $A$ is the total number of satellites, $P$ is the number of orbital planes, $G$ is the inter-plane phasing factor, $H$ is the orbital altitude, and $I$ is the inclination.
-Consequently, each orbital plane accommodates $N = A/P$ satellites. 
-A satellite node is uniquely identified by its orbital plane index $p$ and its intra-plane position index $n$, denoted by $v_{p,n}$. 
+A typical Walker-Delta constellation is parameterized by $\mathcal{W}=(A/P/G,H,I)$, where $A$ is the total number of satellites, $P$ is the number of orbital planes, $G$ is the inter-plane phasing factor, $H$ is the orbital altitude, and $I$ is the inclination.
+Consequently, each orbital plane accommodates $N = A/P$ satellites.
+A satellite node is uniquely identified by its orbital plane index $p$ and its intra-plane position index $n$, denoted by $v_{p,n}$.
 The set of satellite nodes in the constellation is thus formally defined as $\mathcal{V}=\{v_{p,n}\mid p=1,\ldots,P,\ n=1,\ldots,N\}$.
-To capture the high dynamism of the satellite network, we discretize the constellation's operational period into a set of time slots, denoted by $\mathcal{T} = \{0, 1, \ldots, T-1\}$, with a uniform slot duration $\Delta$. 
+To capture the high dynamism of the satellite network, we discretize the constellation's operational period into a set of time slots, denoted by $\mathcal{T} = \{0, 1, \ldots, T-1\}$, with a uniform slot duration $\Delta$.
 For any continuous-time instant $\tau$, the corresponding time slot index is mapped as $s(\tau) = \left\lfloor \tau/\Delta \right\rfloor \bmod T$.
 % \begin{align}
 %   s(\tau) = \left\lfloor \tau/\Delta \right\rfloor \bmod T.
@@ -168,12 +169,14 @@ Thus, the time-varying network topology during slot $t \in \mathcal{T}$ is forma
 We assume that each satellite is equipped with four laser optical terminals: two positioned along the roll axis for intra-plane ISLs, and two along the pitch axis for cross-plane ISLs.
 
 \paragraph{ISL Connectivity Constraints}
-Intra-plane ISLs are connected by a satellite $v_{p,n}$ to its adjacent neighbors $v_{p,n^-}$ and $v_{p,n^+}$ within the same orbital plane, where $n^{\pm} = ( (n \pm 1 - 1) \bmod N )+1$.
-Since satellites within the same plane share identical orbital velocities, their relative physical distances remain invariant, forming highly stable ISLs with each other.
+Each satellite $v_{p,n}$ maintains two intra-plane ISLs with its adjacent neighbors $v_{p,n^-}$ and $v_{p,n^+}$, where $n^{\pm} = ((n \pm 1 - 1) \bmod N) + 1$.
+Because satellites in the same plane share identical angular velocities, their relative distances remain time-invariant, yielding highly stable links.
 
-Conversely, cross-plane ISLs connecting satellites in adjacent orbital planes are inherently dynamic.
-Constrained by the physical and kinematic limits of onboard laser communication terminals (LCTs), the availability of a cross-plane link $e=(u,v)$ jointly depends on line-of-sight (LoS) occlusion, mechanical tracking thresholds, and polar exclusions.
-Formally, its existence at time slot $t$ is defined as:
+Conversely, cross-plane ISLs are inherently dynamic.
+Constrained by the physical and kinematic limits of onboard laser communication terminals (LCTs), the existence of a cross-plane link $e=(u,v)$ at slot $t$ is jointly dictated by line-of-sight (LoS) occlusion, mechanical tracking thresholds, and polar exclusions, formulated as:
+% Conversely, cross-plane ISLs connecting satellites in adjacent orbital planes are inherently dynamic.
+% Constrained by the physical and kinematic limits of onboard laser communication terminals (LCTs), the availability of a cross-plane link $e=(u,v)$ jointly depends on line-of-sight (LoS) occlusion, mechanical tracking thresholds, and polar exclusions.
+% Formally, its existence at time slot $t$ is defined as:
 \begin{equation}
 e\in \mathcal{E}(t) \iff \left\{
 \begin{array}{l}
@@ -184,22 +187,21 @@ d_{u,v}(t) \le d_{\text{max}}, \\
 \right.
 \label{eq:cross_link_indicator}
 \end{equation}
-In \eqref{eq:cross_link_indicator}, $d_{u,v}(t)$ represents the LoS distance between satellites $u$ and $v$ at time slot $t$, and $d_{\text{max}}$ represents the theoretical maximum distance before terrestrial occlusion.
-The variable $\theta_{u,v}(t)$ denotes the relative tracking angle, which is bounded by the maximum tolerable hardware threshold $\theta_{\text{max}}$.
-The third constraint enforces a polar exclusion zone parameterized by a latitude boundary $\varphi_{\text{max}}$ (e.g., $70^{\circ}$).
-This mechanism disconnects satellites entering polar regions, mitigating the severe pointing dynamics and extreme Doppler shifts inherent to high-inclination orbits.
+In \eqref{eq:cross_link_indicator}, the LoS distance $d_{u,v}(t)$ and relative tracking angle $\theta_{u,v}(t)$ are bounded by the terrestrial occlusion limit $d_{\text{max}}$ and the hardware threshold $\theta_{\text{max}}$, respectively.
+Furthermore, the third constraint enforces a polar exclusion zone at latitude boundary $\varphi_{\text{max}}$ (e.g., $70^{\circ}$).
+This mechanism proactively tears down cross-plane links at high latitudes to bypass the severe pointing dynamics and extreme Doppler shifts inherent to polar regions.
 
 
 \paragraph{ISL Capacity Model}
 Unlike ground networks with stable capacities, the transmission rate of laser ISLs is distance-dependent due to geometric propagation loss.
 % Under the Free-Space Optical (FSO) communication model, the received optical power $P_{e}^{\text{rx}}(t)$ at satellite $v$ transmitted from satellite $u$ is formalized by the Friis transmission equation variant:
-Under the Free-Space Optical (FSO) communication model, the received optical power $P_{e}^{\text{rx}}(t)$ at satellite $v$ transmitted from satellite $u$ is formalized as:
+Based on the Free-Space Optical (FSO) communication model, the received optical power $P_{e}^{\text{rx}}(t)$ at satellite $v$ transmitted from satellite $u$ is formalized as:
 \begin{equation}
 P_{e}^{\text{rx}}(t) = P^{\text{tx}} G^{\text{tx}} G^{\text{rx}} \eta_{\text{tx}} \eta_{\text{rx}} \left(\frac{\lambda}{4\pi d_{u,v}(t)}\right)^2,
 \label{eq:received_power}
 \end{equation}
 where $P^{\text{tx}}$ is the nominal laser transmit power, $G^{\text{tx}}$ and $G^{\text{rx}}$ represent the optical gains of the transmitter and receiver apertures respectively, $\lambda$ is the laser wavelength, and $\eta_{\text{tx}}, \eta_{\text{rx}}$ denote the optical efficiency factors.
-Consequently, the real-time Signal-to-Noise Ratio (SNR) of the link $e$ at time slot $t$ is formulated as:
+The real-time Signal-to-Noise Ratio (SNR) of the link $e$ at time slot $t$ is given as:
 \begin{equation}
 \gamma_{e}(t) = \frac{\left({R}_{\text{pd}} \cdot P_{e}^{\text{rx}}(t)\right)^2}{\sigma_{\text{sh}}^2 + \sigma_{\text{th}}^2},
 \label{eq:snr_formal}
@@ -208,15 +210,15 @@ where ${R}_{\text{pd}}$ is the photodiode responsivity, while $\sigma_{\text{sh}
 % According to the Shannon-Hartley theorem, the achievable transmission capacity $R_{e}(t)$ (in bits per second) is constrained by:
 According to the Shannon-Hartley theorem, the achievable transmission capacity $R^0_{e}(t)$ is constrained by:
 \begin{equation}
-R^0_{e}(t) =  B_{e} \log_2 \left( 1 + \gamma_{e}(t) \right),
+R^0_{e}(t) =  \mathrm{B}_{e} \log_2 \left( 1 + \gamma_{e}(t) \right),
 \label{eq:shannon_capacity}
 \end{equation}
-where $B_{e}$ is the modulation bandwidth.
+where $\mathrm{B}_{e}$ is the modulation bandwidth.
 
 \paragraph{ISL Delay Model}
 The nominal rate $R^0_e(t)$ in \eqref{eq:shannon_capacity} could be degraded in practice by transient channel fading and traffic contention.
 To capture these factors, we introduce a scaling factor $\eta_e(t)\in(0,1]$ to formulate the effective data rate as $R_e(t)=\eta_e(t)R^0_e(t)$.
-When transmitting a data block of size $B$ over link $e$ during slot $t$, the aggregate link-level communication delay comprises queuing, transmission, and propagation delays:
+When transmitting a data block of size $B$ over link $e=(u,v)$ during slot $t$, the aggregate link-level communication delay comprises queuing, transmission, and propagation delays, formulated as:
 \begin{equation}
     T_e^{\text{cm}}(B,t) = \tau_e^{\text{qe}}(t) + \tau_e^{\text{tr}}(t) + \tau_e^{\text{pr}}(t).
     \label{eq:link_delay_elara}
@@ -243,32 +245,32 @@ We formulate the total computation delay as:
 Here, the queuing delay $\tau^{\text{qe}}_v(t)$ is a monotonically increasing function of the pending task queue length on satellite $v$ at slot $t$.
 The actual execution delay is given by $\tau^{\text{cp}}_v(t) = C_m / {F_v(t)}$, where $C_m$ denotes the number of CPU cycles required by microservice $m$.
 Correspondingly, the computational energy consumption is defined as:
-\begin{equation}
+\begin{align}
     E_m^{\text{cp}}(v,t) = P_v^{\text{cp}} \frac{C_m}{F_v(t)},
     \label{eq:compute_energy_elara}
-\end{equation}
+\end{align}
 where $P_v^{\text{cp}}$ is the operational computing power of the satellite.
 
 
-\subsection{Microservice and Service Request Models}
+\subsection{LEO Microservice and Service Request Models}
 \label{subsec:microservice_request_elara}
 To facilitate flexible application management within the SCPN, complex applications are decoupled into a set of fine-grained, loosely coupled microservices, denoted by $\mathcal{M}$.
 Each microservice $m \in \mathcal{M}$ is characterized by its computational demand $C_m$ (in CPU cycles), container image size $I_m$, and storage requirement $S_m$.
 For robust load balancing and fault tolerance, multiple replicas of each microservice are distributed across the satellite constellation.
 
 We define a binary decision variable $x_{m,v}(t)$ to indicate if microservice $m$ is deployed on satellite $v$ during time slot $t$:
-\begin{equation}
+\begin{align}
     x_{m,v}(t) =
     \begin{cases}
     1, & \text{if is deployed,}\\
     0, & \text{otherwise}.
     \end{cases}
-\end{equation}
+\end{align}
 Accordingly, the subset of satellite nodes hosting a valid replica of microservice $m$ at slot $t$ is given by:
 \begin{equation}
     \mathcal{R}_m(t) = \{v \in \mathcal{V} \mid x_{m,v}(t) = 1\}.
 \end{equation}
-To ensure service availability while preventing excessive resource consumption, the total number of deployed replicas for any microservice must be bounded within predefined thresholds, $r_m^{\text{min}}$ and $r_m^{\text{max}}$:
+To ensure service availability while preventing excessive resource consumption, the total number of deployed replicas for any microservice should be bounded within predefined thresholds, $r_m^{\text{min}}$ and $r_m^{\text{max}}$:
 \begin{equation}
     r_m^{\text{min}} \leq \sum_{v\in\mathcal{V}} x_{m,v}(t) \leq r_m^{\text{max}}, \quad \forall m \in \mathcal{M}.
     \label{eq:replica_count_elara}
@@ -281,73 +283,63 @@ Furthermore, the aggregate storage footprint of all replicas hosted on a single 
 
 It is worth noting that all microservices operate in a stateless manner, which can be dynamically added, removed, or migrated without incurring the prohibitive communication overhead of inter-replica state synchronization.
 
-Let $r=\langle v_s,m_1,m_2,\ldots,m_L,v_d,\tau_{\text{arr}}\rangle$ denote an incoming request, where $v_s$ and $v_d$ are the source and destination satellites, $m_i$ is the $i$-th required microservice, $L$ is the chain length, and $\tau_{\text{arr}}$ is the continuous arrival time.
+Let $r=\langle v_s,m_1,m_2,\ldots,m_L,v_d,\tau_{\text{in}}\rangle$ denote an incoming request, where $v_s$ and $v_d$ are the source and destination satellites, $m_i$ is the $i$-th required microservice, $L$ is the chain length, and $\tau_{\text{in}}$ is the continuous arrival time.
 Request $r$ has a deadline $D_r$.
 Let $B_{r,i}$ be the data volume transmitted before executing $m_i$, and let $B_{r,L+1}$ be the final output data transmitted from the last selected replica to $v_d$.
 In this paper, we set the service chain to be executed sequentially, where $m_{i+1}$ can start only after $m_i$ has completed and the corresponding intermediate data has arrived.
 
 \subsection{Cross-slot Request Execution Model}
 \label{subsec:cross_slot_execution_elara}
-
-ELARA maintains each service chain in continuous time.
-Before executing $m_i$, the request state is $\sigma_{r,i}=(u_{r,i},\tau_{r,i},i)$, where $u_{r,i}$ is the satellite currently holding the data that used as input for $m_i$, $\tau_{r,i}$ is the decision time.
-The controller needs to select an execution satellite $v_{r,i}\in\mathcal{R}_{m_i}(s(\tau_{r,i}))$.
-The data $B_{r,i}$ is then routed from $u_{r,i}$ to $v_{r,i}$ for executing $m_i$.
-Since transmission may cross slot boundaries, routing is recomputed whenever the slot changes.
-Let $T_{r,i}^{\text{ru}}$ and $E_{r,i}^{\text{ru}}$ denote the communication delay and energy consumption for this hop.
-The data arrival time at the selected replica is:
-\begin{equation}
-\tau_{r,i}^{\text{arr}}=\tau_{r,i}+T_{r,i}^{\text{ru}}.
-\end{equation}
-The computing completion time is
-\begin{equation}
-\tau_{r,i}^{\text{fin}}
-=
-\tau_{r,i}^{\text{arr}}
-+
-T_{m_i}^{\text{cp}}\big(v_{r,i},s(\tau_{r,i}^{\text{arr}})\big).
-\end{equation}
-Then $u_{r,i+1}=v_{r,i}$ and $\tau_{r,i+1}=\tau_{r,i}^{\text{fin}}$.
-After $m_L$ finishes, the output data is routed from $v_{r,L}$ to $v_d$.
-The end-to-end latency is
-\begin{equation}
-T_r^{\text{e2e}}=\tau_r^{\text{out}}-\tau_{\text{arr}},
-\label{eq:e2e_latency_elara}
-\end{equation}
-where $\tau_r^{\text{out}}$ is the time when the final output reaches $v_d$.
-
-\subsection{Cross-slot Request Execution Model}
-\label{subsec:cross_slot_execution_elara}
-
+% ELARA continuously tracks the execution of each microservice chain.
 ELARA tracks the execution of each microservice chain continuously in the temporal domain.
-Prior to executing the $i$-th microservice $m_i$, the state of request $r$ is defined by the tuple $\sigma_{r,i} = (u_{r,i}, \tau_{r,i}, i)$, where $u_{r,i}$ denotes the satellite hosting the intermediate input data required for $m_i$, and $\tau_{r,i}$ represents the scheduling decision epoch.
-The controller must select a target execution replica $v_{r,i} \in \mathcal{R}_{m_i}\big(s(\tau_{r,i})\big)$, after which the data block $B_{r,i}$ is routed from $u_{r,i}$ to $v_{r,i}$.
+Prior to executing microservice $m_i$, the state of request $r$ is defined by $\sigma_{r,i} = (u_{r,i}, \tau_{r,i}, i)$, where $u_{r,i}$ denotes the satellite hosting the intermediate input data required for $m_i$, and $\tau_{r,i}$ is the scheduling decision epoch.
+The controller selects a target satellite, $v_{r,i} \in \mathcal{R}_{m_i}\big(s(\tau_{r,i})\big)$, for $m_i$'s execution, after which the data volume $B_{r,i}$ is routed from $u_{r,i}$ to $v_{r,i}$.
 
-Crucially, when the transmitted data volume $B_{r,i}$ exceeds the remaining stability window of the current time slot, the communication process inevitably spans across multiple slot boundaries.
-To accurately capture this cross-slot dynamic, the total routing delay $T_{r,i}^{\text{ru}}$ and the corresponding energy consumption $E_{r,i}^{\text{ru}}$ for this hop are formulated by accumulating the piecewise fractional transmission costs over the entire sequence of spanned topological slots.
-Consequently, the data arrival time at the selected replica is given by:
+
+Crucially, if transmitting $B_{r,i}$ exceeds the remaining duration of the current slot, the communication inevitably spans multiple slot boundaries.
+To accurately capture this cross-slot dynamic, the routing delay $T_{r,i}^{\text{ru}}$ and energy consumption $E_{r,i}^{\text{ru}}$ are computed by accumulating the piecewise fractional transmission costs over all spanned topological slots.
+Consequently, the data arrives at the replica at:
 \begin{equation}
     \tau_{r,i}^{\text{arr}} = \tau_{r,i} + T_{r,i}^{\text{ru}}.
 \end{equation}
-Following the onboard computation model, the execution completion time is evaluated under the topological slot corresponding to the data arrival:
+Following the onboard computing model, the execution completion time is calculated under the topological slot upon data arrival:
 \begin{equation}
     \tau_{r,i}^{\text{fin}} = \tau_{r,i}^{\text{arr}} + T_{m_i}^{\text{cp}}\big(v_{r,i}, s(\tau_{r,i}^{\text{arr}})\big).
 \end{equation}
-The request state then advances to the subsequent microservice hop, setting $u_{r,i+1} = v_{r,i}$ and the new decision epoch to $\tau_{r,i+1} = \tau_{r,i}^{\text{fin}}$.
+The request state then advances to the next service hop, updating $u_{r,i+1} = v_{r,i}$ and $\tau_{r,i+1} = \tau_{r,i}^{\text{fin}}$.
 
-Upon the successful completion of the terminal microservice $m_L$, the final output data is routed to the destination satellite $v_d$.
-The overall end-to-end latency for request $r$ is formulated as:
+Upon completing the terminal microservice $m_L$, the final output is routed to the destination $v_d$.
+The end-to-end latency for request $r$ is thus formulated as:
 \begin{equation}
-    T_r^{\text{e2e}} = \tau_r^{\text{out}} - \tau_{r}^{\text{arr}},
+    T_r^{\text{e2e}} = \tau_r^{\text{out}} - \tau_{r}^{\text{in}},
     \label{eq:e2e_latency_elara}
 \end{equation}
-where $\tau_r^{\text{out}}$ designates the exact time the final output reaches $v_d$, and $\tau_{r}^{\text{arr}}$ is the initial arrival time of the request to the constellation.
+where $\tau_r^{\text{out}}$ is the exact time the output reaches $v_d$, and $\tau_{r}^{\text{in}}$ is the initial arrival time of the request to the constellation.
+
+% Crucially, when the transmitted data volume $B_{r,i}$ exceeds the remaining stability window of the current time slot, the communication process inevitably spans across multiple slot boundaries.
+% To accurately capture this cross-slot dynamic, the total routing delay $T_{r,i}^{\text{ru}}$ and the corresponding energy consumption $E_{r,i}^{\text{ru}}$ for this hop are formulated by accumulating the piecewise fractional transmission costs over the entire sequence of spanned topological slots.
+% Consequently, the data arrival time at the selected replica is given by:
+% \begin{equation}
+%     \tau_{r,i}^{\text{arr}} = \tau_{r,i} + T_{r,i}^{\text{ru}}.
+% \end{equation}
+% Following the onboard computation model, the execution completion time is evaluated under the topological slot corresponding to the data arrival:
+% \begin{equation}
+%     \tau_{r,i}^{\text{fin}} = \tau_{r,i}^{\text{arr}} + T_{m_i}^{\text{cp}}\big(v_{r,i}, s(\tau_{r,i}^{\text{arr}})\big).
+% \end{equation}
+% The request state then advances to the subsequent microservice hop, setting $u_{r,i+1} = v_{r,i}$ and the new decision epoch to $\tau_{r,i+1} = \tau_{r,i}^{\text{fin}}$.
+
+
+% Upon the successful completion of the terminal microservice $m_L$, the final output data is routed to the destination satellite $v_d$.
+% The overall end-to-end latency for request $r$ is formulated as:
+% \begin{equation}
+%     T_r^{\text{e2e}} = \tau_r^{\text{out}} - \tau_{r}^{\text{arr}},
+%     \label{eq:e2e_latency_elara}
+% \end{equation}
+% where $\tau_r^{\text{out}}$ designates the exact time the final output reaches $v_d$, and $\tau_{r}^{\text{arr}}$ is the initial arrival time of the request to the constellation.
 
 \section{Problem Formulation}
 \label{sec:problem_formulation}
-
-We formulate energy- and latency-aware service routing with adaptive replica redeployment.
-The online controller jointly determines which replica executes each microservice, how data is routed across time-varying ISLs, and when service replicas should be added, removed, or moved.
+The proposed ELARA is designed to jointly determines which replica executes each microservice, how data is routed across time-varying ISLs, and when service replicas should be added, removed, or moved.
 The formulation captures the ELARA design without assuming full knowledge of future requests, future queue states, or future link-rate fluctuations.
 
 \subsection{Decision Variables}
@@ -376,7 +368,7 @@ For routing hop $i$ of request $r$, let $f_{r,i,e}(t)\geq 0$ be the amount of da
 Its capacity constraint is
 \begin{equation}
 0\leq f_{r,i,e}(t)\leq
-R_e^{\text{eff}}(t)\Delta_{r,i}^{\text{rem}}(t),
+R_e(t)\Delta_{r,i}^{\text{rem}}(t),
 \quad \forall e\in\mathcal{E}(t),
 \label{eq:capacity_elara}
 \end{equation}
@@ -397,11 +389,11 @@ For remove actions, the service must still have at least $r_m^{\min}$ replicas a
 For one unit of data on link $e$ in slot $t$, the unit delay cost follows the communication-delay decomposition in \eqref{eq:link_delay_elara}:
 \begin{equation}
 c_e^{T}(t)=
-\frac{1}{R_e^{\text{eff}}(t)}
+\frac{1}{R_e(t)}
 +
-\tau_e^{\text{prop}}(t)
+\tau_e^{\text{pr}}(t)
 +
-\tau_e^{\text{wait}}(t)
+\tau_e^{\text{qe}}(t)
 +
 \tau^{\text{sw}},
 \label{eq:unit_delay_elara}
@@ -409,7 +401,7 @@ c_e^{T}(t)=
 where $\tau^{\text{sw}}$ denotes per-hop switching overhead.
 The unit communication energy is
 \begin{equation}
-c_e^{E}(t)=P_e^{\text{tx}}\frac{1}{R_e^{\text{eff}}(t)}.
+c_e^{E}(t)=P_e^{\text{tx}}\frac{1}{R_e(t)}.
 \label{eq:unit_energy_elara}
 \end{equation}
 Let $\phi_e(t)$ be the short-horizon link disruption risk estimated from future ISL availability over a small look-ahead window.
@@ -426,9 +418,9 @@ c_e(t)=
 
 For request $r$, the total communication delay and energy are
 \begin{equation}
-T_r^{\text{route}}=\sum_{i=1}^{L+1}T_{r,i}^{\text{route}},
+T_r^{\text{ru}}=\sum_{i=1}^{L+1}T_{r,i}^{\text{ru}},
 \quad
-E_r^{\text{route}}=\sum_{i=1}^{L+1}E_{r,i}^{\text{route}}.
+E_r^{\text{ru}}=\sum_{i=1}^{L+1}E_{r,i}^{\text{ru}}.
 \label{eq:route_cost_elara}
 \end{equation}
 The computation delay and energy are
@@ -447,7 +439,7 @@ z_{r,i,v}E_{m_i}^{\text{cp}}\big(v,s(\tau_{r,i}^{\text{arr}})\big).
 \end{equation}
 Thus,
 \begin{equation}
-E_r^{\text{total}}=E_r^{\text{route}}+E_r^{\text{cp}}.
+E_r^{\text{tot}}=E_r^{\text{ru}}+E_r^{\text{cp}}.
 \label{eq:total_energy_elara}
 \end{equation}
 
@@ -465,15 +457,15 @@ Remove and no-op actions have zero migration-transfer cost.
 \subsection{Optimization Objective}
 \label{subsec:optimization_problem_elara}
 
-Let $N_r^{\text{cross}}$ be the number of slot crossings experienced by request $r$, and let $\mathbb{I}_r^{\text{fail}}$ indicate whether the request fails.
+Let $N_r^{\text{cro}}$ be the number of slot crossings experienced by request $r$, and let $\mathbb{I}_r^{\text{fail}}$ indicate whether the request fails.
 The per-request cost is
 \begin{equation}
 J_r=
 \omega_T\frac{T_r^{\text{e2e}}}{T_0}
 +
-\omega_E\frac{E_r^{\text{total}}}{E_0}
+\omega_E\frac{E_r^{\text{tot}}}{E_0}
 +
-\omega_S N_r^{\text{cross}}
+\omega_S N_r^{\text{cro}}
 +
 \omega_F\mathbb{I}_r^{\text{fail}}.
 \label{eq:request_cost_elara}
@@ -497,7 +489,7 @@ Given a sequence of requests $\mathcal{Q}$, the online problem is
 \\
 &
 0\leq f_{r,i,e}(t)\leq
-R_e^{\text{eff}}(t)\Delta_{r,i}^{\text{rem}}(t),
+R_e(t)\Delta_{r,i}^{\text{rem}}(t),
 \notag\\
 &\hspace{3.2cm}\forall r,i,e,t,
 \label{eq:p1_cap_elara}
