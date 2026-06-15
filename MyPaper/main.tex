@@ -115,7 +115,7 @@ In addition to microservice scenarios, this method is also applicable to other r
 The remainder of this paper is organized as follows.
 Section \ref{sec:related_work} reviews the related works.
 Section \ref{sec:sys_model} presents the system models.
-The problem formulation is introduced in Section \ref{sec:E2CR4Micro}.
+The problem formulation is introduced in Section \ref{sec:problem_formulation}.
 Section \ref{sec:algo} details the proposed heuristic algorithms.
 Section \ref{sec:eval} shows and analyses the experiment results.
 Section \ref{sec:conclusion} draws the conclusion.
@@ -283,69 +283,35 @@ Furthermore, the aggregate storage footprint of all replicas hosted on a single 
 
 It is worth noting that all microservices operate in a stateless manner, which can be dynamically added, removed, or migrated without incurring the prohibitive communication overhead of inter-replica state synchronization.
 
-Let $r=\langle v_s,m_1,m_2,\ldots,m_L,v_d,\tau_{\text{in}}\rangle$ denote an incoming request, where $v_s$ and $v_d$ are the source and destination satellites, $m_i$ is the $i$-th required microservice, $L$ is the chain length, and $\tau_{\text{in}}$ is the continuous arrival time.
-Request $r$ has a deadline $D_r$.
-Let $B_{r,i}$ be the data volume transmitted before executing $m_i$, and let $B_{r,L+1}$ be the final output data transmitted from the last selected replica to $v_d$.
-In this paper, we set the service chain to be executed sequentially, where $m_{i+1}$ can start only after $m_i$ has completed and the corresponding intermediate data has arrived.
+%Let $r=\langle v_s,m_1,m_2,\ldots,m_L,v_d,\tau_{\text{in}}\rangle$ denote an incoming request, where $v_s$ and $v_d$ are the source and destination satellites, $m_i$ is the $i$-th required microservice, $L$ is the chain length, and $\tau_{\text{in}}$ is the continuous arrival time. Request $r$ has a deadline $D_r$.
+%Let $B_{r,i}$ be the data volume transmitted before executing $m_i$, and let $B_{r,L+1}$ be the final output data transmitted from the last selected replica to $v_d$. 
+%In this paper, we set the service chain to be executed sequentially, where $m_{i+1}$ can start only after $m_i$ has completed and the corresponding intermediate data has arrived.
 
-\subsection{Cross-slot Request Execution Model}
-\label{subsec:cross_slot_execution_elara}
-% ELARA continuously tracks the execution of each microservice chain.
-ELARA tracks the execution of each microservice chain continuously in the temporal domain.
-Prior to executing microservice $m_i$, the state of request $r$ is defined by $\sigma_{r,i} = (u_{r,i}, \tau_{r,i}, i)$, where $u_{r,i}$ denotes the satellite hosting the intermediate input data required for $m_i$, and $\tau_{r,i}$ is the scheduling decision epoch.
-The controller selects a target satellite, $v_{r,i} \in \mathcal{R}_{m_i}\big(s(\tau_{r,i})\big)$, for $m_i$'s execution, after which the data volume $B_{r,i}$ is routed from $u_{r,i}$ to $v_{r,i}$.
+%Since a request may arrive at any instant and its communication may span multiple topology slots, ELARA treats service execution as a continuous-time online decision process. We formulate the corresponding cross-slot execution dynamics, decision variables, and costs in Section~\ref{sec:problem_formulation}.
 
-
-Crucially, if transmitting $B_{r,i}$ exceeds the remaining duration of the current slot, the communication inevitably spans multiple slot boundaries.
-To accurately capture this cross-slot dynamic, the routing delay $T_{r,i}^{\text{ru}}$ and energy consumption $E_{r,i}^{\text{ru}}$ are computed by accumulating the piecewise fractional transmission costs over all spanned topological slots.
-Consequently, the data arrives at the replica at:
-\begin{equation}
-    \tau_{r,i}^{\text{arr}} = \tau_{r,i} + T_{r,i}^{\text{ru}}.
-\end{equation}
-Following the onboard computing model, the execution completion time is calculated under the topological slot upon data arrival:
-\begin{equation}
-    \tau_{r,i}^{\text{fin}} = \tau_{r,i}^{\text{arr}} + T_{m_i}^{\text{cp}}\big(v_{r,i}, s(\tau_{r,i}^{\text{arr}})\big).
-\end{equation}
-The request state then advances to the next service hop, updating $u_{r,i+1} = v_{r,i}$ and $\tau_{r,i+1} = \tau_{r,i}^{\text{fin}}$.
-
-Upon completing the terminal microservice $m_L$, the final output is routed to the destination $v_d$.
-The end-to-end latency for request $r$ is thus formulated as:
-\begin{equation}
-    T_r^{\text{e2e}} = \tau_r^{\text{out}} - \tau_{r}^{\text{in}},
-    \label{eq:e2e_latency_elara}
-\end{equation}
-where $\tau_r^{\text{out}}$ is the exact time the output reaches $v_d$, and $\tau_{r}^{\text{in}}$ is the initial arrival time of the request to the constellation.
-
-% Crucially, when the transmitted data volume $B_{r,i}$ exceeds the remaining stability window of the current time slot, the communication process inevitably spans across multiple slot boundaries.
-% To accurately capture this cross-slot dynamic, the total routing delay $T_{r,i}^{\text{ru}}$ and the corresponding energy consumption $E_{r,i}^{\text{ru}}$ for this hop are formulated by accumulating the piecewise fractional transmission costs over the entire sequence of spanned topological slots.
-% Consequently, the data arrival time at the selected replica is given by:
-% \begin{equation}
-%     \tau_{r,i}^{\text{arr}} = \tau_{r,i} + T_{r,i}^{\text{ru}}.
-% \end{equation}
-% Following the onboard computation model, the execution completion time is evaluated under the topological slot corresponding to the data arrival:
-% \begin{equation}
-%     \tau_{r,i}^{\text{fin}} = \tau_{r,i}^{\text{arr}} + T_{m_i}^{\text{cp}}\big(v_{r,i}, s(\tau_{r,i}^{\text{arr}})\big).
-% \end{equation}
-% The request state then advances to the subsequent microservice hop, setting $u_{r,i+1} = v_{r,i}$ and the new decision epoch to $\tau_{r,i+1} = \tau_{r,i}^{\text{fin}}$.
-
-
-% Upon the successful completion of the terminal microservice $m_L$, the final output data is routed to the destination satellite $v_d$.
-% The overall end-to-end latency for request $r$ is formulated as:
-% \begin{equation}
-%     T_r^{\text{e2e}} = \tau_r^{\text{out}} - \tau_{r}^{\text{arr}},
-%     \label{eq:e2e_latency_elara}
-% \end{equation}
-% where $\tau_r^{\text{out}}$ designates the exact time the final output reaches $v_d$, and $\tau_{r}^{\text{arr}}$ is the initial arrival time of the request to the constellation.
+Let $r = \langle v_s, m_1, m_2, \ldots, m_L, v_d, \tau_{\text{in}} \rangle$ denote an incoming request with a deadline $D_r$. 
+Here, $v_s$ and $v_d$ are the source and destination satellites, $m_i$ is the $i$-th microservice in the sequential execution chain, and $\tau_{\text{in}}$ is the continuous arrival time. 
+Let $B_{r,i}$ be the data volume that should be transmitted before invoking $m_i$, while $B_{r,L+1}$ denotes the final output routed back to $v_d$. 
+Since a request can arrive at any arbitrary instant and its data transmission may span multiple topology slots, ELARA formulates this sequential service execution as a continuous-time online decision process. 
+The detailed cross-slot execution dynamics, decision variables, and objective functions are formally presented in Section~\ref{sec:prob_form}.
 
 \section{Problem Formulation}
-\label{sec:problem_formulation}
-The proposed ELARA is designed to jointly determines which replica executes each microservice, how data is routed across time-varying ISLs, and when service replicas should be added, removed, or moved.
-The formulation captures the ELARA design without assuming full knowledge of future requests, future queue states, or future link-rate fluctuations.
+\label{sec:prob_form}
+%ELARA jointly determines where each microservice is executed, how service data is routed across time-varying ISLs, and when service replicas should be redeployed.
+%The formulation is online: at each decision epoch, ELARA observes the current topology, queue states, and replica deployment, but does not assume future requests or future link-rate fluctuations.
 
-\subsection{Decision Variables}
+\subsection{Cross-slot Execution and Decision Variables}
 \label{subsec:decision_variables_elara}
 
-For request $r$, stage $i$, and satellite $v$, the fast-layer execution decision is
+ELARA tracks each request in continuous time.
+Before executing microservice $m_i$, the state of request $r$ is
+\begin{equation}
+    \sigma_{r,i}=(u_{r,i},\tau_{r,i},i),
+\end{equation}
+where $u_{r,i}$ is the satellite currently holding the input data for $m_i$ and $\tau_{r,i}$ is the corresponding decision epoch.
+Initially, $u_{r,1}=v_s$ and $\tau_{r,1}=\tau_{\text{in}}$.
+
+For request $r$, stage $i$, and satellite $v$, the replica-selection variable is
 \begin{equation}
 z_{r,i,v}=
 \begin{cases}
@@ -353,7 +319,7 @@ z_{r,i,v}=
 0, & \text{otherwise}.
 \end{cases}
 \end{equation}
-Each stage must be executed by exactly one available replica:
+Each microservice stage is executed by exactly one available replica:
 \begin{equation}
 \sum_{v\in\mathcal{V}} z_{r,i,v}=1,\quad \forall r,i,
 \label{eq:unique_execution_elara}
@@ -363,9 +329,11 @@ and
 z_{r,i,v}\leq x_{m_i,v}(s(\tau_{r,i})),\quad \forall r,i,v.
 \label{eq:execution_feasible_elara}
 \end{equation}
+Let $v_{r,i}$ denote the selected execution satellite satisfying $z_{r,i,v_{r,i}}=1$.
 
-For routing hop $i$ of request $r$, let $f_{r,i,e}(t)\geq 0$ be the amount of data transmitted through link $e$ in slot $t$.
-Its capacity constraint is
+For routing segment $i$ of request $r$, let $f_{r,i,e}(t)\geq 0$ be the amount of data carried by link $e$ in slot $t$.
+For $i\leq L$, the segment routes $B_{r,i}$ from $u_{r,i}$ to $v_{r,i}$; for $i=L+1$, it routes the final output $B_{r,L+1}$ from $v_{r,L}$ to $v_d$.
+The link-capacity constraint is
 \begin{equation}
 0\leq f_{r,i,e}(t)\leq
 R_e(t)\Delta_{r,i}^{\text{rem}}(t),
@@ -373,7 +341,33 @@ R_e(t)\Delta_{r,i}^{\text{rem}}(t),
 \label{eq:capacity_elara}
 \end{equation}
 where $\Delta_{r,i}^{\text{rem}}(t)$ is the remaining usable time in slot $t$.
-At each slot boundary, the residual data is updated and the routing decision is recomputed.
+If a segment cannot finish within the current slot, ELARA updates the residual data at the slot boundary and re-optimizes routing in the next topology snapshot.
+
+Let $T_{r,i}^{\text{ru}}$ and $E_{r,i}^{\text{ru}}$ denote the routing delay and energy of segment $i$ accumulated over all slots it spans.
+For service stage $i\leq L$, the data arrival time and computation finish time are
+\begin{equation}
+    \tau_{r,i}^{\text{arr}}=\tau_{r,i}+T_{r,i}^{\text{ru}},
+    \label{eq:arrival_time_elara}
+\end{equation}
+and
+\begin{equation}
+    \tau_{r,i}^{\text{fin}}
+    =
+    \tau_{r,i}^{\text{arr}}
+    +
+    T_{m_i}^{\text{cp}}\big(v_{r,i},s(\tau_{r,i}^{\text{arr}})\big).
+    \label{eq:finish_time_elara}
+\end{equation}
+The request then advances as
+\begin{equation}
+    u_{r,i+1}=v_{r,i},\quad \tau_{r,i+1}=\tau_{r,i}^{\text{fin}}.
+\end{equation}
+After $m_L$ completes, the final output is routed to $v_d$, and the end-to-end latency is
+\begin{equation}
+    T_r^{\text{e2e}}=\tau_r^{\text{out}}-\tau_{\text{in}},
+    \label{eq:e2e_latency_elara}
+\end{equation}
+where $\tau_r^{\text{out}}$ is the time when the output reaches the destination satellite.
 
 The slow-layer redeployment action in slot $t$ is
 \begin{equation}
@@ -386,7 +380,7 @@ For remove actions, the service must still have at least $r_m^{\min}$ replicas a
 \subsection{Latency, Energy, and Migration Cost}
 \label{subsec:cost_model_elara}
 
-For one unit of data on link $e$ in slot $t$, the unit delay cost follows the communication-delay decomposition in \eqref{eq:link_delay_elara}:
+For one unit of data transmitted over link $e$ in slot $t$, the unit delay follows the decomposition in \eqref{eq:link_delay_elara}:
 \begin{equation}
 c_e^{T}(t)=
 \frac{1}{R_e(t)}
@@ -404,8 +398,8 @@ The unit communication energy is
 c_e^{E}(t)=P_e^{\text{tx}}\frac{1}{R_e(t)}.
 \label{eq:unit_energy_elara}
 \end{equation}
-Let $\phi_e(t)$ be the short-horizon link disruption risk estimated from future ISL availability over a small look-ahead window.
-The routing-layer edge cost is
+Let $\phi_e(t)$ be the short-horizon disruption risk of link $e$, estimated from predictable ISL availability over a small look-ahead window.
+The edge cost used by the routing layer is
 \begin{equation}
 c_e(t)=
 \omega_T c_e^{T}(t)
@@ -416,14 +410,14 @@ c_e(t)=
 \label{eq:edge_cost_elara}
 \end{equation}
 
-For request $r$, the total communication delay and energy are
+For request $r$, the total routing delay and routing energy are
 \begin{equation}
 T_r^{\text{ru}}=\sum_{i=1}^{L+1}T_{r,i}^{\text{ru}},
 \quad
 E_r^{\text{ru}}=\sum_{i=1}^{L+1}E_{r,i}^{\text{ru}}.
 \label{eq:route_cost_elara}
 \end{equation}
-The computation delay and energy are
+The total computing delay and computing energy are
 \begin{equation}
 T_r^{\text{cp}}
 =
@@ -437,13 +431,13 @@ E_r^{\text{cp}}
 \sum_{i=1}^{L}\sum_{v\in\mathcal{V}}
 z_{r,i,v}E_{m_i}^{\text{cp}}\big(v,s(\tau_{r,i}^{\text{arr}})\big).
 \end{equation}
-Thus,
+The total service energy is therefore
 \begin{equation}
 E_r^{\text{tot}}=E_r^{\text{ru}}+E_r^{\text{cp}}.
 \label{eq:total_energy_elara}
 \end{equation}
 
-For a replica redeployment action $a_t$, the migration cost is
+For replica redeployment action $a_t$, the migration cost is
 \begin{equation}
 C^{\text{mig}}(a_t)=
 \omega_T^{\text{mig}}\frac{T^{\text{mig}}(a_t)}{T_0}
@@ -451,7 +445,7 @@ C^{\text{mig}}(a_t)=
 \omega_E^{\text{mig}}\frac{E^{\text{mig}}(a_t)}{E_0},
 \label{eq:migration_cost_elara}
 \end{equation}
-where $T^{\text{mig}}(a_t)$ and $E^{\text{mig}}(a_t)$ are the delay and energy of transferring the service image.
+where $T^{\text{mig}}(a_t)$ and $E^{\text{mig}}(a_t)$ are the delay and energy for transferring the service image.
 Remove and no-op actions have zero migration-transfer cost.
 
 \subsection{Optimization Objective}
@@ -533,14 +527,11 @@ Problem $\mathbf{P1}$ is NP-hard.
 Consider a restricted case with a single time slot, fixed replica deployment, fixed effective link rates and compute capacities, and no redeployment.
 The controller still needs to select one replica for each service in a chain and connect consecutive selected replicas with feasible paths to minimize joint computation and communication cost.
 This restricted case contains the classical service placement and routing problem as a special case and can encode constrained shortest-path and facility-location-like decisions.
-Therefore, the restricted problem is NP-hard, and the full problem with cross-slot routing, stochastic load, and adaptive redeployment is at least as hard.
+Therefore, the restricted problem is NP-hard, and the full problem with cross-slot routing, time-varying queues and rates, and adaptive redeployment is at least as hard.
 
 Solving $\mathbf{P1}$ exactly is not suitable for online SCPN operation because requests arrive continuously, topology changes every slot, and redeployment decisions have delayed effects.
 ELARA therefore decomposes the problem into three coupled online layers: a fast PPO-GNN replica selector, a cross-slot min-cost max-flow router, and a slow bandit-based replica redeployment agent.
 
-\iffalse
-\section{System Model}
-\label{sec:sys_model}
 
 % We consider a space computing power network (SCPN) composed of a large-scale low-Earth-orbit (LEO) satellite constellation. Each satellite is equipped with onboard computing resources, storage modules, laser inter-satellite links (ISLs), and limited energy supply. 
 % Microservice instances are pre-deployed on a subset of satellites, and a ground user request is processed by invoking a chain of onboard microservices across multiple satellites. 
@@ -1041,7 +1032,7 @@ Constraint \eqref{eq:p1_c1} ensures that each microservice is executed by exactl
 Problem $\mathbf{P1}$ is a mixed-integer nonlinear optimization problem. The binary variables $\mathbf{z}$ determine microservice replica selection, while $\mathbf{y}$ and $\boldsymbol{\lambda}$ determine service subflow selection and data splitting. The coupling among computation delay, communication delay, path lifetime, battery states, and time-varying topology makes the problem challenging to solve optimally in real time. Moreover, the satellite load and battery states are only available through lightweight probing and may change during the request execution process.
 
 Therefore, rather than solving $\mathbf{P1}$ globally with full future knowledge, we design an online energy-aware decision scheme. The key idea is to exploit predictable orbital dynamics for offline topology indexing, while using lightweight online feedback to adaptively select the next execution satellite and transmission mode. Specifically, the proposed solution consists of two coupled components: a contextual-bandit-based replica selection module and an MPTCP-inspired adaptive path selection module.
-\fi
+
 
 \section{Energy-aware Service Routing Algorithm for Microservices in the SCPN}
 \label{sec:algo}
@@ -1147,7 +1138,7 @@ $\mathcal{V}^{re} = \{ v^{re}_1, \dots v^{re}_{\xi} \}$. Then, it adds these rel
 % then, it adds these relay nodes to the $\mathcal{V}_z$, 
 % constructs and adds edges 
 $v^{m_i}_{k^{t}} \to v^{re}_{a} , v^{re}_{a} \to v^{re}_{a+1} , v^{re}_{\xi} \to v^{m_j}_{k^r}, (\forall a\in[1, {\xi-1}])$ to $
-\mathcal{E}_z$. The weights of these edges, representing the relay communication energy cost between satellites, are calculated according to Eq. \ref{eq:shannon_rate2} and \ref{eq:comm_energy_cost}, as below:
+\mathcal{E}_z$. The weights of these edges, representing the relay communication energy cost between satellites, are calculated according to the unit-energy model in Eq.~\ref{eq:unit_energy_elara}, as below:
 \begin{eqnarray}
 \label{eq:comm_link_weight2}
 \mathbf{e}^{tr}_{{re}_1}(v^{m_i}_{k^{t}} \to v^{re}_{a}) = P^{v^{m_i}_{k^{t}} \to v^{re}_{a}}_{T} \frac{w_{i,j}} {\text{w}(v^{m_i}_{k^{t}} \to v^{re}_{a})}, \\
