@@ -1,0 +1,2 @@
+/home/yhg/StkCode/Simulation/test_outputs/ablation_experiments/plots/comparison_group/latency_metrics.png
+/home/yhg/StkCode/Simulation/test_outputs/ablation_experiments/plots/comparison_group/energy_metrics.png

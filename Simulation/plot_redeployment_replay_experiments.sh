@@ -7,7 +7,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PYTHON_BIN="${PYTHON_BIN:-python}"
 INPUT_DIR="${INPUT_DIR:-${SCRIPT_DIR}/test_outputs/bandit_redeployment_replay_experiments}"
 OUTPUT_DIR="${OUTPUT_DIR:-${INPUT_DIR}/plots}"
-ABLATIONS="${ABLATIONS:-ELARA ELARA-NB ELARA-NR ELARA-SH Fair-NFV SECO SP-Routing SC-NFV}"
+ABLATIONS="${ABLATIONS:-ELARA ELARA-NB}"
 FORMAT="${FORMAT:-png}"
 
 echo "Plotting bandit redeployment replay experiments"

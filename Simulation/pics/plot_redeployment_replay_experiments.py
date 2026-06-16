@@ -12,18 +12,15 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ..ablation_names import (
-    ABLATION_LABELS,
-    COMPARISON_GROUP_ABLATIONS,
-    canonical_ablation_names,
-    canonicalize_ablation_row,
-)
+from ..ablation_names import ABLATION_LABELS, canonical_ablation_names, canonicalize_ablation_row
 
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
-DEFAULT_INPUT_DIR = ROOT_DIR / "Simulation" / "test_outputs" / "bandit_redeployment_replay_experiments"
+DEFAULT_INPUT_DIR = (
+    ROOT_DIR / "Simulation" / "test_outputs" / "bandit_redeployment_replay_experiments"
+)
 DEFAULT_OUTPUT_DIR = DEFAULT_INPUT_DIR / "plots"
-DEFAULT_ABLATIONS = " ".join(COMPARISON_GROUP_ABLATIONS)
+DEFAULT_ABLATIONS = "ELARA ELARA-NB"
 
 FONT_FAMILY = "Times New Roman"
 LEGEND_FONT_SIZE = 10
@@ -32,23 +29,21 @@ TICK_LABEL_FONT_SIZE = 9
 TITLE_FONT_SIZE = 12
 AXIS_LINE_WIDTH = 1.0
 BAR_EDGE_LINE_WIDTH = 0.8
-LINE_WIDTH = 2.0
+LINE_WIDTH = 2.2
+MARKER_SIZE = 4.5
 
 COLORS = {
     "ELARA": "#2f6fbb",
     "ELARA-NB": "#d9822b",
-    "ELARA-NR": "#2f9e44",
-    "ELARA-SH": "#8b5cf6",
-    "Fair-NFV": "#cc4c4c",
-    "SECO": "#0f766e",
-    "SP-Routing": "#0891b2",
-    "SC-NFV": "#6b7280",
 }
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Plot before/after metrics for bandit redeployment replay experiments."
+        description=(
+            "Plot 10-slot window metrics for the repeated service redeployment "
+            "experiment."
+        )
     )
     parser.add_argument("--input-dir", type=Path, default=DEFAULT_INPUT_DIR)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
@@ -81,13 +76,12 @@ def read_rows(path: Path) -> list[dict]:
         return [canonicalize_ablation_row(row) for row in csv.DictReader(handle)]
 
 
-def load_rows(input_dir: Path, ablations: list[str]) -> list[dict]:
-    rows = read_rows(input_dir / "all_redeployment_summary_metrics.csv")
+def load_window_rows(input_dir: Path, ablations: list[str]) -> list[dict]:
+    rows = read_rows(input_dir / "all_redeployment_window_metrics.csv")
     if not rows:
         rows = []
         for ablation in ablations:
-            variant_rows = read_rows(input_dir / ablation / "redeployment_summary_by_seed.csv")
-            for row in variant_rows:
+            for row in read_rows(input_dir / ablation / "redeployment_window_metrics_by_seed.csv"):
                 row["ablation"] = row.get("ablation") or ablation
                 rows.append(canonicalize_ablation_row(row))
     return [row for row in rows if row.get("ablation") in ablations]
@@ -104,14 +98,25 @@ def number(row: dict, key: str) -> float | None:
     return result if math.isfinite(result) else None
 
 
-def grouped_values(rows: list[dict], ablations: list[str], column: str) -> dict[str, list[float]]:
-    grouped = {ablation: [] for ablation in ablations}
+def grouped_window_values(
+    rows: list[dict],
+    ablations: list[str],
+    metric: str,
+) -> tuple[list[int], dict[str, dict[int, list[float]]]]:
+    grouped: dict[str, dict[int, list[float]]] = {
+        ablation: defaultdict(list) for ablation in ablations
+    }
+    windows = set()
     for row in rows:
         ablation = row.get("ablation")
-        value = number(row, column)
-        if ablation in grouped and value is not None:
-            grouped[ablation].append(value)
-    return grouped
+        window = number(row, "window_index")
+        value = number(row, metric)
+        if ablation not in grouped or window is None or value is None:
+            continue
+        window_index = int(window)
+        windows.add(window_index)
+        grouped[ablation][window_index].append(value)
+    return sorted(windows), grouped
 
 
 def mean(values: list[float]) -> float:
@@ -124,144 +129,122 @@ def stderr(values: list[float]) -> float:
     return float(np.std(values, ddof=1) / math.sqrt(len(values)))
 
 
-def labels(ablations: list[str]) -> list[str]:
-    return [ABLATION_LABELS.get(ablation, ablation) for ablation in ablations]
+def label_for(ablation: str) -> str:
+    return ABLATION_LABELS.get(ablation, ablation)
 
 
 def style_axes(ax, title: str, ylabel: str) -> None:
     ax.set_title(title, pad=8)
+    ax.set_xlabel("10-slot window index")
     ax.set_ylabel(ylabel)
-    ax.grid(axis="y", linestyle="--", linewidth=0.6, alpha=0.45)
+    ax.grid(axis="both", linestyle="--", linewidth=0.6, alpha=0.45)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     for spine in ax.spines.values():
         spine.set_linewidth(AXIS_LINE_WIDTH)
 
 
-def plot_before_after_bars(
+def window_ticks(windows: list[int]) -> list[int]:
+    if len(windows) <= 12:
+        return windows
+    step = 10 if max(windows) >= 50 else 5
+    ticks = [windows[0]]
+    ticks.extend(window for window in windows if window % step == 0)
+    if windows[-1] not in ticks:
+        ticks.append(windows[-1])
+    return sorted(dict.fromkeys(ticks))
+
+
+def plot_metric_curve(
     ax,
     rows: list[dict],
     ablations: list[str],
-    before_column: str,
-    after_column: str,
+    metric: str,
     title: str,
     ylabel: str,
 ) -> None:
-    before = grouped_values(rows, ablations, before_column)
-    after = grouped_values(rows, ablations, after_column)
-    x = np.arange(len(ablations))
-    width = 0.36
-    before_means = [mean(before[ablation]) for ablation in ablations]
-    after_means = [mean(after[ablation]) for ablation in ablations]
-    before_err = [stderr(before[ablation]) for ablation in ablations]
-    after_err = [stderr(after[ablation]) for ablation in ablations]
-    colors = [COLORS.get(ablation, "#4b5563") for ablation in ablations]
-    ax.bar(
-        x - width / 2,
-        before_means,
-        width,
-        yerr=before_err,
-        color=colors,
-        alpha=0.45,
-        edgecolor="#222222",
-        linewidth=BAR_EDGE_LINE_WIDTH,
-        capsize=3,
-        label="Before",
-    )
-    ax.bar(
-        x + width / 2,
-        after_means,
-        width,
-        yerr=after_err,
-        color=colors,
-        alpha=0.95,
-        edgecolor="#222222",
-        linewidth=BAR_EDGE_LINE_WIDTH,
-        capsize=3,
-        label="After",
-    )
-    ax.set_xticks(x, labels(ablations), rotation=22, ha="right")
+    windows, grouped = grouped_window_values(rows, ablations, metric)
+    for ablation in ablations:
+        means = [mean(grouped[ablation].get(window, [])) for window in windows]
+        errors = [stderr(grouped[ablation].get(window, [])) for window in windows]
+        ax.errorbar(
+            windows,
+            means,
+            yerr=errors,
+            color=COLORS.get(ablation, "#4b5563"),
+            linewidth=LINE_WIDTH,
+            marker="o",
+            markersize=MARKER_SIZE,
+            capsize=3,
+            label=label_for(ablation),
+        )
+    ax.set_xticks(window_ticks(windows))
     style_axes(ax, title, ylabel)
-    ax.legend(frameon=False)
+    ax.legend(frameon=False, loc="best")
 
 
-def plot_reduction_bars(
-    ax,
-    rows: list[dict],
-    ablations: list[str],
-    ratio_column: str,
-    title: str,
-    ylabel: str,
-) -> None:
-    grouped = grouped_values(rows, ablations, ratio_column)
-    x = np.arange(len(ablations))
-    values = [100.0 * mean(grouped[ablation]) for ablation in ablations]
-    errors = [100.0 * stderr(grouped[ablation]) for ablation in ablations]
-    colors = [COLORS.get(ablation, "#4b5563") for ablation in ablations]
-    ax.axhline(0.0, color="#222222", linewidth=AXIS_LINE_WIDTH)
-    ax.bar(
-        x,
-        values,
-        yerr=errors,
-        color=colors,
-        edgecolor="#222222",
-        linewidth=BAR_EDGE_LINE_WIDTH,
-        capsize=3,
-    )
-    ax.set_xticks(x, labels(ablations), rotation=22, ha="right")
-    style_axes(ax, title, ylabel)
-
-
-def plot_action_counts(
-    ax,
+def plot_action_curve(
+    output_path: Path,
     rows: list[dict],
     ablations: list[str],
 ) -> None:
-    grouped = grouped_values(rows, ablations, "redeployment_action_count")
-    x = np.arange(len(ablations))
-    values = [mean(grouped[ablation]) for ablation in ablations]
-    colors = [COLORS.get(ablation, "#4b5563") for ablation in ablations]
-    ax.plot(
-        x,
-        values,
-        color="#111827",
-        linewidth=LINE_WIDTH,
-        marker="o",
-        markersize=4,
-    )
-    ax.bar(
-        x,
-        values,
-        color=colors,
-        alpha=0.35,
-        edgecolor="#222222",
-        linewidth=BAR_EDGE_LINE_WIDTH,
-    )
-    ax.set_xticks(x, labels(ablations), rotation=22, ha="right")
-    style_axes(ax, "Bandit redeployment actions", "Mean action count")
+    windows, grouped = grouped_window_values(rows, ablations, "redeployment_action_count")
+    fig, ax = plt.subplots(figsize=(12.8, 4.8), constrained_layout=True)
+    width = 0.34
+    x = np.arange(len(windows))
+    offset_start = -width * (len(ablations) - 1) / 2.0
+    for index, ablation in enumerate(ablations):
+        means = [mean(grouped[ablation].get(window, [])) for window in windows]
+        ax.bar(
+            x + offset_start + index * width,
+            means,
+            width,
+            color=COLORS.get(ablation, "#4b5563"),
+            edgecolor="#222222",
+            linewidth=BAR_EDGE_LINE_WIDTH,
+            label=label_for(ablation),
+        )
+    tick_windows = window_ticks(windows)
+    tick_positions = [windows.index(window) for window in tick_windows]
+    ax.set_xticks(tick_positions, [str(window) for window in tick_windows])
+    style_axes(ax, "Redeployment actions after each window", "Mean action count")
+    ax.legend(frameon=False, loc="best")
+    fig.savefig(output_path, bbox_inches="tight")
+    plt.close(fig)
 
 
 def write_metric_summary(output_path: Path, rows: list[dict], ablations: list[str]) -> None:
-    fields = [
-        "before_average_end_to_end_delay_s",
-        "after_average_end_to_end_delay_s",
-        "delay_reduction_ratio",
-        "before_average_energy_j",
-        "after_average_energy_j",
-        "energy_reduction_ratio",
+    metrics = (
+        "average_end_to_end_delay_s",
+        "average_energy_j",
         "redeployment_action_count",
-    ]
-    grouped: dict[str, list[dict]] = defaultdict(list)
-    for row in rows:
-        grouped[row.get("ablation", "")].append(row)
+    )
+    windows = sorted(
+        {
+            int(window)
+            for row in rows
+            if (window := number(row, "window_index")) is not None
+        }
+    )
     output_rows = []
     for ablation in ablations:
-        row = {"ablation": ablation, "label": ABLATION_LABELS.get(ablation, ablation)}
-        for field in fields:
-            values = [value for item in grouped[ablation] if (value := number(item, field)) is not None]
-            row[f"{field}_mean"] = mean(values)
-            row[f"{field}_stderr"] = stderr(values)
-        output_rows.append(row)
+        ablation_rows = [row for row in rows if row.get("ablation") == ablation]
+        for window in windows:
+            row = {
+                "ablation": ablation,
+                "label": label_for(ablation),
+                "window_index": window,
+            }
+            window_rows = [
+                item
+                for item in ablation_rows
+                if int(number(item, "window_index") or -1) == window
+            ]
+            for metric in metrics:
+                values = [value for item in window_rows if (value := number(item, metric)) is not None]
+                row[f"{metric}_mean"] = mean(values)
+                row[f"{metric}_stderr"] = stderr(values)
+            output_rows.append(row)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8-sig", newline="") as handle:
         fieldnames = list(output_rows[0]) if output_rows else ["ablation"]
@@ -274,64 +257,45 @@ def main() -> None:
     args = parse_args()
     configure_style()
     ablations = canonical_ablation_names(args.ablations)
-    rows = load_rows(args.input_dir, ablations)
+    rows = load_window_rows(args.input_dir, ablations)
     if not rows:
-        raise SystemExit(f"No redeployment summary rows found under {args.input_dir}")
+        raise SystemExit(f"No redeployment window rows found under {args.input_dir}")
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
-    fig, axes = plt.subplots(2, 2, figsize=(15.5, 9.0), constrained_layout=True)
-    plot_before_after_bars(
-        axes[0, 0],
+    window_count = len({int(number(row, "window_index") or 0) for row in rows})
+    figure_width = 13.2 if window_count > 20 else 9.6
+    fig, axes = plt.subplots(2, 1, figsize=(figure_width, 8.2), constrained_layout=True)
+    plot_metric_curve(
+        axes[0],
         rows,
         ablations,
-        "before_average_end_to_end_delay_s",
-        "after_average_end_to_end_delay_s",
-        "Before/after end-to-end delay",
+        "average_end_to_end_delay_s",
+        "Mean end-to-end delay across repeated 10-slot windows",
         "Mean delay (s)",
     )
-    plot_before_after_bars(
-        axes[0, 1],
+    plot_metric_curve(
+        axes[1],
         rows,
         ablations,
-        "before_average_energy_j",
-        "after_average_energy_j",
-        "Before/after energy",
+        "average_energy_j",
+        "Mean energy across repeated 10-slot windows",
         "Mean energy (J)",
     )
-    plot_reduction_bars(
-        axes[1, 0],
-        rows,
-        ablations,
-        "delay_reduction_ratio",
-        "Delay reduction after replay",
-        "Reduction (%)",
-    )
-    plot_reduction_bars(
-        axes[1, 1],
-        rows,
-        ablations,
-        "energy_reduction_ratio",
-        "Energy reduction after replay",
-        "Reduction (%)",
-    )
-    output_path = args.output_dir / f"redeployment_replay_metrics.{args.format}"
-    fig.savefig(output_path, bbox_inches="tight")
+    metric_path = args.output_dir / f"redeployment_window_metrics.{args.format}"
+    fig.savefig(metric_path, bbox_inches="tight")
     plt.close(fig)
 
     action_path = args.output_dir / f"redeployment_action_counts.{args.format}"
-    fig, ax = plt.subplots(figsize=(8.8, 4.8), constrained_layout=True)
-    plot_action_counts(ax, rows, ablations)
-    fig.savefig(action_path, bbox_inches="tight")
-    plt.close(fig)
+    plot_action_curve(action_path, rows, ablations)
 
     summary_path = args.output_dir / "redeployment_plot_summary.csv"
     write_metric_summary(summary_path, rows, ablations)
     manifest = args.output_dir / "plot_manifest.txt"
     manifest.write_text(
-        f"{output_path.resolve()}\n{action_path.resolve()}\n{summary_path.resolve()}\n",
+        f"{metric_path.resolve()}\n{action_path.resolve()}\n{summary_path.resolve()}\n",
         encoding="utf-8",
     )
-    print(output_path)
+    print(metric_path)
     print(action_path)
     print(summary_path)
 

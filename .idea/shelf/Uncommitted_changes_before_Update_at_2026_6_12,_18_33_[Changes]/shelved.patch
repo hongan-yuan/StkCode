@@ -1,0 +1,31 @@
+Index: service_pressure/.idea/service_pressure.iml
+===================================================================
+diff --git a/service_pressure/.idea/service_pressure.iml b/service_pressure/.idea/service_pressure.iml
+deleted file mode 100644
+--- a/service_pressure/.idea/service_pressure.iml	(revision 9f3beb761755a137b253d339d3a8100c7e3fe7c7)
++++ /dev/null	(revision 9f3beb761755a137b253d339d3a8100c7e3fe7c7)
+@@ -1,8 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<module type="PYTHON_MODULE" version="4">
+-  <component name="NewModuleRootManager">
+-    <content url="file://$MODULE_DIR$" />
+-    <orderEntry type="jdk" jdkName="satellite" jdkType="Python SDK" />
+-    <orderEntry type="sourceFolder" forTests="false" />
+-  </component>
+-</module>
+\ No newline at end of file
+Index: .idea/.gitignore
+===================================================================
+diff --git a/.idea/.gitignore b/.idea/.gitignore
+deleted file mode 100644
+--- a/.idea/.gitignore	(revision 9f3beb761755a137b253d339d3a8100c7e3fe7c7)
++++ /dev/null	(revision 9f3beb761755a137b253d339d3a8100c7e3fe7c7)
+@@ -1,8 +0,0 @@
+-# Default ignored files
+-/shelf/
+-/workspace.xml
+-# Editor-based HTTP Client requests
+-/httpRequests/
+-# Datasource local storage ignored files
+-/dataSources/
+-/dataSources.local.xml

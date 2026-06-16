@@ -1,0 +1,110 @@
+ablation=ELARA-NR seed=300 [------------------------]   0.17% 1/606 elapsed=00:04 eta=41:19 arrivals=8 success=1.000
+ablation=ELARA-NR seed=300 [#-----------------------]   4.13% 25/606 elapsed=01:07 eta=26:01 arrivals=4 success=1.000
+ablation=ELARA-NR seed=300 [##----------------------]   8.25% 50/606 elapsed=02:18 eta=25:39 arrivals=5 success=1.000
+ablation=ELARA-NR seed=300 [###---------------------]  12.38% 75/606 elapsed=03:30 eta=24:45 arrivals=4 success=1.000
+ablation=ELARA-NR seed=300 [####--------------------]  16.50% 100/606 elapsed=04:45 eta=24:01 arrivals=5 success=1.000
+ablation=ELARA-NR seed=300 [#####-------------------]  20.63% 125/606 elapsed=05:54 eta=22:42 arrivals=10 success=1.000
+ablation=ELARA-NR seed=300 [######------------------]  24.75% 150/606 elapsed=06:48 eta=20:40 arrivals=7 success=1.000
+ablation=ELARA-NR seed=300 [#######-----------------]  28.88% 175/606 elapsed=07:50 eta=19:18 arrivals=7 success=1.000
+ablation=ELARA-NR seed=300 [########----------------]  33.00% 200/606 elapsed=09:08 eta=18:33 arrivals=4 success=1.000
+ablation=ELARA-NR seed=300 [#########---------------]  37.13% 225/606 elapsed=10:10 eta=17:13 arrivals=2 success=1.000
+ablation=ELARA-NR seed=300 [##########--------------]  41.25% 250/606 elapsed=11:09 eta=15:53 arrivals=6 success=1.000
+ablation=ELARA-NR seed=300 [###########-------------]  45.38% 275/606 elapsed=12:04 eta=14:32 arrivals=3 success=1.000
+ablation=ELARA-NR seed=300 [############------------]  49.50% 300/606 elapsed=13:07 eta=13:23 arrivals=6 success=1.000
+ablation=ELARA-NR seed=300 [#############-----------]  53.63% 325/606 elapsed=14:09 eta=12:14 arrivals=5 success=1.000
+ablation=ELARA-NR seed=300 [##############----------]  57.76% 350/606 elapsed=15:25 eta=11:17 arrivals=4 success=1.000
+ablation=ELARA-NR seed=300 [###############---------]  61.88% 375/606 elapsed=16:35 eta=10:13 arrivals=7 success=1.000
+ablation=ELARA-NR seed=300 [################--------]  66.01% 400/606 elapsed=17:34 eta=09:03 arrivals=8 success=1.000
+ablation=ELARA-NR seed=300 [#################-------]  70.13% 425/606 elapsed=18:35 eta=07:55 arrivals=6 success=1.000
+ablation=ELARA-NR seed=300 [##################------]  74.26% 450/606 elapsed=19:42 eta=06:50 arrivals=2 success=1.000
+ablation=ELARA-NR seed=300 [###################-----]  78.38% 475/606 elapsed=20:54 eta=05:46 arrivals=7 success=1.000
+ablation=ELARA-NR seed=300 [####################----]  82.51% 500/606 elapsed=21:57 eta=04:39 arrivals=6 success=1.000
+ablation=ELARA-NR seed=300 [#####################---]  86.63% 525/606 elapsed=23:10 eta=03:34 arrivals=5 success=1.000
+ablation=ELARA-NR seed=300 [######################--]  90.76% 550/606 elapsed=24:29 eta=02:30 arrivals=4 success=1.000
+ablation=ELARA-NR seed=300 [#######################-]  94.88% 575/606 elapsed=25:38 eta=01:23 arrivals=4 success=1.000
+ablation=ELARA-NR seed=300 [########################]  99.01% 600/606 elapsed=26:51 eta=00:16 arrivals=7 success=1.000
+ablation=ELARA-NR seed=300 [########################] 100.00% 606/606 elapsed=27:08 eta=00:00 arrivals=4 success=1.000
+{
+  "seeds": [
+    300
+  ],
+  "seed_summaries": [
+    {
+      "ablation": "ELARA-NR",
+      "seed": 300,
+      "run_dir": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_300",
+      "slot_metrics_csv": "/home/yhg/StkCode/Simulation/test_outputs/ablation_experiments/ELARA-NR/seed_300/slot_metrics.csv",
+      "request_metrics_csv": "/home/yhg/StkCode/Simulation/test_outputs/ablation_experiments/ELARA-NR/seed_300/request_metrics.csv",
+      "request_hop_metrics_csv": "/home/yhg/StkCode/Simulation/test_outputs/ablation_experiments/ELARA-NR/seed_300/request_hop_metrics.csv",
+      "cycle_request_metrics_csv": "/home/yhg/StkCode/Simulation/test_outputs/ablation_experiments/ELARA-NR/seed_300/cycle_request_metrics.csv",
+      "request_hop_metric_row_count": 24205,
+      "slot_count": 606,
+      "slot_duration_s": 10.0,
+      "request_template_csv": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_300/request_templates.csv",
+      "request_templates_loaded": true,
+      "request_template_count": 14,
+      "original_request_template_count": 14,
+      "chain_length_filter": null,
+      "arrival_mode": "per_template",
+      "arrival_lambda_total_per_slot": null,
+      "checkpoint": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_300/ppo_gnn_latest.pth",
+      "checkpoint_loaded": false,
+      "checkpoint_load_error": "",
+      "execution_agent": "NearestReplicaExecutionAgent",
+      "service_routing_strategy": "min_cost_max_flow",
+      "bandit_redeployment_enabled": true,
+      "bandit_arm_stats": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_300/bandit_arm_stats.csv",
+      "bandit_loaded_arm_count": 563,
+      "arrival_lambda_per_pattern_per_slot": 0.35,
+      "overall_summary": {
+        "request_count": 3037,
+        "feasible_count": 3032,
+        "success_rate": 0.9983536384590056,
+        "average_end_to_end_delay_s": 54.00198780410973,
+        "p95_end_to_end_delay_s": 102.17053840020944,
+        "average_energy_j": 2619.740372948784,
+        "average_communication_delay_s": 1.084709290938212,
+        "average_slot_crossings": 0.10410245119624248,
+        "route_mode_counts": {
+          "min_cost_max_flow": 25256,
+          "local": 1996
+        }
+      },
+      "delay_margin_summary": {
+        "deadline_accepted_count": 2845,
+        "deadline_acceptance_rate": 0.9383245382585752,
+        "delay_margin_mean": 0.6580003560216419,
+        "delay_margin_max": 1.6147008241480596,
+        "delay_margin_jain_fairness": 0.9131750333089594
+      },
+      "bandit_summary": {
+        "total_pulls": 5301,
+        "known_arm_count": 578,
+        "positive_arm_count": 578,
+        "average_arm_reward": 1.090428945385525,
+        "total_applied_actions": 240,
+        "total_execution_feedback_updates": 2640,
+        "total_failed_replica_observations": 5,
+        "known_failed_replica_count": 1,
+        "known_service_pressure_metric_count": 26,
+        "total_applied_add_count": 41,
+        "total_applied_move_count": 199,
+        "last_applied_action_count": 4,
+        "last_applied_move_count": 4,
+        "last_unresolved_arm_count": 3
+      },
+      "routing_cache_summary": {
+        "route_result_hits": 23973,
+        "route_result_misses": 218496,
+        "shortest_path_hits": 0,
+        "shortest_path_misses": 0,
+        "precomputed_slots": 606,
+        "precomputed_nodes": 180
+      },
+      "route_estimate_cache_summary": {
+        "hits": 3464,
+        "misses": 214655
+      }
+    }
+  ]
+}

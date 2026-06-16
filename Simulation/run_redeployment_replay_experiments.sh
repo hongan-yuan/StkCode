@@ -6,22 +6,25 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 PYTHON_BIN="${PYTHON_BIN:-python}"
 SEEDS="${SEEDS:-41 42 43 44}"
-RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-ELARA ELARA-NB ELARA-NR ELARA-SH Fair-NFV SECO SP-Routing SC-NFV}}"
+RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-ELARA ELARA-NB}}"
 MERGE_ABLATIONS="${MERGE_ABLATIONS:-${RUN_ABLATIONS}}"
 REDEPLOY_ABLATIONS="${REDEPLOY_ABLATIONS:-ELARA}"
+TRACE_SOURCE_ABLATION="${TRACE_SOURCE_ABLATION:-ELARA}"
 GPUS="${GPUS:-0 1 2 3}"
 MODEL_ROOT="${MODEL_ROOT:-${SCRIPT_DIR}/multi_seed_runs}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-${SCRIPT_DIR}/test_outputs/bandit_redeployment_replay_experiments}"
 DEFAULT_ISL_CSV="${PROJECT_ROOT}/WalkerDeltaConstellationSimu/Walker_Delta_ISL_Simu.csv"
 ISL_CSV="${ISL_CSV:-${DEFAULT_ISL_CSV}}"
-DEVICE="${DEVICE:-cuda}"
+DEVICE="${DEVICE:-cpu}"
 CPU_WORKERS="${CPU_WORKERS:-4}"
 GPU_WORKERS_PER_GPU="${GPU_WORKERS_PER_GPU:-9}"
-WINDOW_SLOTS="${WINDOW_SLOTS:-10}"
+WINDOW_SLOTS="${WINDOW_SLOTS:-600}"
+BASE_WINDOW_SLOTS="${BASE_WINDOW_SLOTS:-10}"
 START_SLOT="${START_SLOT:-0}"
 CHECKPOINT_NAME="${CHECKPOINT_NAME:-ppo_gnn_latest.pth}"
 BANDIT_STATS_NAME="${BANDIT_STATS_NAME:-bandit_arm_stats.csv}"
 PROGRESS_EVERY="${PROGRESS_EVERY:-1}"
+EXTRA_ARGS=("$@")
 
 common_args=(
   --model-root "${MODEL_ROOT}"
@@ -29,6 +32,7 @@ common_args=(
   --bandit-stats-name "${BANDIT_STATS_NAME}"
   --isl-csv "${ISL_CSV}"
   --window-slots "${WINDOW_SLOTS}"
+  --base-window-slots "${BASE_WINDOW_SLOTS}"
   --start-slot "${START_SLOT}"
   --redeploy-ablations "${REDEPLOY_ABLATIONS}"
   --progress-every "${PROGRESS_EVERY}"
@@ -92,8 +96,10 @@ echo "Running bandit redeployment replay experiments"
 echo "  run_ablations: ${RUN_ABLATIONS}"
 echo "  merge_ablations: ${MERGE_ABLATIONS}"
 echo "  redeploy_ablations: ${REDEPLOY_ABLATIONS}"
+echo "  trace_source_ablation: ${TRACE_SOURCE_ABLATION}"
 echo "  seeds: ${SEEDS}"
 echo "  window_slots: ${WINDOW_SLOTS}"
+echo "  base_window_slots: ${BASE_WINDOW_SLOTS}"
 echo "  start_slot: ${START_SLOT}"
 echo "  output_root: ${OUTPUT_ROOT}"
 echo "  device: ${DEVICE}"
@@ -143,6 +149,7 @@ existing_seed_list() {
     [[ -f "${seed_dir}/redeployment_summary_metrics.csv" ]] || continue
     [[ -f "${seed_dir}/window_slot_metrics.csv" ]] || continue
     [[ -f "${seed_dir}/window_request_metrics.csv" ]] || continue
+    [[ -f "${seed_dir}/redeployment_window_metrics.csv" ]] || continue
     [[ -f "${seed_dir}/request_trace.csv" ]] || continue
     seed="${seed_dir##*/seed_}"
     seed_dirs+=("${seed}")
@@ -160,7 +167,7 @@ require_seed_outputs() {
   local seed_dir="${variant_dir}/seed_${seed}"
   local missing=0
   local file
-  for file in request_trace.csv window_slot_metrics.csv window_request_metrics.csv redeployment_summary_metrics.csv summary.json; do
+  for file in request_trace.csv window_slot_metrics.csv window_request_metrics.csv redeployment_window_metrics.csv redeployment_summary_metrics.csv summary.json; do
     if [[ ! -f "${seed_dir}/${file}" ]]; then
       echo "Missing ${file} for ${label} seed=${seed}: ${seed_dir}/${file}" >&2
       missing=1
@@ -176,44 +183,99 @@ cleanup() {
 }
 trap cleanup INT TERM
 
-for ablation in "${RUN_ABLATION_ARRAY[@]}"; do
-  variant_dir="${OUTPUT_ROOT}/${ablation}"
+contains_ablation() {
+  local needle="$1"
+  local item
+  shift
+  for item in "$@"; do
+    [[ "${item}" == "${needle}" ]] && return 0
+  done
+  return 1
+}
+
+launch_task() {
+  local ablation="$1"
+  local seed="$2"
+  local trace_csv="${3:-}"
+  local variant_dir="${OUTPUT_ROOT}/${ablation}"
+  local log_file="${variant_dir}/seed_${seed}.log"
+  local label="ablation=${ablation} seed=${seed}"
+  local trace_args=()
   mkdir -p "${variant_dir}"
+  if [[ -n "${trace_csv}" ]]; then
+    trace_args+=(--request-trace-csv "${trace_csv}")
+    label="${label} trace=${trace_csv}"
+  fi
+  wait_for_slot
+  if [[ "${DEVICE}" == "cpu" ]]; then
+    echo "Launching ${label} on CPU; log=${log_file}"
+    (
+      cd "${PROJECT_ROOT}"
+      CUDA_VISIBLE_DEVICES="" "${PYTHON_BIN}" -m Simulation.tests.redeployment_replay_experiment \
+        --ablation "${ablation}" \
+        --seeds "${seed}" \
+        --output-dir "${variant_dir}" \
+        --device "${DEVICE}" \
+        --skip-aggregate \
+        ${trace_args[@]+"${trace_args[@]}"} \
+        "${common_args[@]}" \
+        ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}
+    ) > "${log_file}" 2>&1 &
+  else
+    gpu="${GPU_ARRAY[$((task_index % gpu_count))]}"
+    echo "Launching ${label} on GPU=${gpu}; log=${log_file}"
+    (
+      cd "${PROJECT_ROOT}"
+      CUDA_VISIBLE_DEVICES="${gpu}" "${PYTHON_BIN}" -m Simulation.tests.redeployment_replay_experiment \
+        --ablation "${ablation}" \
+        --seeds "${seed}" \
+        --output-dir "${variant_dir}" \
+        --device "${DEVICE}" \
+        --skip-aggregate \
+        ${trace_args[@]+"${trace_args[@]}"} \
+        "${common_args[@]}" \
+        ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}
+    ) > "${log_file}" 2>&1 &
+  fi
+  pids+=("$!")
+  labels+=("${label}")
+  task_index=$((task_index + 1))
+}
+
+if ! contains_ablation "${TRACE_SOURCE_ABLATION}" "${RUN_ABLATION_ARRAY[@]}"; then
+  echo "RUN_ABLATIONS must include TRACE_SOURCE_ABLATION=${TRACE_SOURCE_ABLATION}." >&2
+  exit 1
+fi
+
+echo "Stage 1: running ${TRACE_SOURCE_ABLATION} to generate shared request traces."
+for seed in "${SEED_ARRAY[@]}"; do
+  launch_task "${TRACE_SOURCE_ABLATION}" "${seed}"
+done
+
+wait_active_tasks
+if [[ "${failed}" -ne 0 ]]; then
+  echo "Trace source ablation failed. Check logs under ${OUTPUT_ROOT}/${TRACE_SOURCE_ABLATION}." >&2
+  exit 1
+fi
+
+echo "Validating shared request traces from ${TRACE_SOURCE_ABLATION}."
+for seed in "${SEED_ARRAY[@]}"; do
+  trace_csv="${OUTPUT_ROOT}/${TRACE_SOURCE_ABLATION}/seed_${seed}/request_trace.csv"
+  if [[ ! -f "${trace_csv}" ]]; then
+    echo "Missing shared request trace for seed=${seed}: ${trace_csv}" >&2
+    failed=1
+  fi
+done
+if [[ "${failed}" -ne 0 ]]; then
+  exit 1
+fi
+
+echo "Stage 2: running comparison ablations with the shared ${TRACE_SOURCE_ABLATION} traces."
+for ablation in "${RUN_ABLATION_ARRAY[@]}"; do
+  [[ "${ablation}" == "${TRACE_SOURCE_ABLATION}" ]] && continue
   for seed in "${SEED_ARRAY[@]}"; do
-    wait_for_slot
-    log_file="${variant_dir}/seed_${seed}.log"
-    label="ablation=${ablation} seed=${seed}"
-    if [[ "${DEVICE}" == "cpu" ]]; then
-      echo "Launching ${label} on CPU; log=${log_file}"
-      (
-        cd "${PROJECT_ROOT}"
-        CUDA_VISIBLE_DEVICES="" "${PYTHON_BIN}" -m Simulation.tests.redeployment_replay_experiment \
-          --ablation "${ablation}" \
-          --seeds "${seed}" \
-          --output-dir "${variant_dir}" \
-          --device "${DEVICE}" \
-          --skip-aggregate \
-          "${common_args[@]}" \
-          "$@"
-      ) > "${log_file}" 2>&1 &
-    else
-      gpu="${GPU_ARRAY[$((task_index % gpu_count))]}"
-      echo "Launching ${label} on GPU=${gpu}; log=${log_file}"
-      (
-        cd "${PROJECT_ROOT}"
-        CUDA_VISIBLE_DEVICES="${gpu}" "${PYTHON_BIN}" -m Simulation.tests.redeployment_replay_experiment \
-          --ablation "${ablation}" \
-          --seeds "${seed}" \
-          --output-dir "${variant_dir}" \
-          --device "${DEVICE}" \
-          --skip-aggregate \
-          "${common_args[@]}" \
-          "$@"
-      ) > "${log_file}" 2>&1 &
-    fi
-    pids+=("$!")
-    labels+=("${label}")
-    task_index=$((task_index + 1))
+    trace_csv="${OUTPUT_ROOT}/${TRACE_SOURCE_ABLATION}/seed_${seed}/request_trace.csv"
+    launch_task "${ablation}" "${seed}" "${trace_csv}"
   done
 done
 
@@ -259,7 +321,7 @@ for ablation in "${MERGE_ABLATION_ARRAY[@]}"; do
       --output-dir "${variant_dir}" \
       --plot-only \
       "${common_args[@]}" \
-      "$@"
+      ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}
   )
 done
 
@@ -293,6 +355,7 @@ def write_rows(path, rows):
 summary_rows = []
 slot_rows = []
 request_rows = []
+window_rows = []
 for ablation in ablations:
     variant_dir = output_root / ablation
     for row in read_rows(variant_dir / "redeployment_summary_by_seed.csv"):
@@ -304,8 +367,12 @@ for ablation in ablations:
     for row in read_rows(variant_dir / "window_request_metrics_by_seed.csv"):
         row["ablation"] = row.get("ablation") or ablation
         request_rows.append(row)
+    for row in read_rows(variant_dir / "redeployment_window_metrics_by_seed.csv"):
+        row["ablation"] = row.get("ablation") or ablation
+        window_rows.append(row)
 
 write_rows(output_root / "all_redeployment_summary_metrics.csv", summary_rows)
+write_rows(output_root / "all_redeployment_window_metrics.csv", window_rows)
 write_rows(output_root / "all_redeployment_slot_metrics.csv", slot_rows)
 write_rows(output_root / "all_redeployment_request_metrics.csv", request_rows)
 PY
