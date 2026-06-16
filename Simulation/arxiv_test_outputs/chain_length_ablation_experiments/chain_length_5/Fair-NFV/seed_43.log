@@ -1,0 +1,106 @@
+ablation=Fair-NFV seed=43 [------------------------]   0.17% 1/606 elapsed=00:00 eta=01:01 arrivals=3 success=1.000
+ablation=Fair-NFV seed=43 [#-----------------------]   4.13% 25/606 elapsed=00:04 eta=01:41 arrivals=8 success=1.000
+ablation=Fair-NFV seed=43 [##----------------------]   8.25% 50/606 elapsed=00:08 eta=01:33 arrivals=3 success=1.000
+ablation=Fair-NFV seed=43 [###---------------------]  12.38% 75/606 elapsed=00:13 eta=01:32 arrivals=6 success=1.000
+ablation=Fair-NFV seed=43 [####--------------------]  16.50% 100/606 elapsed=00:17 eta=01:25 arrivals=3 success=1.000
+ablation=Fair-NFV seed=43 [#####-------------------]  20.63% 125/606 elapsed=00:21 eta=01:19 arrivals=8 success=1.000
+ablation=Fair-NFV seed=43 [######------------------]  24.75% 150/606 elapsed=00:24 eta=01:14 arrivals=4 success=1.000
+ablation=Fair-NFV seed=43 [#######-----------------]  28.88% 175/606 elapsed=00:28 eta=01:08 arrivals=4 success=1.000
+ablation=Fair-NFV seed=43 [########----------------]  33.00% 200/606 elapsed=00:32 eta=01:05 arrivals=5 success=1.000
+ablation=Fair-NFV seed=43 [#########---------------]  37.13% 225/606 elapsed=00:35 eta=00:59 arrivals=4 success=1.000
+ablation=Fair-NFV seed=43 [##########--------------]  41.25% 250/606 elapsed=00:39 eta=00:55 arrivals=4 success=1.000
+ablation=Fair-NFV seed=43 [###########-------------]  45.38% 275/606 elapsed=00:42 eta=00:51 arrivals=1 success=1.000
+ablation=Fair-NFV seed=43 [############------------]  49.50% 300/606 elapsed=00:46 eta=00:47 arrivals=10 success=1.000
+ablation=Fair-NFV seed=43 [#############-----------]  53.63% 325/606 elapsed=00:50 eta=00:43 arrivals=3 success=1.000
+ablation=Fair-NFV seed=43 [##############----------]  57.76% 350/606 elapsed=00:53 eta=00:39 arrivals=10 success=1.000
+ablation=Fair-NFV seed=43 [###############---------]  61.88% 375/606 elapsed=00:57 eta=00:35 arrivals=6 success=1.000
+ablation=Fair-NFV seed=43 [################--------]  66.01% 400/606 elapsed=01:01 eta=00:31 arrivals=2 success=1.000
+ablation=Fair-NFV seed=43 [#################-------]  70.13% 425/606 elapsed=01:04 eta=00:27 arrivals=5 success=1.000
+ablation=Fair-NFV seed=43 [##################------]  74.26% 450/606 elapsed=01:08 eta=00:24 arrivals=5 success=1.000
+ablation=Fair-NFV seed=43 [###################-----]  78.38% 475/606 elapsed=01:11 eta=00:20 arrivals=3 success=1.000
+ablation=Fair-NFV seed=43 [####################----]  82.51% 500/606 elapsed=01:15 eta=00:16 arrivals=6 success=1.000
+ablation=Fair-NFV seed=43 [#####################---]  86.63% 525/606 elapsed=01:19 eta=00:12 arrivals=4 success=1.000
+ablation=Fair-NFV seed=43 [######################--]  90.76% 550/606 elapsed=01:22 eta=00:08 arrivals=3 success=1.000
+ablation=Fair-NFV seed=43 [#######################-]  94.88% 575/606 elapsed=01:25 eta=00:05 arrivals=4 success=1.000
+ablation=Fair-NFV seed=43 [########################]  99.01% 600/606 elapsed=01:30 eta=00:01 arrivals=9 success=1.000
+ablation=Fair-NFV seed=43 [########################] 100.00% 606/606 elapsed=01:31 eta=00:00 arrivals=7 success=1.000
+{
+  "seeds": [
+    43
+  ],
+  "seed_summaries": [
+    {
+      "ablation": "Fair-NFV",
+      "seed": 43,
+      "run_dir": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_43",
+      "slot_count": 606,
+      "slot_duration_s": 10.0,
+      "request_template_csv": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_43/request_templates.csv",
+      "request_templates_loaded": true,
+      "request_template_count": 8,
+      "original_request_template_count": 14,
+      "chain_length_filter": 5,
+      "arrival_mode": "total_per_slot",
+      "arrival_lambda_total_per_slot": 4.9,
+      "checkpoint": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_43/ppo_gnn_latest.pth",
+      "checkpoint_loaded": false,
+      "checkpoint_load_error": "",
+      "execution_agent": "FairnessAwareGreedyVNFExecutionAgent",
+      "service_routing_strategy": "shortest_hop_per_slot",
+      "bandit_redeployment_enabled": true,
+      "bandit_arm_stats": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_43/bandit_arm_stats.csv",
+      "bandit_loaded_arm_count": 656,
+      "arrival_lambda_per_pattern_per_slot": 0.35,
+      "overall_summary": {
+        "request_count": 2973,
+        "feasible_count": 2973,
+        "success_rate": 1.0,
+        "average_end_to_end_delay_s": 25.97302981992948,
+        "p95_end_to_end_delay_s": 36.044092482688484,
+        "average_energy_j": 1058.4178505415061,
+        "average_communication_delay_s": 1.775271791164338,
+        "average_slot_crossings": 0.17014239264491535,
+        "route_mode_counts": {
+          "shortest_hop_per_slot": 17654,
+          "local": 184
+        }
+      },
+      "delay_margin_summary": {
+        "deadline_accepted_count": 2973,
+        "deadline_acceptance_rate": 1.0,
+        "delay_margin_mean": 0.4722369058168995,
+        "delay_margin_max": 0.9789837734488024,
+        "delay_margin_jain_fairness": 0.957621872985217
+      },
+      "bandit_summary": {
+        "total_pulls": 5309,
+        "known_arm_count": 661,
+        "positive_arm_count": 657,
+        "average_arm_reward": 1.1345641586526627,
+        "total_applied_actions": 240,
+        "total_execution_feedback_updates": 2640,
+        "total_failed_replica_observations": 0,
+        "known_failed_replica_count": 0,
+        "known_service_pressure_metric_count": 22,
+        "total_applied_add_count": 18,
+        "total_applied_move_count": 222,
+        "last_applied_action_count": 4,
+        "last_applied_move_count": 4,
+        "last_unresolved_arm_count": 2,
+        "last_rejected_nonpositive_count": 1
+      },
+      "routing_cache_summary": {
+        "route_result_hits": 20252,
+        "route_result_misses": 207295,
+        "shortest_path_hits": 0,
+        "shortest_path_misses": 0,
+        "precomputed_slots": 606,
+        "precomputed_nodes": 180
+      },
+      "route_estimate_cache_summary": {
+        "hits": 53332,
+        "misses": 206351
+      }
+    }
+  ]
+}

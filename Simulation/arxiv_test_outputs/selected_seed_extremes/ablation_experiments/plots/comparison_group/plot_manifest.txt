@@ -1,0 +1,2 @@
+/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/test_outputs/selected_seed_extremes/ablation_experiments/plots/comparison_group/latency_metrics.png
+/mnt/f/[1]MYPAPERS/[3]Satellite_Microservice_Docs/StkCode/Simulation/test_outputs/selected_seed_extremes/ablation_experiments/plots/comparison_group/energy_metrics.png

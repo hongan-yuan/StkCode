@@ -1,0 +1,110 @@
+ablation=SECO seed=44 [------------------------]   0.17% 1/606 elapsed=00:02 eta=17:09 arrivals=8 success=1.000
+ablation=SECO seed=44 [#-----------------------]   4.13% 25/606 elapsed=00:18 eta=07:00 arrivals=8 success=1.000
+ablation=SECO seed=44 [##----------------------]   8.25% 50/606 elapsed=00:42 eta=07:43 arrivals=3 success=1.000
+ablation=SECO seed=44 [###---------------------]  12.38% 75/606 elapsed=01:05 eta=07:37 arrivals=3 success=1.000
+ablation=SECO seed=44 [####--------------------]  16.50% 100/606 elapsed=01:29 eta=07:31 arrivals=5 success=1.000
+ablation=SECO seed=44 [#####-------------------]  20.63% 125/606 elapsed=01:55 eta=07:22 arrivals=7 success=1.000
+ablation=SECO seed=44 [######------------------]  24.75% 150/606 elapsed=02:13 eta=06:43 arrivals=5 success=1.000
+ablation=SECO seed=44 [#######-----------------]  28.88% 175/606 elapsed=02:36 eta=06:23 arrivals=4 success=1.000
+ablation=SECO seed=44 [########----------------]  33.00% 200/606 elapsed=02:55 eta=05:56 arrivals=8 success=1.000
+ablation=SECO seed=44 [#########---------------]  37.13% 225/606 elapsed=03:18 eta=05:35 arrivals=5 success=1.000
+ablation=SECO seed=44 [##########--------------]  41.25% 250/606 elapsed=03:43 eta=05:17 arrivals=7 success=1.000
+ablation=SECO seed=44 [###########-------------]  45.38% 275/606 elapsed=04:10 eta=05:00 arrivals=3 success=1.000
+ablation=SECO seed=44 [############------------]  49.50% 300/606 elapsed=04:46 eta=04:52 arrivals=7 success=1.000
+ablation=SECO seed=44 [#############-----------]  53.63% 325/606 elapsed=05:15 eta=04:33 arrivals=2 success=1.000
+ablation=SECO seed=44 [##############----------]  57.76% 350/606 elapsed=05:38 eta=04:07 arrivals=8 success=1.000
+ablation=SECO seed=44 [###############---------]  61.88% 375/606 elapsed=06:02 eta=03:43 arrivals=5 success=1.000
+ablation=SECO seed=44 [################--------]  66.01% 400/606 elapsed=06:21 eta=03:16 arrivals=7 success=1.000
+ablation=SECO seed=44 [#################-------]  70.13% 425/606 elapsed=06:39 eta=02:50 arrivals=4 success=1.000
+ablation=SECO seed=44 [##################------]  74.26% 450/606 elapsed=06:59 eta=02:25 arrivals=2 success=1.000
+ablation=SECO seed=44 [###################-----]  78.38% 475/606 elapsed=07:17 eta=02:01 arrivals=4 success=1.000
+ablation=SECO seed=44 [####################----]  82.51% 500/606 elapsed=07:39 eta=01:37 arrivals=8 success=1.000
+ablation=SECO seed=44 [#####################---]  86.63% 525/606 elapsed=08:01 eta=01:14 arrivals=11 success=1.000
+ablation=SECO seed=44 [######################--]  90.76% 550/606 elapsed=08:24 eta=00:51 arrivals=4 success=1.000
+ablation=SECO seed=44 [#######################-]  94.88% 575/606 elapsed=08:47 eta=00:28 arrivals=3 success=1.000
+ablation=SECO seed=44 [########################]  99.01% 600/606 elapsed=09:05 eta=00:05 arrivals=1 success=1.000
+ablation=SECO seed=44 [########################] 100.00% 606/606 elapsed=09:11 eta=00:00 arrivals=8 success=1.000
+{
+  "seeds": [
+    44
+  ],
+  "seed_summaries": [
+    {
+      "ablation": "SECO",
+      "seed": 44,
+      "run_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_44",
+      "slot_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/SECO/seed_44/slot_metrics.csv",
+      "request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/SECO/seed_44/request_metrics.csv",
+      "request_hop_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/SECO/seed_44/request_hop_metrics.csv",
+      "cycle_request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/ablation_experiments/SECO/seed_44/cycle_request_metrics.csv",
+      "request_hop_metric_row_count": 22800,
+      "slot_count": 606,
+      "slot_duration_s": 10.0,
+      "request_template_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_44/request_templates.csv",
+      "request_templates_loaded": true,
+      "request_template_count": 14,
+      "original_request_template_count": 14,
+      "chain_length_filter": null,
+      "arrival_mode": "per_template",
+      "arrival_lambda_total_per_slot": null,
+      "checkpoint": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_44/ppo_gnn_latest.pth",
+      "checkpoint_loaded": false,
+      "checkpoint_load_error": "",
+      "execution_agent": "SECOGreedyExecutionAgent",
+      "service_routing_strategy": "shortest_hop_per_slot",
+      "bandit_redeployment_enabled": true,
+      "bandit_arm_stats": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_44/bandit_arm_stats.csv",
+      "bandit_loaded_arm_count": 470,
+      "arrival_lambda_per_pattern_per_slot": 0.35,
+      "overall_summary": {
+        "request_count": 2921,
+        "feasible_count": 2921,
+        "success_rate": 1.0,
+        "average_end_to_end_delay_s": 33.92522333440866,
+        "p95_end_to_end_delay_s": 66.337432266203,
+        "average_energy_j": 1380.9850428754007,
+        "average_communication_delay_s": 1.614550786026115,
+        "average_slot_crossings": 0.14956650208001243,
+        "route_mode_counts": {
+          "shortest_hop_per_slot": 25142,
+          "local": 579
+        }
+      },
+      "delay_margin_summary": {
+        "deadline_accepted_count": 2921,
+        "deadline_acceptance_rate": 1.0,
+        "delay_margin_mean": 0.41466709110659633,
+        "delay_margin_max": 0.8822224764378006,
+        "delay_margin_jain_fairness": 0.9632352085711688
+      },
+      "bandit_summary": {
+        "total_pulls": 5290,
+        "known_arm_count": 498,
+        "positive_arm_count": 498,
+        "average_arm_reward": 1.2869166817230346,
+        "total_applied_actions": 240,
+        "total_execution_feedback_updates": 2640,
+        "total_failed_replica_observations": 0,
+        "known_failed_replica_count": 0,
+        "known_service_pressure_metric_count": 30,
+        "total_applied_add_count": 36,
+        "total_applied_move_count": 204,
+        "last_applied_action_count": 4,
+        "last_applied_move_count": 4,
+        "last_unresolved_arm_count": 1
+      },
+      "routing_cache_summary": {
+        "route_result_hits": 20746,
+        "route_result_misses": 1231384,
+        "shortest_path_hits": 0,
+        "shortest_path_misses": 0,
+        "precomputed_slots": 606,
+        "precomputed_nodes": 180
+      },
+      "route_estimate_cache_summary": {
+        "hits": 2544826,
+        "misses": 1225881
+      }
+    }
+  ]
+}
