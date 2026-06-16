@@ -1,0 +1,5 @@
+﻿action,arm_key,cross_orbit_transfer,estimated_reward,execution_feedback_reward,expected_saving,migration_cost,migration_delay_s,migration_energy_j,migration_route_mode,selected_source_node,service_id,source_node,source_plane,target_node,target_plane
+add,"['add', 6, None, 2]",True,2.4697426776655163,0.0,2.7385232038024023,0.2687805261368862,0.25274249585406827,0.5857577060623902,min_cost_max_flow,56,6,,,39,2
+add,"['add', 5, None, 7]",True,2.600344521866918,0.0,2.7338598952619333,0.1335153733950154,0.1194088098682553,0.16752944496221614,min_cost_max_flow,165,5,,,129,7
+add,"['add', 27, None, 7]",True,1.987462305520927,0.0,2.261530975943671,0.2740686704227438,0.4616774930154195,0.6457576480711732,min_cost_max_flow,61,27,,,130,7
+add,"['add', 27, None, 2]",True,2.0344817444336716,0.0,2.261530975943671,0.22704923150999914,0.34446999924473154,0.4183553072887924,min_cost_max_flow,61,27,,,41,2

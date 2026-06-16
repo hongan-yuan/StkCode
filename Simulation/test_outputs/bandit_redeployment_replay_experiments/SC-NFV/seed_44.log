@@ -1,0 +1,71 @@
+{
+  "seeds": [
+    44
+  ],
+  "seed_summaries": [
+    {
+      "ablation": "SC-NFV",
+      "seed": 44,
+      "window_slots": 10,
+      "start_slot": 0,
+      "request_count_before": 46,
+      "request_count_after": 46,
+      "same_request_trace": true,
+      "redeployment_enabled": false,
+      "redeployment_action_count": 0,
+      "checkpoint_loaded": false,
+      "checkpoint_load_error": "",
+      "bandit_loaded_arm_count": 0,
+      "execution_agent": "SCNFVChainingOrbitExecutionAgent",
+      "service_routing_strategy": "min_cost_max_flow",
+      "before_success_rate": 1.0,
+      "after_success_rate": 1.0,
+      "before_average_end_to_end_delay_s": 44.24563679575671,
+      "after_average_end_to_end_delay_s": 44.09676485047511,
+      "delay_reduction_s": 0.14887194528159853,
+      "delay_reduction_ratio": 0.0033646695146192537,
+      "before_p95_end_to_end_delay_s": 79.63970618474463,
+      "after_p95_end_to_end_delay_s": 78.27162347651577,
+      "before_average_energy_j": 1932.2921945048856,
+      "after_average_energy_j": 1883.5149511207646,
+      "energy_reduction_j": 48.77724338412099,
+      "energy_reduction_ratio": 0.02524320261854562,
+      "before_average_communication_delay_s": 1.4934909006161075,
+      "after_average_communication_delay_s": 1.5634903559161795,
+      "before_average_slot_crossings": 0.14385150812064965,
+      "after_average_slot_crossings": 0.1368909512761021,
+      "run_dir": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_44",
+      "request_template_csv": "/home/yhg/StkCode/Simulation/multi_seed_runs/seed_44/request_templates.csv",
+      "request_templates_loaded": true,
+      "request_template_count": 14,
+      "original_request_template_count": 14,
+      "arrival_mode": "per_template",
+      "arrival_lambda_total_per_slot": null,
+      "before_delay_margin_summary": {
+        "deadline_accepted_count": 46,
+        "deadline_acceptance_rate": 1.0,
+        "delay_margin_mean": 0.5119527532491994,
+        "delay_margin_max": 0.6786980131392327,
+        "delay_margin_jain_fairness": 0.9732033285064766
+      },
+      "after_delay_margin_summary": {
+        "deadline_accepted_count": 46,
+        "deadline_acceptance_rate": 1.0,
+        "delay_margin_mean": 0.5013735527883005,
+        "delay_margin_max": 0.7827162347651577,
+        "delay_margin_jain_fairness": 0.9453394439234565
+      },
+      "bandit_summary": {
+        "total_pulls": 0,
+        "known_arm_count": 0,
+        "positive_arm_count": 0,
+        "average_arm_reward": 0.0,
+        "total_applied_actions": 0,
+        "total_execution_feedback_updates": 0,
+        "total_failed_replica_observations": 0,
+        "known_failed_replica_count": 0,
+        "known_service_pressure_metric_count": 0
+      }
+    }
+  ]
+}
