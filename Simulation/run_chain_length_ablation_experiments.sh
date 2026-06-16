@@ -7,7 +7,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PYTHON_BIN="${PYTHON_BIN:-python}"
 CHAIN_LENGTHS="${CHAIN_LENGTHS:-5 10 15}"
 SEEDS="${SEEDS:-42 43 44 45}"
-RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-ELARA ELARA-NB ELARA-NR ELARA-SH Fair-NFV SP-Routing SC-NFV}}"
+RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-ELARA ELARA-NB ELARA-NR ELARA-SH Fair-NFV SECO SP-Routing SC-NFV}}"
 GPUS="${GPUS:-0 1 2 3}"
 MODEL_ROOT="${MODEL_ROOT:-${SCRIPT_DIR}/multi_seed_runs}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-${SCRIPT_DIR}/test_outputs/chain_length_ablation_experiments}"
@@ -278,6 +278,9 @@ name_map = {
     "service_pressure": "SP-Routing",
     "sc_nfv": "SC-NFV",
     "fairness_nfv_greedy": "Fair-NFV",
+    "seco": "SECO",
+    "seco_greedy": "SECO",
+    "seco_processing": "SECO",
 }
 
 def canonical_ablation_name(name):

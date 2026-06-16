@@ -6,14 +6,14 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 PYTHON_BIN="${PYTHON_BIN:-python}"
 SEEDS="${SEEDS:-42 43 44 45}"
-RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-ELARA ELARA-NB ELARA-NR ELARA-SH Fair-NFV SP-Routing SC-NFV}}"
-MERGE_ABLATIONS="${MERGE_ABLATIONS:-ELARA ELARA-NB ELARA-NR ELARA-SH Fair-NFV SP-Routing SC-NFV}"
+RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-SECO}}"
+MERGE_ABLATIONS="${MERGE_ABLATIONS:-ELARA ELARA-NB ELARA-NR ELARA-SH Fair-NFV SECO SP-Routing SC-NFV}"
 GPUS="${GPUS:-0 1 2 3}"
 MODEL_ROOT="${MODEL_ROOT:-${SCRIPT_DIR}/multi_seed_runs}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-${SCRIPT_DIR}/test_outputs/ablation_experiments}"
 DEFAULT_ISL_CSV="${PROJECT_ROOT}/WalkerDeltaConstellationSimu/Walker_Delta_ISL_Simu.csv"
 ISL_CSV="${ISL_CSV:-${DEFAULT_ISL_CSV}}"
-DEVICE="${DEVICE:-cuda}"
+DEVICE="${DEVICE:-cpu}"
 BANDIT_PERIOD_SLOTS="${BANDIT_PERIOD_SLOTS:-10}"
 CHECKPOINT_NAME="${CHECKPOINT_NAME:-ppo_gnn_latest.pth}"
 BANDIT_STATS_NAME="${BANDIT_STATS_NAME:-bandit_arm_stats.csv}"
@@ -271,6 +271,9 @@ name_map = {
     "service_pressure": "SP-Routing",
     "sc_nfv": "SC-NFV",
     "fairness_nfv_greedy": "Fair-NFV",
+    "seco": "SECO",
+    "seco_greedy": "SECO",
+    "seco_processing": "SECO",
 }
 
 def canonical_ablation_name(name):

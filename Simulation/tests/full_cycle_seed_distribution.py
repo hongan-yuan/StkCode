@@ -30,6 +30,7 @@ from ..agents.baselines import (
     ServicePressureExecutionAgent,
 )
 from ..agents.fairness_nfv import FairnessAwareGreedyVNFExecutionAgent
+from ..agents.seco import SECOGreedyExecutionAgent
 from ..ablation_names import (
     ABLATION_NAME_MAP,
     OFFICIAL_ABLATIONS,
@@ -440,6 +441,8 @@ def build_config(
         kwargs["service_routing_strategy"] = "shortest_hop_per_slot"
     elif args.ablation == "Fair-NFV":
         kwargs["service_routing_strategy"] = "shortest_hop_per_slot"
+    elif args.ablation == "SECO":
+        kwargs["service_routing_strategy"] = "shortest_hop_per_slot"
     elif args.ablation == "SP-Routing":
         kwargs["service_routing_strategy"] = "service_pressure"
     else:
@@ -725,6 +728,8 @@ def build_execution_agent(args: argparse.Namespace, config: SimulationConfig, ru
         return SCNFVChainingOrbitExecutionAgent(config), False, ""
     if args.ablation == "Fair-NFV":
         return FairnessAwareGreedyVNFExecutionAgent(config), False, ""
+    if args.ablation == "SECO":
+        return SECOGreedyExecutionAgent(config), False, ""
 
     agent = PPOGNNExecutionAgent(
         config,
@@ -982,7 +987,7 @@ def run_seed(
     bandit_agent = ReplicaPlacementMigrationAgent(config)
     bandit_stats = run_dir / args.bandit_stats_name
     bandit_loaded_count = 0
-    bandit_enabled = args.ablation != "ELARA-NB"
+    bandit_enabled = args.ablation not in {"ELARA-NB", "SECO"}
     if bandit_enabled and not args.no_load_bandit and bandit_stats.exists():
         bandit_loaded_count = bandit_agent.load_arm_stats(bandit_stats)
 
