@@ -1,0 +1,5 @@
+﻿ablation,arrival_mode,chain_length_filter,cycle,cycle_end_epoch,cycle_start_epoch,failed_request_count,failure_count,feasible_count,feasible_request_count,processed_request_count,request_count,seed,slot_count_in_cycle,success_rate,task_completion_rate,total_request_count
+ELARA,per_template,,1,606,1,1,1,2999,2999,3000,3000,42,606,0.9996666666666667,0.9996666666666667,3000
+ELARA,per_template,,1,606,1,0,0,2986,2986,2986,2986,43,606,1.0,1.0,2986
+ELARA,per_template,,1,606,1,0,0,2921,2921,2921,2921,44,606,1.0,1.0,2921
+ELARA,per_template,,1,606,1,0,0,3053,3053,3053,3053,45,606,1.0,1.0,3053
