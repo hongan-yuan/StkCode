@@ -27,6 +27,12 @@ ABLATION_NAME_MAP = {
     "fairness-nfv-greedy": "Fair-NFV",
     "Fair-NFV": "Fair-NFV",
     "fair-nfv": "Fair-NFV",
+    "seco": "SECO",
+    "seco_greedy": "SECO",
+    "seco-greedy": "SECO",
+    "seco_processing": "SECO",
+    "seco-processing": "SECO",
+    "SECO": "SECO",
 }
 
 OFFICIAL_ABLATIONS = (
@@ -35,6 +41,7 @@ OFFICIAL_ABLATIONS = (
     "ELARA-NR",
     "ELARA-SH",
     "Fair-NFV",
+    "SECO",
     "SP-Routing",
     "SC-NFV",
 )
@@ -51,6 +58,7 @@ ABLATION_GROUP_ABLATIONS = (
 COMPARISON_GROUP_ABLATIONS = (
     "ELARA",
     "Fair-NFV",
+    "SECO",
     "SP-Routing",
     "SC-NFV",
 )

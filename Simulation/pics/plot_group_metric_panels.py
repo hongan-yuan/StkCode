@@ -31,6 +31,7 @@ COLORS = {
     "ELARA-NR": "#2f9e44",
     "ELARA-SH": "#8b5cf6",
     "Fair-NFV": "#cc4c4c",
+    "SECO": "#0f766e",
     "SP-Routing": "#0891b2",
     "SC-NFV": "#6b7280",
 }

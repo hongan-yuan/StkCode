@@ -292,8 +292,8 @@ It is worth noting that all microservices operate in a stateless manner, which c
 Let $r = \langle v_s, m_1, m_2, \ldots, m_L, v_d, \tau_{\text{in}} \rangle$ denote an incoming request with a deadline $D_r$. 
 Here, $v_s$ and $v_d$ are the source and destination satellites, $m_i$ is the $i$-th microservice in the sequential execution chain, and $\tau_{\text{in}}$ is the continuous arrival time. 
 Let $B_{r,i}$ be the data volume that should be transmitted before invoking $m_i$, while $B_{r,L+1}$ denotes the final output routed back to $v_d$. 
-Since a request can arrive at any arbitrary instant and its data transmission may span multiple topology slots, ELARA formulates this sequential service execution as a continuous-time online decision process. 
-The detailed cross-slot execution dynamics, decision variables, and objective functions are formally presented in Section~\ref{sec:prob_form}.
+Since a request can arrive at any arbitrary instant and its data transmission may span multiple topology slots, ELARA formulates this sequential service execution as a continuous-time online decision process.  
+The detailed cross-slot execution dynamics, decision variables, and objective functions are formally presented in Section~\ref{sec:prob_form}. 
 
 \section{Problem Formulation}
 \label{sec:prob_form}
