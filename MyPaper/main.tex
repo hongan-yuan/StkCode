@@ -286,9 +286,88 @@ Let $B_{r,i}$ be the data volume that should be transmitted before invoking $m_i
 % Since a request can arrive at any arbitrary instant and its data transmission may span multiple topology slots, ELARA formulates this sequential service execution as a continuous-time online decision process.
 % The detailed cross-slot execution dynamics, decision variables, and objective functions are formally presented in Section~\ref{sec:problem_formulation}.
 
-\paragraph{Cross-slot Service Routing Delay and Energy Model}
-Since a request can arrive at any arbitrary instant and its data transmission may span multiple topology slots, ELARA tracks the execuation of each service chain continuously in the temporal domain. Prior to executing microservice $m_i$, the request state is defined as $\sigma_i=(u_{r,i}, \tau_{r,i}, i)$, where $u_{r,i}$ is the satellite holding the intermediate input data to $m_i$ and $\tau_{r,i}$ is the current time stamp.
-We introduce a binary decision variable $ y_{r,i,v}\in \{ 0, 1 \}$ for computing node selection, which equals to $1$ if $m_i$ is scheduled to satellite $v$ for execution.
+\paragraph{Cross-slot Service Routing Latency and Energy Model}
+Since requests may arrive at arbitrary instants while ISL topology and rates change at slot boundaries, ELARA tracks each service chain in continuous time.
+Before executing $m_i$, the input data $B_{r,i}$ stored at satellite $u_{r,i}$ should be routed to a satellite hosting a valid replica of $m_i$. We introduce a binary decision variable $y_{r,i,v} \in \{ 0, 1\}$ for node selection, which equals $1$ if $m_i$ is scheduled to satellite $v$.
+Let $v_{r,i}$ be the selected satellite with $y_{r,i,v_{r,i}}=1$.
+For the $i$-th service routing operation, the source and destination satellites are denoted by $u_{r,i}$ and $v_{r,i}$, respectively.
+
+
+Since the endpoints may be non-adjacent and transmission may start near a slot boundary, one routing operation can span $H\geq 1$ phases over time-varying multi-hop routes.
+For phase $h$, let $\tau_{r,i}^{h}$ be its start time, $t_h=s(\tau_{r,i}^{h})$ the active topology slot, $\bar{\Delta}_h$ the remaining slot time, and $B_{r,i}^{h}$ the residual data, with $B_{r,i}^{1}=B_{r,i}$.
+Let $\mathcal{P}_{r,i}^{h}$ be the feasible and active end-to-end path set from $u_{r,i}$ to $v_{r,i}$ in slot $t_h$, where each path $p\in\mathcal{P}_{r,i}^{h}$ is an ordered sequence of one or more ISLs, i.e., $p=(e_1,\ldots,e_{|p|})$, and different path may partially share the same ISLs.
+If $D_h$ bits are transmitted, ELARA can split them across multiple such paths, and path $p$ receives fraction $\lambda_p^h\in[0,1]$:
+\begin{equation}
+    d_p^h=\lambda_p^h D_h,\qquad
+    \sum_{p\in\mathcal{P}_{r,i}^{h}}\lambda_p^h=1,\qquad
+    0< D_h\leq B_{r,i}^{h}.
+    \label{eq:path_split_model}
+\end{equation}
+% Let $\mathcal{P}_{r,i}^{h,+}=\{p\in\mathcal{P}_{r,i}^{h}\mid \lambda_p^h>0\}$ denote the active paths in phase $h$.
+The aggregate load on shared ISL $e \in p$ is formulated by:
+\begin{equation}
+    f_e^h=\sum_{p\in\mathcal{P}_{r,i}^{h}:e\in p}d_p^h,
+    \qquad
+    0\leq f_e^h\leq R_e(t_h)\bar{\Delta}_h.
+    \label{eq:link_load_model}
+\end{equation}
+For a multi-hop path $p$, the subflow completion time follows the link-delay model in \eqref{eq:link_delay_elara}:
+\begin{equation}
+    \delta_p^h = \sum_{e \in p} T^{\text{cm}}_e(d_p^h, t_h),\qquad \forall p\in\mathcal{P}_{r,i}^{h}.
+    \label{eq:path_completion_model}
+\end{equation}
+Since the selected paths transmit in parallel, the effective phase duration is determined by the slowest active path:
+\begin{equation}
+    \Delta_h^{\text{ru}} = \max_{p \in \mathcal{P}_{r,i}^{h}}\delta_p^h,\quad \text{and},\quad
+    \Delta_h^{\text{ru}}\leq \bar{\Delta}_h.
+    \label{eq:parallel_phase_delay_model}
+\end{equation}
+The phase energy is the sum of transmission energy over all traffic-carrying ISLs:
+\begin{equation}
+    E_{r,i}^{h,\text{ru}} =
+    \sum_{e\in\mathcal{E}(t_h)}
+    P_e^{\text{tx}}\frac{f_e^h}{R_e(t_h)} .
+    \label{eq:phase_energy_model}
+\end{equation}
+
+
+After phase $h$, the residual data and decision epoch are updated as:
+\begin{equation}
+    B_{r,i}^{h+1}=B_{r,i}^{h}-D_h,\qquad
+    \tau_{r,i}^{h+1}=\tau_{r,i}^{h}+\Delta_h^{\text{ru}}.
+    \label{eq:cross_slot_update_model}
+\end{equation}
+If $B_{r,i}^{h+1}>0$, the next phase is solved under the updated topology, path set, and link rates.
+For $H_{r,i}$ phases, the routing latency and energy from $u_{r,i}$ to $v_{r,i}$ are:
+\begin{equation}
+    T_{r,i}^{\text{ru}}=\sum_{h=1}^{H_{r,i}}\Delta_h^{\text{ru}},\qquad
+    E_{r,i}^{\text{ru}}=\sum_{h=1}^{H_{r,i}}E_{r,i}^{h,\text{ru}},
+    \label{eq:cross_slot_routing_cost_model}
+\end{equation}
+% where $H_{r,i}$ is the number of phases needed to clear the residual data.
+The selected replica receives the data at $\tau_{r,i}^{\text{arr}}=\tau_{r,i}+T_{r,i}^{\text{ru}}$.
+The selected satellite then executes $m_i$, whose computation delay and energy are given by \eqref{eq:compute_delay_elara} and \eqref{eq:compute_energy_elara}, respectively.
+
+The cumulative execution latency and energy of request $r$ are given by
+\begin{align}
+\label{eq:req_e2e_lat}
+    T^{\text{e2e}}_r
+    &=
+    \sum_{i=1}^{L+1} T^{\text{ru}}_{r,i}
+    +
+    \sum_{i=1}^{L} T^{\text{cp}}_{m_i}\big(v_{r,i}, s(\tau^{\text{arr}}_{r,i})\big),
+\end{align}
+\begin{align}
+\label{eq:req_tot_eng}
+    E^{\text{tot}}_r
+    &=
+    \sum_{i=1}^{L+1} E^{\text{ru}}_{r,i}
+    +
+    \sum_{i=1}^{L} E^{\text{cp}}_{m_i}\big(v_{r,i},s(\tau^{\text{arr}}_{r,i})\big),
+\end{align}
+where $i=L+1$ denotes the final output delivery to $v_d$.
+
+
 
 
 \begin{comment}
