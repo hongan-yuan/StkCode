@@ -169,7 +169,7 @@ Thus, the time-varying network topology during slot $t \in \mathcal{T}$ is forma
 We assume that each satellite is equipped with four laser optical terminals: two positioned along the roll axis for intra-plane ISLs, and two along the pitch axis for cross-plane ISLs.
 
 \paragraph{ISL Connectivity Constraints}
-Each satellite $v_{p,n}$ maintains two intra-plane ISLs with its adjacent neighbors $v_{p,n^-}$ and $v_{p,n^+}$, where $n^{\pm} = ((n \pm 1 - 1) \bmod N) + 1$.
+Each satellite $v_{p,n}$ maintains two intra-plane ISLs with its adjacent neighbors $v_{p,n^-}$ and $v_{p,n^+}$, where $n^{\pm} = ((n \pm 1) \bmod N) + 1$.
 Because satellites in the same plane share identical angular velocities, their relative distances remain time-invariant, yielding highly stable communication links.
 
 Conversely, cross-plane ISLs are inherently dynamic.
@@ -220,11 +220,11 @@ The nominal rate $R^0_e(t)$ in \eqref{eq:shannon_capacity} could be degraded in 
 To capture these factors, we introduce a scaling factor $\eta_e(t)\in(0,1]$ to formulate the effective data rate as $R_e(t)=\eta_e(t)R^0_e(t)$.
 When transmitting a data block of size $B$ over link $e=(u,v)$ during slot $t$, the aggregate link-level communication delay comprises queuing, transmission, and propagation delays, formulated as:
 \begin{equation}
-    T_e^{\text{cm}}(B,t) = \tau_e^{\text{qe}}(t) + \tau_e^{\text{tr}}(t) + \tau_e^{\text{pr}}(t).
-    \label{eq:link_delay_elara}
+T_e^{\text{cm}}(B,t) = \nu_e^{\text{qe}}(t) + \nu_e^{\text{tr}}(t) + \nu_e^{\text{pr}}(t).
+\label{eq:link_delay_elara}
 \end{equation}
-Here, $\tau_e^{\text{qe}}(t)$ denotes the queuing delay, which can be dynamically estimated via lightweight queue-length probing.
-The transmission delay is given by $\tau_e^{\text{tr}}(t) = B / R_e(t)$, and the propagation delay is $\tau_e^{\text{pr}}(t)=d_e(t)/c$, with $c$ being the speed of light in vacuum.
+Here, $\nu_e^{\text{qe}}(t)$ denotes the queuing delay, which can be dynamically estimated via lightweight queue-length probing.
+The transmission delay is given by $\nu_e^{\text{tr}}(t) = B / R_e(t)$, and the propagation delay is $\nu_e^{\text{pr}}(t)=d_e(t)/c$, with $c$ being the speed of light in vacuum.
 % Crucially, this abstraction enables ELARA to implicitly account for network congestion without incurring the prohibitive overhead of tracking individual background flows.
 
 % This compact model allows ELARA to account for link contention without explicitly modeling every concurrent background flow.
@@ -237,20 +237,20 @@ In practice, the available computational resources are often constrained by back
 To capture these hardware and software limitations, we introduce a computational efficiency factor $\xi_v(t)\in(0,1]$ and define the effective dynamic computing capacity as $F_v(t) = \xi_v(t)F^0_v$.
 
 % Let $\tau^{\text{qe}}_v(t)$ denote the queuing delay experienced before microservice $m$ is scheduled for execution on satellite $v$.
-Let $\tau^{\text{qe}}_v(t)$ denote the queuing delay before scheduling microservice $m$ is executed on satellite $v$, which increases with the pending task queue length at slot $t$.
+Let $\nu^{\text{qe}}_v(t)$ denote the queuing delay before scheduling microservice $m$ is executed on satellite $v$, which increases with the pending task queue length at slot $t$.
 % We formulate the total computation delay as:
 The total computation delay is modeled as:
 \begin{equation}
-    T_m^{\text{cp}}(v,t) = \tau^{\text{qe}}_v(t) + \tau^{\text{cp}}_v(t),
-    \label{eq:compute_delay_elara}
+T_m^{\text{cp}}(v,t) = \nu^{\text{qe}}_v(t) + \nu^{\text{cp}}_v(t),
+\label{eq:compute_delay_elara}
 \end{equation}
-where $\tau^{\text{cp}}_v(t) = C_m / {F_v(t)}$ represents the actual execution delay, and $C_m$ is the number of CPU cycles required by microservice $m$.
+where $\nu^{\text{cp}}_v(t) = C_m / {F_v(t)}$ represents the actual execution delay, and $C_m$ is the number of CPU cycles required by microservice $m$.
 % Here, the queuing delay $\tau^{\text{qe}}_v(t)$ is a monotonically increasing function of the pending task queue length on satellite $v$ at slot $t$.
 % The actual execution delay is given by $\tau^{\text{cp}}_v(t) = C_m / {F_v(t)}$, where $C_m$ denotes the number of CPU cycles required by microservice $m$.
 Correspondingly, the computational energy consumption is defined as:
 \begin{align}
-    E_m^{\text{cp}}(v,t) = P_v^{\text{cp}} \frac{C_m}{F_v(t)},
-    \label{eq:compute_energy_elara}
+E_m^{\text{cp}}(v,t) = P_v^{\text{cp}} \frac{C_m}{F_v(t)},
+\label{eq:compute_energy_elara}
 \end{align}
 where $P_v^{\text{cp}}$ is the operational computing power of the satellite.
 
@@ -265,13 +265,13 @@ We define a binary indication variable $x_{m,v}(t) \in \{0, 1\}$, which equals t
 Accordingly, the subset of satellite nodes hosting a valid replica of microservice $m$ at slot $t$ is denoted as $\mathcal{R}_m(t) = \{v \in \mathcal{V} \mid x_{m,v}(t) = 1\}$.
 To ensure service availability while preventing excessive resource contention, the total number of deployed replicas for any microservice should be bounded within predefined thresholds, $r_m^{\text{min}}$ and $r_m^{\text{max}}$:
 \begin{equation}
-    r_m^{\text{min}} \leq \sum_{v\in\mathcal{V}} x_{m,v}(t) \leq r_m^{\text{max}}, \quad \forall m \in \mathcal{M}.
-    \label{eq:replica_count_elara}
+r_m^{\text{min}} \leq \sum_{v\in\mathcal{V}} x_{m,v}(t) \leq r_m^{\text{max}}, \quad \forall m \in \mathcal{M}.
+\label{eq:replica_count_elara}
 \end{equation}
 Furthermore, the aggregate storage footprint of all replicas hosted on a single satellite must not exceed its onboard storage capacity $S_v^{\text{max}}$:
 \begin{equation}
-    \sum_{m\in\mathcal{M}} x_{m,v}(t) S_m \leq S_v^{\text{max}}, \quad \forall v \in \mathcal{V}.
-    \label{eq:storage_elara}
+\sum_{m\in\mathcal{M}} x_{m,v}(t) S_m \leq S_v^{\text{max}}, \quad \forall v \in \mathcal{V}.
+\label{eq:storage_elara}
 \end{equation}
 
 It is worth noting that all microservices operate in a stateless manner, which can be dynamically added, removed, or migrated without incurring the prohibitive communication overhead of inter-replica state synchronization.
@@ -294,76 +294,76 @@ For the $i$-th service routing operation, the source and destination satellites 
 
 
 Since the endpoints may be non-adjacent and transmission may start near a slot boundary, one routing operation can span $H\geq 1$ phases over time-varying multi-hop routes.
-For phase $h$, let $\tau_{r,i}^{h}$ be its start time, $t_h=s(\tau_{r,i}^{h})$ the active topology slot, $\bar{\Delta}_h$ the remaining slot time, and $B_{r,i}^{h}$ the residual data, with $B_{r,i}^{1}=B_{r,i}$.
-Let $\mathcal{P}_{r,i}^{h}$ be the feasible and active end-to-end path set from $u_{r,i}$ to $v_{r,i}$ in slot $t_h$, where each path $p\in\mathcal{P}_{r,i}^{h}$ is an ordered sequence of one or more ISLs, i.e., $p=(e_1,\ldots,e_{|p|})$, and different path may partially share the same ISLs.
-If $D_h$ bits are transmitted, ELARA can split them across multiple such paths, and path $p$ receives fraction $\lambda_p^h\in[0,1]$:
+For phase $h$, let $\tau_{r,i}^{h}$ be its start time, $t_h=s(\tau_{r,i}^{h})$ the active topology slot, $\bar{\Delta}_h$ the remaining slot time, and $B_{r,i}^{h}$ the residual data, with $B_{r,i}^{1}=B_{r,i}$. 
+Let $\mathcal{P}_{r,i}^{h}$ be the feasible and active end-to-end path set from $u_{r,i}$ to $v_{r,i}$ in slot $t_h$, where each path $p\in\mathcal{P}_{r,i}^{h}$ is an ordered sequence of one or more ISLs, i.e., $p=(e_1,\ldots,e_{|p|})$, and different path may partially share the same ISLs. 
+If $D_h$ bits are transmitted, ELARA splits them across multiple such paths, and path $p$ receives fraction $\lambda_p^h\in[0,1]$:
 \begin{equation}
-    d_p^h=\lambda_p^h D_h,\qquad
-    \sum_{p\in\mathcal{P}_{r,i}^{h}}\lambda_p^h=1,\qquad
-    0< D_h\leq B_{r,i}^{h}.
-    \label{eq:path_split_model}
+d_p^h=\lambda_p^h D_h,\qquad
+\sum_{p\in\mathcal{P}_{r,i}^{h}}\lambda_p^h=1,\qquad
+0< D_h\leq B_{r,i}^{h}.
+\label{eq:path_split_model}
 \end{equation}
 % Let $\mathcal{P}_{r,i}^{h,+}=\{p\in\mathcal{P}_{r,i}^{h}\mid \lambda_p^h>0\}$ denote the active paths in phase $h$.
 The aggregate load on shared ISL $e \in p$ is formulated by:
 \begin{equation}
-    f_e^h=\sum_{p\in\mathcal{P}_{r,i}^{h}:e\in p}d_p^h,
-    \qquad
-    0\leq f_e^h\leq R_e(t_h)\bar{\Delta}_h.
-    \label{eq:link_load_model}
+f_e^h=\sum_{p\in\mathcal{P}_{r,i}^{h}:e\in p}d_p^h,
+\qquad
+0\leq f_e^h\leq R_e(t_h)\bar{\Delta}_h.
+\label{eq:link_load_model}
 \end{equation}
 For a multi-hop path $p$, the subflow completion time follows the link-delay model in \eqref{eq:link_delay_elara}:
 \begin{equation}
-    \delta_p^h = \sum_{e \in p} T^{\text{cm}}_e(d_p^h, t_h),\qquad \forall p\in\mathcal{P}_{r,i}^{h}.
-    \label{eq:path_completion_model}
+\delta_p^h = \sum_{e \in p} T^{\text{cm}}_e(d_p^h, t_h),\qquad \forall p\in\mathcal{P}_{r,i}^{h}.
+\label{eq:path_completion_model}
 \end{equation}
 Since the selected paths transmit in parallel, the effective phase duration is determined by the slowest active path:
 \begin{equation}
-    \Delta_h^{\text{ru}} = \max_{p \in \mathcal{P}_{r,i}^{h}}\delta_p^h,\quad \text{and},\quad
-    \Delta_h^{\text{ru}}\leq \bar{\Delta}_h.
-    \label{eq:parallel_phase_delay_model}
+\Delta_h^{\text{ru}} = \max_{p \in \mathcal{P}_{r,i}^{h}}\delta_p^h,\quad \text{and},\quad
+\Delta_h^{\text{ru}}\leq \bar{\Delta}_h.
+\label{eq:parallel_phase_delay_model}
 \end{equation}
 The phase energy is the sum of transmission energy over all traffic-carrying ISLs:
 \begin{equation}
-    E_{r,i}^{h,\text{ru}} =
-    \sum_{e\in\mathcal{E}(t_h)}
-    P_e^{\text{tx}}\frac{f_e^h}{R_e(t_h)} .
-    \label{eq:phase_energy_model}
+E_{r,i}^{h,\text{ru}} =
+\sum_{e\in\mathcal{E}(t_h)}
+P_e^{\text{tx}}\frac{f_e^h}{R_e(t_h)} .
+\label{eq:phase_energy_model}
 \end{equation}
 
 
 After phase $h$, the residual data and decision epoch are updated as:
 \begin{equation}
-    B_{r,i}^{h+1}=B_{r,i}^{h}-D_h,\qquad
-    \tau_{r,i}^{h+1}=\tau_{r,i}^{h}+\Delta_h^{\text{ru}}.
-    \label{eq:cross_slot_update_model}
+B_{r,i}^{h+1}=B_{r,i}^{h}-D_h,\qquad
+\tau_{r,i}^{h+1}=\tau_{r,i}^{h}+\Delta_h^{\text{ru}}.
+\label{eq:cross_slot_update_model}
 \end{equation}
 If $B_{r,i}^{h+1}>0$, the next phase is solved under the updated topology, path set, and link rates.
 For $H_{r,i}$ phases, the routing latency and energy from $u_{r,i}$ to $v_{r,i}$ are:
 \begin{equation}
-    T_{r,i}^{\text{ru}}=\sum_{h=1}^{H_{r,i}}\Delta_h^{\text{ru}},\qquad
-    E_{r,i}^{\text{ru}}=\sum_{h=1}^{H_{r,i}}E_{r,i}^{h,\text{ru}},
-    \label{eq:cross_slot_routing_cost_model}
+T_{r,i}^{\text{ru}}=\sum_{h=1}^{H_{r,i}}\Delta_h^{\text{ru}},\qquad
+E_{r,i}^{\text{ru}}=\sum_{h=1}^{H_{r,i}}E_{r,i}^{h,\text{ru}},
+\label{eq:cross_slot_routing_cost_model}
 \end{equation}
 % where $H_{r,i}$ is the number of phases needed to clear the residual data.
 The selected replica receives the data at $\tau_{r,i}^{\text{arr}}=\tau_{r,i}+T_{r,i}^{\text{ru}}$.
 The selected satellite then executes $m_i$, whose computation delay and energy are given by \eqref{eq:compute_delay_elara} and \eqref{eq:compute_energy_elara}, respectively.
 
-The cumulative execution latency and energy of request $r$ are given by
+The cumulative execution latency and energy of request $r$ are given by:
 \begin{align}
 \label{eq:req_e2e_lat}
-    T^{\text{e2e}}_r
-    &=
-    \sum_{i=1}^{L+1} T^{\text{ru}}_{r,i}
-    +
-    \sum_{i=1}^{L} T^{\text{cp}}_{m_i}\big(v_{r,i}, s(\tau^{\text{arr}}_{r,i})\big),
+T^{\text{e2e}}_r
+&=
+\sum_{i=1}^{L+1} T^{\text{ru}}_{r,i}
++
+\sum_{i=1}^{L} T^{\text{cp}}_{m_i}\big(v_{r,i}, s(\tau^{\text{arr}}_{r,i})\big),
 \end{align}
 \begin{align}
 \label{eq:req_tot_eng}
-    E^{\text{tot}}_r
-    &=
-    \sum_{i=1}^{L+1} E^{\text{ru}}_{r,i}
-    +
-    \sum_{i=1}^{L} E^{\text{cp}}_{m_i}\big(v_{r,i},s(\tau^{\text{arr}}_{r,i})\big),
+E^{\text{tot}}_r
+&=
+\sum_{i=1}^{L+1} E^{\text{ru}}_{r,i}
++
+\sum_{i=1}^{L} E^{\text{cp}}_{m_i}\big(v_{r,i},s(\tau^{\text{arr}}_{r,i})\big),
 \end{align}
 where $i=L+1$ denotes the final output delivery to $v_d$.
 
@@ -383,19 +383,19 @@ Crucially, if transmitting $B_{r,i}$ exceeds the remaining duration of the curre
 To accurately capture this cross-slot dynamic, the routing delay $T_{r,i}^{\text{ru}}$ and energy consumption $E_{r,i}^{\text{ru}}$ are computed by accumulating the piecewise fractional transmission costs over all spanned topological slots.
 Consequently, the data arrives at the replica at:
 \begin{equation}
-    \tau_{r,i}^{\text{arr}} = \tau_{r,i} + T_{r,i}^{\text{ru}}.
+\tau_{r,i}^{\text{arr}} = \tau_{r,i} + T_{r,i}^{\text{ru}}.
 \end{equation}
 Following the onboard computing model, the execution completion time is calculated under the topological slot upon data arrival:
 \begin{equation}
-    \tau_{r,i}^{\text{fin}} = \tau_{r,i}^{\text{arr}} + T_{m_i}^{\text{cp}}\big(v_{r,i}, s(\tau_{r,i}^{\text{arr}})\big).
+\tau_{r,i}^{\text{fin}} = \tau_{r,i}^{\text{arr}} + T_{m_i}^{\text{cp}}\big(v_{r,i}, s(\tau_{r,i}^{\text{arr}})\big).
 \end{equation}
 The request state then advances to the next service hop, updating $u_{r,i+1} = v_{r,i}$ and $\tau_{r,i+1} = \tau_{r,i}^{\text{fin}}$.
 
 Upon completing the terminal microservice $m_L$, the final output is routed to the destination $v_d$.
 The end-to-end latency for request $r$ is thus formulated as:
 \begin{equation}
-    T_r^{\text{e2e}} = \tau_r^{\text{out}} - \tau_{r}^{\text{in}},
-    \label{eq:e2e_latency_elara}
+T_r^{\text{e2e}} = \tau_r^{\text{out}} - \tau_{r}^{\text{in}},
+\label{eq:e2e_latency_elara}
 \end{equation}
 where $\tau_r^{\text{out}}$ is the exact time the output reaches $v_d$, and $\tau_{r}^{\text{in}}$ is the initial arrival time of the request to the constellation.
 
@@ -439,8 +439,8 @@ Prior to executing microservice $m_i$, the request state is defined as $\sigma_{
 To formalize replica selection, we introduce a binary decision variable $z_{r,i,v} \in \{0,1\}$, which equals $1$ if $m_i$ of request $r$ is executed on satellite $v$.
 Each microservice stage must be processed by exactly one valid replica:
 \begin{equation}
-    \sum_{v\in\mathcal{V}} z_{r,i,v}=1, \quad \text{and} \quad z_{r,i,v}\leq x_{m_i,v}\big(s(\tau_{r,i})\big), \quad \forall r,i,v.
-    \label{eq:execution_feasible_elara}
+\sum_{v\in\mathcal{V}} z_{r,i,v}=1, \quad \text{and} \quad z_{r,i,v}\leq x_{m_i,v}\big(s(\tau_{r,i})\big), \quad \forall r,i,v.
+\label{eq:execution_feasible_elara}
 \end{equation}
 Let $v_{r,i}$ denote the selected execution satellite, as $z_{r,i,v_{r,i}}=1$.
 
@@ -448,12 +448,12 @@ For data transmission, let $f_{r,i,e}(t)\geq 0$ denote the data volume carried b
 This segment routes intermediate data $B_{r,i}$ from $u_{r,i}$ to $v_{r,i}$ (for $i \leq L$), and the final output $B_{r,L+1}$ from $v_{r,L}$ to $v_d$.
 Accumulating the cross-slot routing delay $T_{r,i}^{\text{ru}}$ and energy $E_{r,i}^{\text{ru}}$, the data arrival time and computation finish time at stage $i$ are:
 \begin{equation}
-    \tau_{r,i}^{\text{arr}} = \tau_{r,i} + T_{r,i}^{\text{ru}},
-    \label{eq:arrival_time_elara}
+\tau_{r,i}^{\text{arr}} = \tau_{r,i} + T_{r,i}^{\text{ru}},
+\label{eq:arrival_time_elara}
 \end{equation}
 \begin{equation}
-    \tau_{r,i}^{\text{fin}} = \tau_{r,i}^{\text{arr}} + T_{m_i}^{\text{cp}}\big(v_{r,i},s(\tau_{r,i}^{\text{arr}})\big).
-    \label{eq:finish_time_elara}
+\tau_{r,i}^{\text{fin}} = \tau_{r,i}^{\text{arr}} + T_{m_i}^{\text{cp}}\big(v_{r,i},s(\tau_{r,i}^{\text{arr}})\big).
+\label{eq:finish_time_elara}
 \end{equation}
 The request state then advances via $u_{r,i+1}=v_{r,i}$ and $\tau_{r,i+1}=\tau_{r,i}^{\text{fin}}$.
 Upon completion of $m_L$, the end-to-end latency is simply $T_r^{\text{e2e}} = \tau_r^{\text{out}} - \tau_{\text{in}}$, where $\tau_r^{\text{out}}$ is the final destination arrival time.
@@ -466,26 +466,26 @@ These actions are strictly constrained by the storage and replica-count bounds d
 
 Following the delay decomposition in \eqref{eq:link_delay_elara}, the unit delay and unit energy costs for transmitting data over link $e$ in slot $t$ are:
 \begin{equation}
-    c_e^{T}(t) = \frac{1}{R_e(t)} + \tau_e^{\text{pr}}(t) + \tau_e^{\text{qe}}(t) + \tau^{\text{sw}},
-    \label{eq:unit_delay_elara}
+c_e^{T}(t) = \frac{1}{R_e(t)} + \tau_e^{\text{pr}}(t) + \tau_e^{\text{qe}}(t) + \tau^{\text{sw}},
+\label{eq:unit_delay_elara}
 \end{equation}
 \begin{equation}
-    c_e^{E}(t) = \frac{P_e^{\text{tx}}}{R_e(t)},
-    \label{eq:unit_energy_elara}
+c_e^{E}(t) = \frac{P_e^{\text{tx}}}{R_e(t)},
+\label{eq:unit_energy_elara}
 \end{equation}
 where $\tau^{\text{sw}}$ represents the per-hop switching overhead.
 Incorporating $\phi_e(t)$ as the short-horizon disruption risk of link $e$, the composite edge cost driving the routing layer is:
 \begin{equation}
-    c_e(t) = \omega_T c_e^{T}(t) + \omega_E c_e^{E}(t) + \omega_R\phi_e(t).
-    \label{eq:edge_cost_elara}
+c_e(t) = \omega_T c_e^{T}(t) + \omega_E c_e^{E}(t) + \omega_R\phi_e(t).
+\label{eq:edge_cost_elara}
 \end{equation}
 
 For a complete request $r$, the aggregate routing costs ($T_r^{\text{ru}}$, $E_r^{\text{ru}}$) and computing costs ($T_r^{\text{cp}}$, $E_r^{\text{cp}}$) are formulated by summing the respective metrics across all $L$ stages and the final delivery segment.
 The total request energy is $E_r^{\text{tot}} = E_r^{\text{ru}} + E_r^{\text{cp}}$.
 Furthermore, the network-wide migration cost induced by action $a_t$ is normalized as:
 \begin{equation}
-    C^{\text{mig}}(a_t) = \omega_T^{\text{mig}}\frac{T^{\text{mig}}(a_t)}{T_0} + \omega_E^{\text{mig}}\frac{E^{\text{mig}}(a_t)}{E_0},
-    \label{eq:migration_cost_elara}
+C^{\text{mig}}(a_t) = \omega_T^{\text{mig}}\frac{T^{\text{mig}}(a_t)}{T_0} + \omega_E^{\text{mig}}\frac{E^{\text{mig}}(a_t)}{E_0},
+\label{eq:migration_cost_elara}
 \end{equation}
 with $T^{\text{mig}}$ and $E^{\text{mig}}$ representing the overhead of transferring service images (evaluating to zero for remove and no-op actions).
 
@@ -495,8 +495,8 @@ with $T^{\text{mig}}$ and $E^{\text{mig}}$ representing the overhead of transfer
 Let $N_r^{\text{cro}}$ denote the number of slot crossings experienced by request $r$, and $\mathbb{I}_r^{\text{fail}} \in \{0,1\}$ indicate a failure to meet deadline $D_r$.
 The normalized penalty function for request $r$ is:
 \begin{equation}
-    J_r = \omega_T\frac{T_r^{\text{e2e}}}{T_0} + \omega_E\frac{E_r^{\text{tot}}}{E_0} + \omega_S N_r^{\text{cro}} + \omega_F\mathbb{I}_r^{\text{fail}}.
-    \label{eq:request_cost_elara}
+J_r = \omega_T\frac{T_r^{\text{e2e}}}{T_0} + \omega_E\frac{E_r^{\text{tot}}}{E_0} + \omega_S N_r^{\text{cro}} + \omega_F\mathbb{I}_r^{\text{fail}}.
+\label{eq:request_cost_elara}
 \end{equation}
 
 Given a sequence of requests $\mathcal{Q}$, the comprehensive online optimization problem is formulated as:
@@ -1261,19 +1261,19 @@ Initialize augmented directed graph $\mathcal{G}_z$ with vertex set $\mathcal{V}
 $\mathcal{V}_{z} \gets \mathcal{V}_{z} \bigcup  \{ v^{src}, v^{{dst}_1}, \dots, v^{{dst}_{\rho}}\}$ \;
 \For{$m_i$ in $\mathcal{M}_f$}{
 \For{$v_k$ in $\mathcal{V}_{m_i}$}{
-$\mathcal{V}_z \gets \mathcal{V}_z \bigcup  \{ v^{m_i}_{k^r}, v^{m_i}_{k^c}, v^{m_i}_{k^t}\}$\;
-$\mathcal{E}_z \gets \mathcal{E}_z \bigcup  \{  (v^{m_i}_{k^r} \to v^{m_i}_{k^c}), (v^{m_i}_{k^c} \to v^{m_i}_{k^t}) \}$\;
-Set $\mathbf{w}(v^{m_i}_{k^r} \to v^{m_i}_{k^c}) \doteq {E_{m_i}(v_k)} / {2}$\;
-Set $\mathbf{w}(v^{m_i}_{k^c} \to v^{m_i}_{k^t}) \doteq {E_{m_i}(v_k)} / {2}$\;
+	$\mathcal{V}_z \gets \mathcal{V}_z \bigcup  \{ v^{m_i}_{k^r}, v^{m_i}_{k^c}, v^{m_i}_{k^t}\}$\;
+	$\mathcal{E}_z \gets \mathcal{E}_z \bigcup  \{  (v^{m_i}_{k^r} \to v^{m_i}_{k^c}), (v^{m_i}_{k^c} \to v^{m_i}_{k^t}) \}$\;
+	Set $\mathbf{w}(v^{m_i}_{k^r} \to v^{m_i}_{k^c}) \doteq {E_{m_i}(v_k)} / {2}$\;
+	Set $\mathbf{w}(v^{m_i}_{k^c} \to v^{m_i}_{k^t}) \doteq {E_{m_i}(v_k)} / {2}$\;
 }
 }
 \For{$w_{i,j}$ in $\mathcal{W}_f$}{
 \For{$v^{m_i}_{k}$ in $\mathcal{V}_{m_i}$}{
-\For{$v^{m_j}_{k}$ in $\mathcal{V}_{m_j}$}{
-	$\mathcal{V}^{re}_{o}, \mathcal{E}^{re}_{o}$ = \textbf{GISRSA}($\mathcal{G}, v^{m_i}_{k}, v^{m_j}_{k}$) \;
-	$\mathcal{V}_{z} \gets \mathcal{V}_{z} \bigcup \mathcal{V}^{re}_{o}$ \;
-	$\mathcal{E}_{z} \gets \mathcal{E}_{z} \bigcup \mathcal{E}^{re}_{o}$ \;
-}
+	\For{$v^{m_j}_{k}$ in $\mathcal{V}_{m_j}$}{
+		$\mathcal{V}^{re}_{o}, \mathcal{E}^{re}_{o}$ = \textbf{GISRSA}($\mathcal{G}, v^{m_i}_{k}, v^{m_j}_{k}$) \;
+		$\mathcal{V}_{z} \gets \mathcal{V}_{z} \bigcup \mathcal{V}^{re}_{o}$ \;
+		$\mathcal{E}_{z} \gets \mathcal{E}_{z} \bigcup \mathcal{E}^{re}_{o}$ \;
+	}
 }
 }
 \For{$v^{m_{src}}_{k}$ in $\mathcal{V}_{m_{src}}$}{
@@ -1283,9 +1283,9 @@ $\mathcal{E}_{z} \gets \mathcal{E}_{z} \bigcup \mathcal{E}^{re}_{o}$ \;
 }
 \For{$v^{m_{dst}}_{k}$ in $\mathcal{V}_{m_{dst}}$}{
 \For{$g$ in $[1, \rho]$}{
-$\mathcal{V}^{re}_{o}, \mathcal{E}^{re}_{o}$ = \textbf{GISRSA}($\mathcal{G}, v^{m_{dst}}_{k}, V^{{dst}_g}$) \;
-$\mathcal{V}_{z} \gets \mathcal{V}_{z} \bigcup \mathcal{V}^{re}_{o}$ \;
-$\mathcal{E}_{z} \gets \mathcal{E}_{z} \bigcup \mathcal{E}^{re}_{o}$ \;
+	$\mathcal{V}^{re}_{o}, \mathcal{E}^{re}_{o}$ = \textbf{GISRSA}($\mathcal{G}, v^{m_{dst}}_{k}, V^{{dst}_g}$) \;
+	$\mathcal{V}_{z} \gets \mathcal{V}_{z} \bigcup \mathcal{V}^{re}_{o}$ \;
+	$\mathcal{E}_{z} \gets \mathcal{E}_{z} \bigcup \mathcal{E}^{re}_{o}$ \;
 }
 }
 \end{algorithm}
@@ -1409,11 +1409,11 @@ $\mathcal{V}_{\text{a}} \gets \bigcap_{\text{g}=1}^{{\rho}} \mathcal{V}_{\text{g
 $\mathcal{E}_{\text{a}} \gets \mathcal{E}_{1} $\;
 \For{$\text{g}$ in $[2,\rho]$}{
 \For{$e$ in $\mathcal{E}_{\text{g}}$}{
-\uIf{$e \in \mathcal{E}_{\text{a}}$}{
-	$\text{w}(e) \doteq \min(\text{w}(\mathcal{E}^{e}_{\text{a}}), \text{w}(\mathcal{E}^{e}_{\text{g}})) $
-}\Else{
-	$\mathcal{E}_{\text{a}} \gets \mathcal{E}_{\text{a}} \cup  \{ e \}$
-}
+	\uIf{$e \in \mathcal{E}_{\text{a}}$}{
+		$\text{w}(e) \doteq \min(\text{w}(\mathcal{E}^{e}_{\text{a}}), \text{w}(\mathcal{E}^{e}_{\text{g}})) $
+	}\Else{
+		$\mathcal{E}_{\text{a}} \gets \mathcal{E}_{\text{a}} \cup  \{ e \}$
+	}
 }
 }
 Construct $\mathcal{A}(\mathcal{V}_{\text{a}}, \mathcal{E}_{\text{a}})$\;
@@ -1446,19 +1446,19 @@ Specifically, the time-varying nature of ISLs owing to the constant movement of 
 \Output{$\mathcal{V}^{re}_{o}, \mathcal{E}^{re}_{o}$}
 Initialize the vertex set and edge set with $\mathcal{V}^{re}_{o} \gets \varnothing, \mathcal{E}^{re}_{o} \gets \varnothing$ \;
 \uIf {$v^{m_i}_{k}$ is adjacent to $v^{m_j}_{k}$} {
-$\mathcal{E}^{re}_{o} \gets \mathcal{E}_z \bigcup  \{  (v^{m_i}_{k^r} \to v^{m_j}_{k^t}) \}$\;
-$\mathbf{w}(v^{m_i}_{k^r} \to v^{m_j}_{k^t}) \doteq \mathbf{e}^{tr}(v^{m_i}_{k^{r}} \to v^{m_j}_{k^{t}})$\;
+	$\mathcal{E}^{re}_{o} \gets \mathcal{E}_z \bigcup  \{  (v^{m_i}_{k^r} \to v^{m_j}_{k^t}) \}$\;
+	$\mathbf{w}(v^{m_i}_{k^r} \to v^{m_j}_{k^t}) \doteq \mathbf{e}^{tr}(v^{m_i}_{k^{r}} \to v^{m_j}_{k^{t}})$\;
 } \Else{
-$\mathcal{V}^{re}_{o}$, path = Floyd($\mathcal{G}, v^{m_i}_{k}, v^{m_j}_{k}$) \;
-$\mathcal{V}^{re}_{o} \gets \mathcal{V}^{re}_{o} \setminus \{v^{m_i}_{k}, v^{m_i}_{k}  \} $\;
-$\mathcal{E}^{re}_{o} \gets \mathcal{E}^{re}_{o} \bigcup  \{  (v^{m_i}_{k^{t}} \to v^{re}_{1}), (v^{re}_{\xi} \to v^{m_j}_{k^{r}}) \}$\;
-$\mathbf{w} (v^{m_i}_{k^{t}} \to v^{re}_{1}) \doteq \mathbf{e}^{tr}_{{re}_1} (v^{m_i}_{k^{t}} \to v^{re}_{1}) $\;
-$\mathbf{w} (v^{re}_{\xi} \to v^{m_j}_{k^{r}})  \doteq \mathbf{e}^{tr}_{{re}_3} (v^{re}_{\xi} \to v^{m_j}_{k^{r}}) $\;
-\For{$a \in [1, \xi - 1]$}{
-	$\mathcal{V}^{re}_{o} \gets \mathcal{V}^{re}_{o} \bigcup  \{ v^{re}_{a}, v^{re}_{a_1} \}$\;
-	$\mathcal{E}^{re}_{o} \gets \mathcal{E}^{re}_{o} \bigcup  \{  (v^{re}_{a} \to v^{re}_{a_1}) \}$\;
-	$\mathbf{w}(v^{re}_{a} \to v^{re}_{a_1}) \doteq \mathbf{e}^{tr}_{{re}_2} (v^{re}_{a} \to v^{re}_{a_1})$\;
-}
+	$\mathcal{V}^{re}_{o}$, path = Floyd($\mathcal{G}, v^{m_i}_{k}, v^{m_j}_{k}$) \;
+	$\mathcal{V}^{re}_{o} \gets \mathcal{V}^{re}_{o} \setminus \{v^{m_i}_{k}, v^{m_i}_{k}  \} $\;
+	$\mathcal{E}^{re}_{o} \gets \mathcal{E}^{re}_{o} \bigcup  \{  (v^{m_i}_{k^{t}} \to v^{re}_{1}), (v^{re}_{\xi} \to v^{m_j}_{k^{r}}) \}$\;
+	$\mathbf{w} (v^{m_i}_{k^{t}} \to v^{re}_{1}) \doteq \mathbf{e}^{tr}_{{re}_1} (v^{m_i}_{k^{t}} \to v^{re}_{1}) $\;
+	$\mathbf{w} (v^{re}_{\xi} \to v^{m_j}_{k^{r}})  \doteq \mathbf{e}^{tr}_{{re}_3} (v^{re}_{\xi} \to v^{m_j}_{k^{r}}) $\;
+	\For{$a \in [1, \xi - 1]$}{
+		$\mathcal{V}^{re}_{o} \gets \mathcal{V}^{re}_{o} \bigcup  \{ v^{re}_{a}, v^{re}_{a_1} \}$\;
+		$\mathcal{E}^{re}_{o} \gets \mathcal{E}^{re}_{o} \bigcup  \{  (v^{re}_{a} \to v^{re}_{a_1}) \}$\;
+		$\mathbf{w}(v^{re}_{a} \to v^{re}_{a_1}) \doteq \mathbf{e}^{tr}_{{re}_2} (v^{re}_{a} \to v^{re}_{a_1})$\;
+	}
 }
 % \KwRet{$\mathcal{V}^{re}_{o}, \mathcal{E}^{re}_{o}$}
 \end{algorithm}
@@ -1509,21 +1509,21 @@ $\mathcal{O}(|\mathcal{V}^{*}|( |\mathcal{E}| + |\mathcal{V}|\log|\mathcal{V}| )
 
 
 \begin{figure}[!b]
-\centering
-\subfigure[Chained and Treed topologies.]{
-	\includegraphics[width=0.5\linewidth]{figs/exp/chain_tree.pdf}
-	\label{fig:chain_miro}
-	\vspace{-0.3cm}
-}
-% \quad
-\subfigure[Sophisticated-Treed (Soph-Treed) topology.]{
-	\includegraphics[width=0.7\linewidth]{figs/exp/stree_micro.pdf}
-	\label{fig:stree_micro}
-}
-\vspace{-0.2cm}
-\caption{The overview of service request topologies from terrestrial stations.}
-\label{fig:svc_requests}
-\vspace{-0.2cm}
+	\centering
+	\subfigure[Chained and Treed topologies.]{
+		\includegraphics[width=0.5\linewidth]{figs/exp/chain_tree.pdf}
+		\label{fig:chain_miro}
+		\vspace{-0.3cm}
+	}
+	% \quad
+	\subfigure[Sophisticated-Treed (Soph-Treed) topology.]{
+		\includegraphics[width=0.7\linewidth]{figs/exp/stree_micro.pdf}
+		\label{fig:stree_micro}
+	}
+	\vspace{-0.2cm}
+	\caption{The overview of service request topologies from terrestrial stations.}
+	\label{fig:svc_requests}
+	\vspace{-0.2cm}
 \end{figure}
 
 \subsection{Experiment Setup}
@@ -1542,13 +1542,13 @@ Besides, we specify the antenna diameter transceiver as $D_{R}$=6$(mm)$, the poi
 
 \textbf{Ablation Solutions:} We design the following benchmarks to evaluate the performance of our proposed algorithm.
 \begin{enumerate}
-\item \textbf{Random:} 
-It randomly selects a satellite for each microservice and uses the Dijkstra algorithm to get the shortest path when dealing with relay links.
-\item \textbf{Computation greedy (Comp-greedy):} 
-It chooses the satellite that offers the minimum computation energy cost for executing each microservice. The relay routing policy is the same as \textbf{Random} policy.
-\item \textbf{Communication greedy (Comm-greedy):} 
-It picks the satellite pair with the minimum communication energy cost, including the potential relay links.
-
+	\item \textbf{Random:} 
+	It randomly selects a satellite for each microservice and uses the Dijkstra algorithm to get the shortest path when dealing with relay links.
+	\item \textbf{Computation greedy (Comp-greedy):} 
+	It chooses the satellite that offers the minimum computation energy cost for executing each microservice. The relay routing policy is the same as \textbf{Random} policy.
+	\item \textbf{Communication greedy (Comm-greedy):} 
+	It picks the satellite pair with the minimum communication energy cost, including the potential relay links.
+	
 \end{enumerate}
 
 
@@ -1570,53 +1570,53 @@ These findings emphasize the necessity of accounting for both computation and co
 
 
 \begin{figure*}[!ht]
-\centering
-\subfigure[Constellation with 72 satellites.]{
-	\begin{minipage}[b]{0.28\textwidth}
-		\includegraphics[width=1\textwidth]{figs/new-exp/constellation72.pdf}
-	\end{minipage}
-	\label{fig:constellation72}
-}
-\subfigure[Constellation with 48 satellites.]{
-	\begin{minipage}[b]{0.28\textwidth}
-		\includegraphics[width=1\textwidth]{figs/new-exp/constellation48.pdf}
-	\end{minipage}
-	\label{fig:constellation48}
-}
-\subfigure[Constellation with 108 satellites.]{
-	\begin{minipage}[b]{0.28\textwidth}
-		\includegraphics[width=1\textwidth,]{figs/new-exp/constellation108.pdf}
-	\end{minipage}
-	\label{fig:constellation108}
-}       
-\caption{Performance comparison on energy-cost under varying constellation scales for dynamic microservice request topologies.}
-\label{fig:constellation}
-\vspace{-2mm}
+	\centering
+	\subfigure[Constellation with 72 satellites.]{
+		\begin{minipage}[b]{0.28\textwidth}
+			\includegraphics[width=1\textwidth]{figs/new-exp/constellation72.pdf}
+		\end{minipage}
+		\label{fig:constellation72}
+	}
+	\subfigure[Constellation with 48 satellites.]{
+		\begin{minipage}[b]{0.28\textwidth}
+			\includegraphics[width=1\textwidth]{figs/new-exp/constellation48.pdf}
+		\end{minipage}
+		\label{fig:constellation48}
+	}
+	\subfigure[Constellation with 108 satellites.]{
+		\begin{minipage}[b]{0.28\textwidth}
+			\includegraphics[width=1\textwidth,]{figs/new-exp/constellation108.pdf}
+		\end{minipage}
+		\label{fig:constellation108}
+	}       
+	\caption{Performance comparison on energy-cost under varying constellation scales for dynamic microservice request topologies.}
+	\label{fig:constellation}
+	\vspace{-2mm}
 \end{figure*}
 
 \begin{figure*}[!ht]
-\centering
-\subfigure[Chained service topology.]{
-	\begin{minipage}[b]{0.28\textwidth}
-		\includegraphics[width=1\textwidth]{figs/new-exp/trans_power_chain.pdf}
-	\end{minipage}
-	\label{fig:trans_power_chain}
-}
-\subfigure[Treed service topology.]{
-	\begin{minipage}[b]{0.28\textwidth}
-		\includegraphics[width=1\textwidth]{figs/new-exp/trans_power_tree.pdf}
-	\end{minipage}
-	\label{fig:trans_power_tree}
-}
-\subfigure[Sophisticated Treed service topology.]{
-	\begin{minipage}[b]{0.28\textwidth}
-		\includegraphics[width=1\textwidth,]{figs/new-exp/trans_power_stree.pdf}
-	\end{minipage}
-	\label{fig:trans_power_stree}
-}       
-\caption{Performance comparison on energy-cost under different onboard transmitter power configurations for dynamic microservice request topologies.}
-\label{fig:trans_power}
-\vspace{-0.3cm}
+	\centering
+	\subfigure[Chained service topology.]{
+		\begin{minipage}[b]{0.28\textwidth}
+			\includegraphics[width=1\textwidth]{figs/new-exp/trans_power_chain.pdf}
+		\end{minipage}
+		\label{fig:trans_power_chain}
+	}
+	\subfigure[Treed service topology.]{
+		\begin{minipage}[b]{0.28\textwidth}
+			\includegraphics[width=1\textwidth]{figs/new-exp/trans_power_tree.pdf}
+		\end{minipage}
+		\label{fig:trans_power_tree}
+	}
+	\subfigure[Sophisticated Treed service topology.]{
+		\begin{minipage}[b]{0.28\textwidth}
+			\includegraphics[width=1\textwidth,]{figs/new-exp/trans_power_stree.pdf}
+		\end{minipage}
+		\label{fig:trans_power_stree}
+	}       
+	\caption{Performance comparison on energy-cost under different onboard transmitter power configurations for dynamic microservice request topologies.}
+	\label{fig:trans_power}
+	\vspace{-0.3cm}
 \end{figure*}
 
 
@@ -1644,53 +1644,53 @@ To evaluate the robustness of our proposed method under such conditions, we cond
 The results reveal that energy cost generally increases with an increasing number of faulty satellites for all methods. This trend can be attributed to the reduced availability of active nodes, which forces longer transmission paths and higher energy consumption for maintaining connectivity (much more relay satellites are required for message forwarding). Despite this challenge, Steiner invariably outperforms other methods in all scenarios. Its superior performance is attributed to its robust design, which can effectively adapt to changes in network topology and operational conditions. By optimizing power allocation and service routing decisions, the algorithm minimizes disruptions caused by satellite failures.
 
 \begin{figure*}[!htbp]
-\centering
-\subfigure[Robustness over faulty satellites (Chain).]{
-	\begin{minipage}[b]{0.28\textwidth}
-		\includegraphics[width=1\textwidth]{figs/new-exp/robust_chain.pdf}
-	\end{minipage}
-	\label{fig:robust_chain}
-}
-\subfigure[Robustness over faulty satellites (Tree).]{
-	\begin{minipage}[b]{0.28\textwidth}
-		\includegraphics[width=1\textwidth]{figs/new-exp/robust_tree.pdf}
-	\end{minipage}
-	\label{fig:robust_tree}
-}
-\subfigure[Robustness over faulty satellites (Soph Tree).]{
-	\begin{minipage}[b]{0.28\textwidth}
-		\includegraphics[width=1\textwidth,]{figs/new-exp/robust_stree.pdf}
-	\end{minipage}
-	\label{fig:robust_stree}
-}       
-\caption{Performance comparison on energy-cost under different configurations on number of faulty satellites for dynamic service request topologies.}
-\label{fig:robust}
-\vspace{-2mm}
+	\centering
+	\subfigure[Robustness over faulty satellites (Chain).]{
+		\begin{minipage}[b]{0.28\textwidth}
+			\includegraphics[width=1\textwidth]{figs/new-exp/robust_chain.pdf}
+		\end{minipage}
+		\label{fig:robust_chain}
+	}
+	\subfigure[Robustness over faulty satellites (Tree).]{
+		\begin{minipage}[b]{0.28\textwidth}
+			\includegraphics[width=1\textwidth]{figs/new-exp/robust_tree.pdf}
+		\end{minipage}
+		\label{fig:robust_tree}
+	}
+	\subfigure[Robustness over faulty satellites (Soph Tree).]{
+		\begin{minipage}[b]{0.28\textwidth}
+			\includegraphics[width=1\textwidth,]{figs/new-exp/robust_stree.pdf}
+		\end{minipage}
+		\label{fig:robust_stree}
+	}       
+	\caption{Performance comparison on energy-cost under different configurations on number of faulty satellites for dynamic service request topologies.}
+	\label{fig:robust}
+	\vspace{-2mm}
 \end{figure*}
 
 \begin{figure*}[!htbp]
-\centering
-\subfigure[Microservice scale (Chain).]{
-	\begin{minipage}[b]{0.28\textwidth}
-		\includegraphics[width=1\textwidth]{figs/new-exp/svc_replica_chain.pdf}
-	\end{minipage}
-	\label{fig:svc_replica_chain}
-}
-\subfigure[Microservice scale (Tree).]{
-	\begin{minipage}[b]{0.28\textwidth}
-		\includegraphics[width=1\textwidth]{figs/new-exp/svc_replica_tree.pdf}
-	\end{minipage}
-	\label{fig:svc_replica_tree}
-}
-\subfigure[Microservice scale (Soph Tree).]{
-	\begin{minipage}[b]{0.28\textwidth}
-		\includegraphics[width=1\textwidth,]{figs/new-exp/svc_replica_stree.pdf}
-	\end{minipage}
-	\label{fig:svc_replica_stree}
-}       
-\caption{Performance comparison on energy-cost under different configurations on number of replicas of microservices for dynamic service request topologies.}
-\label{fig:svc_replica}
-\vspace{-0.4cm}
+	\centering
+	\subfigure[Microservice scale (Chain).]{
+		\begin{minipage}[b]{0.28\textwidth}
+			\includegraphics[width=1\textwidth]{figs/new-exp/svc_replica_chain.pdf}
+		\end{minipage}
+		\label{fig:svc_replica_chain}
+	}
+	\subfigure[Microservice scale (Tree).]{
+		\begin{minipage}[b]{0.28\textwidth}
+			\includegraphics[width=1\textwidth]{figs/new-exp/svc_replica_tree.pdf}
+		\end{minipage}
+		\label{fig:svc_replica_tree}
+	}
+	\subfigure[Microservice scale (Soph Tree).]{
+		\begin{minipage}[b]{0.28\textwidth}
+			\includegraphics[width=1\textwidth,]{figs/new-exp/svc_replica_stree.pdf}
+		\end{minipage}
+		\label{fig:svc_replica_stree}
+	}       
+	\caption{Performance comparison on energy-cost under different configurations on number of replicas of microservices for dynamic service request topologies.}
+	\label{fig:svc_replica}
+	\vspace{-0.4cm}
 \end{figure*}
 
 
@@ -1708,12 +1708,12 @@ By contrast, the energy costs associated with routing paths generated by random 
 % Conversely, the energy costs of routing paths generated by the random and comp-greedy sometimes increase. This rise can be attributed to the higher number of service calling paths and service nodes, which can complicate the decision-making process and lead to less efficient routing choices. 
 
 \begin{figure}[!t]
-\centering
-\includegraphics[width=0.75\linewidth]{figs/new-exp/StreeDist.pdf}
-% \vspace{-0.2cm}
-\caption{Energy distribution of Soph Tree.}
-\label{fig:StreeDist}
-\vspace{-0.4cm}
+	\centering
+	\includegraphics[width=0.75\linewidth]{figs/new-exp/StreeDist.pdf}
+	% \vspace{-0.2cm}
+	\caption{Energy distribution of Soph Tree.}
+	\label{fig:StreeDist}
+	\vspace{-0.4cm}
 \end{figure}
 
 \subsubsection{Adaptability and stability}
@@ -1793,21 +1793,21 @@ In this paper, we proposed a DST-based solution to provide an energy-efficient s
 % or if you just want to reserve a space for a photo:
 
 % \begin{IEEEbiography}{Michael Shell}
-% Biography text here.
-% \end{IEEEbiography}
+	% Biography text here.
+	% \end{IEEEbiography}
 
 % if you will not have a photo at all:
 % \begin{IEEEbiographynophoto}{John Doe}
-% Biography text here.
-% \end{IEEEbiographynophoto}
+	% Biography text here.
+	% \end{IEEEbiographynophoto}
 
 % insert where needed to balance the two columns on the last page with
 % biographies
 %\newpage
 
 % \begin{IEEEbiographynophoto}{Jane Doe}
-% Biography text here.
-% \end{IEEEbiographynophoto}
+	% Biography text here.
+	% \end{IEEEbiographynophoto}
 
 % You can push biographies down or up by placing
 % a \vfill before or after them. The appropriate
