@@ -1,267 +1,229 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.4.24)  20 JUN 2026 13:23
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.10.29)  20 JUN 2026 21:09
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
 **main.tex
 (./main.tex
-LaTeX2e <2025-11-01>
-L3 programming layer <2026-03-20>
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/ieeetran/IEEEtran.cls
+LaTeX2e <2024-11-01> patch level 2
+L3 programming layer <2025-01-18>
+(/usr/local/texlive/2025/texmf-dist/tex/latex/ieeetran/IEEEtran.cls
 Document Class: IEEEtran 2015/08/26 V1.8b by Michael Shell
 -- See the "IEEEtran_HOWTO" manual for usage information.
 -- http://www.michaelshell.org/tex/ieeetran/
-\@IEEEtrantmpdimenA=\dimen150
-\@IEEEtrantmpdimenB=\dimen151
-\@IEEEtrantmpdimenC=\dimen152
-\@IEEEtrantmpcountA=\count275
-\@IEEEtrantmpcountB=\count276
-\@IEEEtrantmpcountC=\count277
+\@IEEEtrantmpdimenA=\dimen141
+\@IEEEtrantmpdimenB=\dimen142
+\@IEEEtrantmpdimenC=\dimen143
+\@IEEEtrantmpcountA=\count192
+\@IEEEtrantmpcountB=\count193
+\@IEEEtrantmpcountC=\count194
 \@IEEEtrantmptoksA=\toks17
-LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 5
-03.
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/psnfss/ot1ptm.fd
-File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
-)
+LaTeX Font Info:    Trying to load font information for TU+ptm on input line 50
+3.
+LaTeX Font Info:    No file TUptm.fd. on input line 503.
+
+LaTeX Font Warning: Font shape `TU/ptm/m/n' undefined
+(Font)              using `TU/lmr/m/n' instead on input line 503.
+
 -- Using 8.5in x 11in (letter) paper.
--- Using PDF output.
-\@IEEEnormalsizeunitybaselineskip=\dimen153
+-- Using DVI output.
+\@IEEEnormalsizeunitybaselineskip=\dimen144
 -- This is a 10 point document.
-LaTeX Encoding Info:    Redeclaring text command \textunderscore (encoding ?) o
-n input line 937.
-\CLASSINFOnormalsizebaselineskip=\dimen154
-\CLASSINFOnormalsizeunitybaselineskip=\dimen155
-\IEEEnormaljot=\dimen156
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <5> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <5> not available
-(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
+\CLASSINFOnormalsizebaselineskip=\dimen145
+\CLASSINFOnormalsizeunitybaselineskip=\dimen146
+\IEEEnormaljot=\dimen147
 
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <7> not available
-(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
+LaTeX Font Warning: Font shape `TU/ptm/bx/n' undefined
+(Font)              using `TU/ptm/m/n' instead on input line 1090.
 
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <8> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <8> not available
-(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
 
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <9> not available
-(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
+LaTeX Font Warning: Font shape `TU/ptm/m/it' undefined
+(Font)              using `TU/ptm/m/n' instead on input line 1090.
 
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <10> not available
-(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
 
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <11> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <11> not available
-(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
+LaTeX Font Warning: Font shape `TU/ptm/bx/it' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 1090.
 
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <12> not available
-(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
-
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <17> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <17> not available
-(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
-
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <20> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <20> not available
-(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
-
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <24> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1090.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <24> not available
-(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 1090.
-
-\IEEEquantizedlength=\dimen157
-\IEEEquantizedlengthdiff=\dimen158
-\IEEEquantizedtextheightdiff=\dimen159
-\IEEEilabelindentA=\dimen160
-\IEEEilabelindentB=\dimen161
-\IEEEilabelindent=\dimen162
-\IEEEelabelindent=\dimen163
-\IEEEdlabelindent=\dimen164
-\IEEElabelindent=\dimen165
-\IEEEiednormlabelsep=\dimen166
-\IEEEiedmathlabelsep=\dimen167
+\IEEEquantizedlength=\dimen148
+\IEEEquantizedlengthdiff=\dimen149
+\IEEEquantizedtextheightdiff=\dimen150
+\IEEEilabelindentA=\dimen151
+\IEEEilabelindentB=\dimen152
+\IEEEilabelindent=\dimen153
+\IEEEelabelindent=\dimen154
+\IEEEdlabelindent=\dimen155
+\IEEElabelindent=\dimen156
+\IEEEiednormlabelsep=\dimen157
+\IEEEiedmathlabelsep=\dimen158
 \IEEEiedtopsep=\skip49
-\c@section=\count278
-\c@subsection=\count279
-\c@subsubsection=\count280
-\c@paragraph=\count281
-\c@IEEEsubequation=\count282
+\c@section=\count195
+\c@subsection=\count196
+\c@subsubsection=\count197
+\c@paragraph=\count198
+\c@IEEEsubequation=\count199
 \abovecaptionskip=\skip50
 \belowcaptionskip=\skip51
-\c@figure=\count283
-\c@table=\count284
-\@IEEEeqnnumcols=\count285
-\@IEEEeqncolcnt=\count286
-\@IEEEsubeqnnumrollback=\count287
-\@IEEEquantizeheightA=\dimen168
-\@IEEEquantizeheightB=\dimen169
-\@IEEEquantizeheightC=\dimen170
-\@IEEEquantizeprevdepth=\dimen171
-\@IEEEquantizemultiple=\count288
-\@IEEEquantizeboxA=\box53
-\@IEEEtmpitemindent=\dimen172
-\IEEEPARstartletwidth=\dimen173
-\c@IEEEbiography=\count289
-\@IEEEtranrubishbin=\box54
-) (d:/Program Files/texlive/2026/texmf-dist/tex/latex/url/url.sty
+\c@figure=\count266
+\c@table=\count267
+\@IEEEeqnnumcols=\count268
+\@IEEEeqncolcnt=\count269
+\@IEEEsubeqnnumrollback=\count270
+\@IEEEquantizeheightA=\dimen159
+\@IEEEquantizeheightB=\dimen160
+\@IEEEquantizeheightC=\dimen161
+\@IEEEquantizeprevdepth=\dimen162
+\@IEEEquantizemultiple=\count271
+\@IEEEquantizeboxA=\box52
+\@IEEEtmpitemindent=\dimen163
+\IEEEPARstartletwidth=\dimen164
+\c@IEEEbiography=\count272
+\@IEEEtranrubishbin=\box53
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/url/url.sty
 \Urlmuskip=\muskip17
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/graphics/graphicx.sty
-Package: graphicx 2024/12/31 v1.2e Enhanced LaTeX Graphics (DPC,SPQR)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2021/09/16 v1.2d Enhanced LaTeX Graphics (DPC,SPQR)
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/graphics/keyval.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/keyval.sty
 Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
 \KV@toks@=\toks18
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/graphics/graphics.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/graphics.sty
 Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/graphics/trig.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/trig.sty
 Package: trig 2023/12/02 v1.11 sin cos tan (DPC)
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
 File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
 )
-Package graphics Info: Driver file: pdftex.def on input line 106.
+Package graphics Info: Driver file: xetex.def on input line 106.
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/graphics-def/pdftex.def
-File: pdftex.def 2025/09/29 v1.2d Graphics/color driver for pdftex
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics-def/xetex.def
+File: xetex.def 2022/09/22 v5.0n Graphics/color driver for xetex
 ))
-\Gin@req@height=\dimen174
-\Gin@req@width=\dimen175
+\Gin@req@height=\dimen165
+\Gin@req@width=\dimen166
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/subfigure/subfigure.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/subfigure/subfigure.sty
 Package: subfigure 2002/03/15 v2.1.5 subfigure package
 \subfigtopskip=\skip52
 \subfigcapskip=\skip53
-\subfigcaptopadj=\dimen176
+\subfigcaptopadj=\dimen167
 \subfigbottomskip=\skip54
-\subfigcapmargin=\dimen177
+\subfigcapmargin=\dimen168
 \subfiglabelskip=\skip55
-\c@subfigure=\count290
-\c@lofdepth=\count291
-\c@subtable=\count292
-\c@lotdepth=\count293
+\c@subfigure=\count273
+\c@lofdepth=\count274
+\c@subtable=\count275
+\c@lotdepth=\count276
 
 ****************************************
 * Local config file subfigure.cfg used *
 ****************************************
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/subfigure/subfigure.cfg)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/subfigure/subfigure.cfg)
 \subfig@top=\skip56
 \subfig@bottom=\skip57
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/booktabs/booktabs.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/booktabs/booktabs.sty
 Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
-\heavyrulewidth=\dimen178
-\lightrulewidth=\dimen179
-\cmidrulewidth=\dimen180
-\belowrulesep=\dimen181
-\belowbottomsep=\dimen182
-\aboverulesep=\dimen183
-\abovetopsep=\dimen184
-\cmidrulesep=\dimen185
-\cmidrulekern=\dimen186
-\defaultaddspace=\dimen187
-\@cmidla=\count294
-\@cmidlb=\count295
-\@aboverulesep=\dimen188
-\@belowrulesep=\dimen189
-\@thisruleclass=\count296
-\@lastruleclass=\count297
-\@thisrulewidth=\dimen190
+\heavyrulewidth=\dimen169
+\lightrulewidth=\dimen170
+\cmidrulewidth=\dimen171
+\belowrulesep=\dimen172
+\belowbottomsep=\dimen173
+\aboverulesep=\dimen174
+\abovetopsep=\dimen175
+\cmidrulesep=\dimen176
+\cmidrulekern=\dimen177
+\defaultaddspace=\dimen178
+\@cmidla=\count277
+\@cmidlb=\count278
+\@aboverulesep=\dimen179
+\@belowrulesep=\dimen180
+\@thisruleclass=\count279
+\@lastruleclass=\count280
+\@thisrulewidth=\dimen181
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/tools/array.sty
-Package: array 2025/09/25 v2.6n Tabular extension package (FMi)
-\col@sep=\dimen191
-\ar@mcellbox=\box55
-\extrarowheight=\dimen192
+(/usr/local/texlive/2025/texmf-dist/tex/latex/tools/array.sty
+Package: array 2024/10/17 v2.6g Tabular extension package (FMi)
+\col@sep=\dimen182
+\ar@mcellbox=\box54
+\extrarowheight=\dimen183
 \NC@list=\toks19
 \extratabsurround=\skip58
 \backup@length=\skip59
-\ar@cellbox=\box56
+\ar@cellbox=\box55
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/amsmath/amsmath.sty
-Package: amsmath 2025/07/09 v2.17z AMS math features
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsmath/amsmath.sty
+Package: amsmath 2024/11/05 v2.17t AMS math features
 \@mathmargin=\skip60
 
 For additional information on amsmath, use the `?' option.
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/amsmath/amstext.sty
-Package: amstext 2024/11/17 v2.01 AMS text
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsmath/amstext.sty
+Package: amstext 2021/08/26 v2.01 AMS text
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/amsmath/amsgen.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsmath/amsgen.sty
 File: amsgen.sty 1999/11/30 v2.0 generic functions
 \@emptytoks=\toks20
-\ex@=\dimen193
+\ex@=\dimen184
 ))
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/amsmath/amsbsy.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsmath/amsbsy.sty
 Package: amsbsy 1999/11/29 v1.2d Bold Symbols
-\pmbraise@=\dimen194
+\pmbraise@=\dimen185
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/amsmath/amsopn.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsmath/amsopn.sty
 Package: amsopn 2022/04/08 v2.04 operator names
 )
-\inf@bad=\count298
+\inf@bad=\count281
 LaTeX Info: Redefining \frac on input line 233.
-\uproot@=\count299
-\leftroot@=\count300
+\uproot@=\count282
+\leftroot@=\count283
 LaTeX Info: Redefining \overline on input line 398.
 LaTeX Info: Redefining \colon on input line 409.
-\classnum@=\count301
-\DOTSCASE@=\count302
+\classnum@=\count284
+\DOTSCASE@=\count285
 LaTeX Info: Redefining \ldots on input line 495.
 LaTeX Info: Redefining \dots on input line 498.
 LaTeX Info: Redefining \cdots on input line 619.
-\Mathstrutbox@=\box57
-\strutbox@=\box58
+\Mathstrutbox@=\box56
+\strutbox@=\box57
 LaTeX Info: Redefining \big on input line 721.
 LaTeX Info: Redefining \Big on input line 722.
 LaTeX Info: Redefining \bigg on input line 723.
 LaTeX Info: Redefining \Bigg on input line 724.
-\big@size=\dimen195
+\big@size=\dimen186
 LaTeX Font Info:    Redeclaring font encoding OML on input line 742.
 LaTeX Font Info:    Redeclaring font encoding OMS on input line 743.
-\macc@depth=\count303
+\macc@depth=\count286
 LaTeX Info: Redefining \bmod on input line 904.
 LaTeX Info: Redefining \pmod on input line 909.
 LaTeX Info: Redefining \smash on input line 939.
 LaTeX Info: Redefining \relbar on input line 969.
 LaTeX Info: Redefining \Relbar on input line 970.
-\c@MaxMatrixCols=\count304
+\c@MaxMatrixCols=\count287
 \dotsspace@=\muskip18
-\c@parentequation=\count305
-\dspbrk@lvl=\count306
+\c@parentequation=\count288
+\dspbrk@lvl=\count289
 \tag@help=\toks21
-\row@=\count307
-\column@=\count308
-\maxfields@=\count309
+\row@=\count290
+\column@=\count291
+\maxfields@=\count292
 \andhelp@=\toks22
-\eqnshift@=\dimen196
-\alignsep@=\dimen197
-\tagshift@=\dimen198
-\tagwidth@=\dimen199
-\totwidth@=\dimen256
-\lineht@=\dimen257
+\eqnshift@=\dimen187
+\alignsep@=\dimen188
+\tagshift@=\dimen189
+\tagwidth@=\dimen190
+\totwidth@=\dimen191
+\lineht@=\dimen192
 \@envbody=\toks23
 \multlinegap=\skip61
 \multlinetaggap=\skip62
 \mathdisplay@stack=\toks24
-LaTeX Info: Redefining \[ on input line 2950.
-LaTeX Info: Redefining \] on input line 2951.
+LaTeX Info: Redefining \[ on input line 2953.
+LaTeX Info: Redefining \] on input line 2954.
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/amscls/amsthm.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amscls/amsthm.sty
 Package: amsthm 2020/05/29 v2.20.6
 \thm@style=\toks25
 \thm@bodyfont=\toks26
@@ -273,10 +235,10 @@ Package: amsthm 2020/05/29 v2.20.6
 \thm@headsep=\skip65
 \dth@everypar=\toks30
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/amssymb.sty
 Package: amssymb 2013/01/14 v3.01 AMS font symbols
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/amsfonts/amsfonts.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/amsfonts.sty
 Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
 \symAMSa=\mathgroup4
 \symAMSb=\mathgroup5
@@ -284,65 +246,69 @@ LaTeX Font Info:    Redeclaring math symbol \hbar on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
 (Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
 ))
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/autobreak/autobreak.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/autobreak/autobreak.sty
 Package: autobreak 2017/02/23 v0.3 simple line breaking of long formulae
 \everybeforeautobreak=\toks31
 \everyafterautobreak=\toks32
 \@autobreak@alltoks=\toks33
 \@autobreak@linetoks=\toks34
-\@autobreak@lhswidth=\dimen258
-\@autobreak@rhswidth=\dimen259
-\@autobreak@maxlhswidth=\dimen260
-\@autobreak@realmaxlhswidth=\dimen261
-\@autobreak@maxrhswidth=\dimen262
-\c@@autobreak@eqnindex=\count310
-\c@@autobreak@subeqnindex=\count311
+\@autobreak@lhswidth=\dimen193
+\@autobreak@rhswidth=\dimen194
+\@autobreak@maxlhswidth=\dimen195
+\@autobreak@realmaxlhswidth=\dimen196
+\@autobreak@maxrhswidth=\dimen197
+\c@@autobreak@eqnindex=\count293
+\c@@autobreak@subeqnindex=\count294
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/generic/catchfile/catchfile.sty
+(/usr/local/texlive/2025/texmf-dist/tex/generic/catchfile/catchfile.sty
 Package: catchfile 2019/12/09 v1.8 Catch the contents of a file (HO)
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/generic/infwarerr/infwarerr.sty
+(/usr/local/texlive/2025/texmf-dist/tex/generic/infwarerr/infwarerr.sty
 Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty
+(/usr/local/texlive/2025/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty
 Package: ltxcmds 2023-12-04 v1.26 LaTeX kernel commands for general use (HO)
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/generic/etexcmds/etexcmds.sty
+(/usr/local/texlive/2025/texmf-dist/tex/generic/etexcmds/etexcmds.sty
 Package: etexcmds 2019/12/15 v1.7 Avoid name clashes with e-TeX commands (HO)
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/generic/iftex/iftex.sty
+(/usr/local/texlive/2025/texmf-dist/tex/generic/iftex/iftex.sty
 Package: iftex 2024/12/12 v1.0g TeX engine tests
 ))))
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/psnfss/pifont.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/psnfss/pifont.sty
 Package: pifont 2020/03/25 PSNFSS-v9.3 Pi font support (SPQR) 
 LaTeX Font Info:    Trying to load font information for U+pzd on input line 63.
 
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/psnfss/upzd.fd
+(/usr/local/texlive/2025/texmf-dist/tex/latex/psnfss/upzd.fd
 File: upzd.fd 2001/06/04 font definitions for U/pzd.
 )
 LaTeX Font Info:    Trying to load font information for U+psy on input line 64.
 
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/psnfss/upsy.fd
+(/usr/local/texlive/2025/texmf-dist/tex/latex/psnfss/upsy.fd
 File: upsy.fd 2001/06/04 font definitions for U/psy.
 ))
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/algorithm2e/algorithm2e.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/algorithm2e/algorithm2e.sty
+Invalid UTF-8 byte or sequence at line 284 replaced by U+FFFD.
+Invalid UTF-8 byte or sequence at line 299 replaced by U+FFFD.
+Invalid UTF-8 byte or sequence at line 550 replaced by U+FFFD.
 Package: algorithm2e 2017/07/18 v5.2 algorithms environments
-\c@AlgoLine=\count312
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/base/ifthen.sty
+\c@AlgoLine=\count295
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/base/ifthen.sty
 Package: ifthen 2024/03/16 v1.1e Standard LaTeX ifthen package (DPC)
 )
 \algocf@hangindent=\skip66
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/ifoddpage/ifoddpage.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/ifoddpage/ifoddpage.sty
 Package: ifoddpage 2022/10/18 v1.2 Conditionals for odd/even page detection
-\c@checkoddpage=\count313
+\c@checkoddpage=\count296
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/tools/xspace.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/tools/xspace.sty
 Package: xspace 2014/10/28 v1.13 Space after command names (DPC,MH)
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/relsize/relsize.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/relsize/relsize.sty
 Package: relsize 2013/03/29 ver 4.1
 )
 \skiptotal=\skip67
@@ -353,45 +319,44 @@ Package: relsize 2013/03/29 ver 4.1
 \skiplength=\skip72
 \algomargin=\skip73
 \skipalgocfslide=\skip74
-\algowidth=\dimen263
-\inoutsize=\dimen264
-\inoutindent=\dimen265
-\interspacetitleruled=\dimen266
-\interspacealgoruled=\dimen267
-\interspacetitleboxruled=\dimen268
+\algowidth=\dimen198
+\inoutsize=\dimen199
+\inoutindent=\dimen256
+\interspacetitleruled=\dimen257
+\interspacealgoruled=\dimen258
+\interspacetitleboxruled=\dimen259
 \algocf@ruledwidth=\skip75
-\algocf@inoutbox=\box59
-\algocf@inputbox=\box60
+\algocf@inoutbox=\box58
+\algocf@inputbox=\box59
 \AlCapSkip=\skip76
 \AlCapHSkip=\skip77
 \algoskipindent=\skip78
-\algocf@nlbox=\box61
-\algocf@hangingbox=\box62
-\algocf@untilbox=\box63
+\algocf@nlbox=\box60
+\algocf@hangingbox=\box61
+\algocf@untilbox=\box62
 \algocf@skipuntil=\skip79
-\algocf@capbox=\box64
+\algocf@capbox=\box63
 \algocf@lcaptionbox=\skip80
 \algoheightruledefault=\skip81
 \algoheightrule=\skip82
 \algotitleheightruledefault=\skip83
 \algotitleheightrule=\skip84
-\c@algocfline=\count314
-\c@algocfproc=\count315
-\c@algocf=\count316
-\algocf@algoframe=\box65
-\algocf@algobox=\box66
+\c@algocfline=\count297
+\c@algocfproc=\count298
+\c@algocf=\count299
+\algocf@algoframe=\box64
+\algocf@algobox=\box65
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/xcolor/xcolor.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/xcolor/xcolor.sty
 Package: xcolor 2024/09/29 v3.02 LaTeX color extensions (UK)
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/graphics-cfg/color.cfg
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics-cfg/color.cfg
 File: color.cfg 2016/01/02 v1.6 sample color configuration
 )
-Package xcolor Info: Driver file: pdftex.def on input line 274.
+Package xcolor Info: Driver file: xetex.def on input line 274.
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/graphics/mathcolor.ltx)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/mathcolor.ltx)
 Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1349.
-Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1353.
 Package xcolor Info: Model `RGB' extended on input line 1365.
 Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1367.
 Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1368.
@@ -400,27 +365,28 @@ Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1370.
 Package xcolor Info: Model `Gray' substituted by `gray' on input line 1371.
 Package xcolor Info: Model `wave' substituted by `hsb' on input line 1372.
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/colortbl/colortbl.sty
-Package: colortbl 2024/10/29 v1.0k Color table columns (DPC)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/colortbl/colortbl.sty
+Package: colortbl 2024/07/06 v1.0i Color table columns (DPC)
 \everycr=\toks35
 \minrowclearance=\skip85
-\rownum=\count317
+\rownum=\count300
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/footmisc/footmisc.sty
-Package: footmisc 2025/05/09 v7.0b a miscellany of footnote facilities
+(/usr/local/texlive/2025/texmf-dist/tex/latex/footmisc/footmisc.sty
+Package: footmisc 2024/12/24 v6.0g a miscellany of footnote facilities
 \FN@temptoken=\toks36
-\footnotemargin=\dimen269
-Package footmisc Info: Declaring symbol style bringhurst on input line 549.
-Package footmisc Info: Declaring symbol style chicago on input line 557.
-Package footmisc Info: Declaring symbol style wiley on input line 566.
-Package footmisc Info: Declaring symbol style lamport-robust on input line 577.
+\footnotemargin=\dimen260
+\@outputbox@depth=\dimen261
+Package footmisc Info: Declaring symbol style bringhurst on input line 699.
+Package footmisc Info: Declaring symbol style chicago on input line 707.
+Package footmisc Info: Declaring symbol style wiley on input line 716.
+Package footmisc Info: Declaring symbol style lamport-robust on input line 727.
 
-Package footmisc Info: Declaring symbol style lamport* on input line 597.
-Package footmisc Info: Declaring symbol style lamport*-robust on input line 618
+Package footmisc Info: Declaring symbol style lamport* on input line 747.
+Package footmisc Info: Declaring symbol style lamport*-robust on input line 768
 .
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/tools/bm.sty
-Package: bm 2025/10/21 v1.2g Bold Symbol Support (DPC/FMi)
+(/usr/local/texlive/2025/texmf-dist/tex/latex/tools/bm.sty
+Package: bm 2023/12/19 v1.2f Bold Symbol Support (DPC/FMi)
 \symboldoperators=\mathgroup6
 \symboldletters=\mathgroup7
 \symboldsymbols=\mathgroup8
@@ -429,45 +395,45 @@ Package bm Info: No bold for \U/msa/m/n, using \pmb.
 Package bm Info: No bold for \U/msb/m/n, using \pmb.
 LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 149.
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/graphics/epsfig.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/epsfig.sty
 Package: epsfig 2024/01/14 v1.7b (e)psfig emulation (SPQR)
-\epsfxsize=\dimen270
-\epsfysize=\dimen271
+\epsfxsize=\dimen262
+\epsfysize=\dimen263
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/tools/verbatim.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/tools/verbatim.sty
 Package: verbatim 2024-01-22 v1.5x LaTeX2e package for verbatim enhancements
 \every@verbatim=\toks37
 \verbatim@line=\toks38
 \verbatim@in@stream=\read2
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/cite/cite.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/cite/cite.sty
 LaTeX Info: Redefining \cite on input line 302.
 LaTeX Info: Redefining \nocite on input line 332.
 Package: cite 2015/02/27  v 5.5
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/tools/tabularx.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/tools/tabularx.sty
 Package: tabularx 2023/12/11 v2.12a `tabularx' package (DPC)
-\TX@col@width=\dimen272
-\TX@old@table=\dimen273
-\TX@old@col=\dimen274
-\TX@target=\dimen275
-\TX@delta=\dimen276
-\TX@cols=\count318
+\TX@col@width=\dimen264
+\TX@old@table=\dimen265
+\TX@old@col=\dimen266
+\TX@target=\dimen267
+\TX@delta=\dimen268
+\TX@cols=\count301
 \TX@ftn=\toks39
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/caption/caption.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/caption/caption.sty
 Package: caption 2023/08/05 v3.6o Customizing captions (AR)
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/caption/caption3.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/caption/caption3.sty
 Package: caption3 2023/07/31 v2.4d caption3 kernel (AR)
-\caption@tempdima=\dimen277
-\captionmargin=\dimen278
-\caption@leftmargin=\dimen279
-\caption@rightmargin=\dimen280
-\caption@width=\dimen281
-\caption@indent=\dimen282
-\caption@parindent=\dimen283
-\caption@hangindent=\dimen284
+\caption@tempdima=\dimen269
+\captionmargin=\dimen270
+\caption@leftmargin=\dimen271
+\caption@rightmargin=\dimen272
+\caption@width=\dimen273
+\caption@indent=\dimen274
+\caption@parindent=\dimen275
+\caption@hangindent=\dimen276
 Package caption Info: Unknown document class (or package),
 (caption)             standard defaults will be used.
 Package caption Info: \@makecaption = \long macro:#1#2->\ifx \@captype \@IEEEta
@@ -487,18 +453,18 @@ Package caption Warning: Unknown document class (or package),
 (caption)                standard defaults will be used.
 See the caption package documentation for explanation.
 
-\c@caption@flags=\count319
-\c@continuedfloat=\count320
+\c@caption@flags=\count302
+\c@continuedfloat=\count303
 Package caption Info: subfigure package is loaded.
-) (d:/Program Files/texlive/2026/texmf-dist/tex/latex/float/float.sty
+) (/usr/local/texlive/2025/texmf-dist/tex/latex/float/float.sty
 Package: float 2001/11/08 v1.3d Float enhancements (AL)
-\c@float@type=\count321
+\c@float@type=\count304
 \float@exts=\toks40
-\float@box=\box67
+\float@box=\box66
 \@float@everytoks=\toks41
-\@floatcapt=\box68
+\@floatcapt=\box67
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/caption/subcaption.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/caption/subcaption.sty
 Package: subcaption 2023/07/28 v1.6b Sub-captions (AR)
 LaTeX Info: Redefining \subref on input line 189.
 Package subcaption Info: The counter `subfigure' was already defined by
@@ -508,335 +474,961 @@ Package subcaption Info: The counter `subtable' was already defined by
 (subcaption)             an unknown document class or package on input line 238
 .
 )
+(/usr/local/texlive/2025/texmf-dist/tex/latex/jknapltx/mathrsfs.sty
+Package: mathrsfs 1996/01/01 Math RSFS package v1.0 (jk)
+\symrsfs=\mathgroup9
+)
 
 LaTeX Warning: Package "xcolor" has already been loaded: ignoring load-time
 (LaTeX)        option "xcdraw".
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/tools/indentfirst.sty
+(/usr/local/texlive/2025/texmf-dist/tex/latex/tools/indentfirst.sty
 Package: indentfirst 2023/07/02 v1.03 Indent first paragraph (DPC)
 )
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/l3backend/l3backend-pdftex.
-def
-File: l3backend-pdftex.def 2026-02-18 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count322
-) (./main.aux
-
-LaTeX Warning: Label `subsec:decision_variables_elara' multiply defined.
-
-
-LaTeX Warning: Label `eq:execution_feasible_elara' multiply defined.
-
-
-LaTeX Warning: Label `subsec:cost_model_elara' multiply defined.
-
-
-LaTeX Warning: Label `eq:unit_delay_elara' multiply defined.
-
-
-LaTeX Warning: Label `eq:unit_energy_elara' multiply defined.
-
-
-LaTeX Warning: Label `eq:edge_cost_elara' multiply defined.
-
-
-LaTeX Warning: Label `eq:migration_cost_elara' multiply defined.
-
-
-LaTeX Warning: Label `subsec:optimization_problem_elara' multiply defined.
-
-
-LaTeX Warning: Label `eq:request_cost_elara' multiply defined.
-
-
-LaTeX Warning: Label `eq:problem_elara' multiply defined.
-
-
-LaTeX Warning: Label `eq:p1_obj_elara' multiply defined.
-
-
-LaTeX Warning: Label `eq:p1_cap_elara' multiply defined.
-
-
-LaTeX Warning: Label `eq:p1_flow_elara' multiply defined.
-
-
-LaTeX Warning: Label `eq:p1_deploy_elara' multiply defined.
-
-
-LaTeX Warning: Label `eq:p1_action_elara' multiply defined.
-
-
-LaTeX Warning: Label `eq:p1_deadline_elara' multiply defined.
-
-
-LaTeX Warning: Label `subsec:problem_hardness_elara' multiply defined.
-
+(/usr/local/texlive/2025/texmf-dist/tex/latex/l3backend/l3backend-xetex.def
+File: l3backend-xetex.def 2024-05-08 L3 backend support: XeTeX
+\g__graphics_track_int=\count305
+\l__pdf_internal_box=\box68
+\g__pdf_backend_annotation_int=\count306
+\g__pdf_backend_link_int=\count307
 )
+(./main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 44.
+LaTeX Font Info:    ... okay on input line 44.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 44.
+LaTeX Font Info:    ... okay on input line 44.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 44.
+LaTeX Font Info:    ... okay on input line 44.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 44.
+LaTeX Font Info:    ... okay on input line 44.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 44.
+LaTeX Font Info:    ... okay on input line 44.
+LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 44.
+LaTeX Font Info:    ... okay on input line 44.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 44.
+LaTeX Font Info:    ... okay on input line 44.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 44.
+LaTeX Font Info:    ... okay on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/it' undefined
+(Font)              using `TU/ptm/bx/it' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/it' undefined
+(Font)              using `TU/ptm/bx/it' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/it' undefined
+(Font)              using `TU/ptm/bx/it' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/it' undefined
+(Font)              using `TU/ptm/bx/it' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/it' undefined
+(Font)              using `TU/ptm/bx/it' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/it' undefined
+(Font)              using `TU/ptm/bx/it' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/it' undefined
+(Font)              using `TU/ptm/bx/it' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/it' undefined
+(Font)              using `TU/ptm/bx/it' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/it' undefined
+(Font)              using `TU/ptm/bx/it' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 44.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/it' undefined
+(Font)              using `TU/ptm/bx/it' instead on input line 44.
 
 -- Lines per column: 56 (exact).
-(d:/Program Files/texlive/2026/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
-[Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count323
-\scratchdimen=\dimen285
-\scratchbox=\box69
-\nofMPsegments=\count324
-\nofMParguments=\count325
-\everyMPshowfont=\toks42
-\MPscratchCnt=\count326
-\MPscratchDim=\dimen286
-\MPnumerator=\count327
-\makeMPintoPDFobject=\count328
-\everyMPtoPDFconversion=\toks43
-)
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.
-sty
-Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
-Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
-85.
-
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cf
-g
-File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
-e
-))
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: float package is loaded.
 Package caption Info: End \AtBeginDocument code.
-<figs/sys_scenario2.pdf, id=1, 1248.37828pt x 493.94208pt>
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 54.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 61.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/m/sc' undefined
+(Font)              using `TU/ptm/m/n' instead on input line 67.
+
+
+
 File: figs/sys_scenario2.pdf Graphic file (type pdf)
 <use figs/sys_scenario2.pdf>
-Package pdftex.def Info: figs/sys_scenario2.pdf  used on input line 84.
-(pdftex.def)             Requested size: 231.83954pt x 91.72455pt.
- [1{d:/Program Files/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
-{d:/Program Files/texlive/2026/texmf-dist/fonts/enc/dvips/base/8r.enc}
 
 
- <./figs/sys_scenario2.pdf>]
-LaTeX Font Info:    Trying to load font information for U+msa on input line 107
+[1
+
+
+]
+LaTeX Font Info:    Trying to load font information for U+msa on input line 108
 .
-
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/amsfonts/umsa.fd
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 107
+LaTeX Font Info:    Trying to load font information for U+msb on input line 108
 .
 
-(d:/Program Files/texlive/2026/texmf-dist/tex/latex/amsfonts/umsb.fd
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-Underfull \hbox (badness 2495) in paragraph at lines 108--110
-[]\OT1/ptm/b/n/10 Augmented Satellite-Microservice Sub-graph Con-
+LaTeX Font Info:    Trying to load font information for U+rsfs on input line 10
+8.
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/jknapltx/ursfs.fd
+File: ursfs.fd 1998/03/24 rsfs font definition file (jk)
+)
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 108.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 109.
+
+
+Underfull \hbox (badness 2173) in paragraph at lines 109--111
+[]\TU/ptm/bx/it/10 Augmented Satellite-Microservice Subgraph Con-
  []
 
 
-LaTeX Warning: Reference `sec:E2CR4Micro' on page 2 undefined on input line 118
+Underfull \hbox (badness 1436) in paragraph at lines 109--111
+\TU/ptm/bx/it/10 struction: We propose an innovative augmented
+ []
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 111.
+
+
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 119.
+
+
+LaTeX Warning: Reference `sec:E2CR4Micro' on page 2 undefined on input line 119
 .
 
-[2] [3]
-Underfull \hbox (badness 3364) in paragraph at lines 290--294
- \OT1/ptm/m/it/10 a) Cross-slot Ser-vice Rout-ing La-tency and En-ergy
- []
 
-[4] [5] [6]
-<figs/ms_split.pdf, id=103, 749.92169pt x 198.7425pt>
+
+[2]
+
+
+
+[3]
+
+
+
+[4]
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 534.
+
 File: figs/ms_split.pdf Graphic file (type pdf)
 <use figs/ms_split.pdf>
-Package pdftex.def Info: figs/ms_split.pdf  used on input line 1243.
-(pdftex.def)             Requested size: 252.0pt x 66.78308pt.
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 552.
 
 
-LaTeX Warning: Reference `eq:shannon_rate2' on page 7 undefined on input line 1
-339.
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 552.
 
 
-LaTeX Warning: Reference `eq:comm_energy_cost' on page 7 undefined on input lin
-e 1339.
-
-[7 <./figs/ms_split.pdf>]
-<figs/satellite_routing.pdf, id=122, 770.43419pt x 346.20764pt>
-File: figs/satellite_routing.pdf Graphic file (type pdf)
-<use figs/satellite_routing.pdf>
-Package pdftex.def Info: figs/satellite_routing.pdf  used on input line 1350.
-(pdftex.def)             Requested size: 189.0pt x 84.9299pt.
-<figs/2.pdf, id=123, 1746.525pt x 440.39531pt>
-File: figs/2.pdf Graphic file (type pdf)
-<use figs/2.pdf>
-Package pdftex.def Info: figs/2.pdf  used on input line 1367.
-(pdftex.def)             Requested size: 495.36346pt x 124.90916pt.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-Underfull \vbox (badness 1281) has occurred while \output is active []
-
- [8 <./figs/satellite_routing.pdf>]
-<figs/exp/chain_tree.pdf, id=150, 427.5975pt x 193.6836pt>
-File: figs/exp/chain_tree.pdf Graphic file (type pdf)
-<use figs/exp/chain_tree.pdf>
-Package pdftex.def Info: figs/exp/chain_tree.pdf  used on input line 1517.
-(pdftex.def)             Requested size: 126.0pt x 57.07114pt.
-<figs/exp/stree_micro.pdf, id=151, 627.30356pt x 283.0575pt>
-File: figs/exp/stree_micro.pdf Graphic file (type pdf)
-<use figs/exp/stree_micro.pdf>
-Package pdftex.def Info: figs/exp/stree_micro.pdf  used on input line 1522.
-(pdftex.def)             Requested size: 176.39923pt x 79.59676pt.
- [9 <./figs/2.pdf> <./figs/exp/chain_tree.pdf> <./figs/exp/stree_micro.pdf>]
-Underfull \hbox (badness 2635) in paragraph at lines 1541--1542
-[]\OT1/ptm/b/n/10 Microservices. \OT1/ptm/m/n/10 Ac-cord-ing to the mi-croser-v
-ice set-ting
+Underfull \hbox (badness 2351) in paragraph at lines 552--552
+[]\TU/ptm/m/sc/10 Algorithm 1: Augmented Satellite-Microservice
  []
 
-<figs/new-exp/constellation72.pdf, id=179, 587.42pt x 465.66281pt>
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 554.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 556.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 565.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 565.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 565.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 565.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 565.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 565.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 565.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 565.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 565.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 565.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 565.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 565.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 565.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 565.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 574.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 579.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 579.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 579.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 579.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 579.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 579.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 579.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 579.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 579.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 586.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 586.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 586.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 586.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 586.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 586.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 586.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 586.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 586.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 586.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 586.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 586.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 586.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 586.
+
+
+Underfull \hbox (badness 1622) in paragraph at lines 589--589
+ \TU/ptm/m/sc/10 A. Augmented Satellite-Microservice Sub-Graph Con-
+ []
+
+
+
+[5]
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 606.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 612.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 619.
+
+
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 634.
+
+
+LaTeX Warning: Reference `eq:shannon_rate2' on page 6 undefined on input line 6
+34.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 634.
+
+
+LaTeX Warning: Reference `eq:comm_energy_cost' on page 6 undefined on input lin
+e 634.
+
+File: figs/satellite_routing.pdf Graphic file (type pdf)
+<use figs/satellite_routing.pdf>
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 654.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 657.
+
+File: figs/2.pdf Graphic file (type pdf)
+<use figs/2.pdf>
+
+
+[6]
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 679.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 690.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 690.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 692.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 692.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 693.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 693.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 694.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 695.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 696.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 697.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 703.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 703.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 703.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 703.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 703.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 703.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 703.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 704.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 714.
+
+
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 735.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 735.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 735.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 738.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 738.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 739.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 739.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 740.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 741.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 742.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 746.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 746.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 746.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 746.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 746.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 759.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/it' undefined
+(Font)              using `TU/ptm/bx/it' instead on input line 766.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/it' undefined
+(Font)              using `TU/ptm/bx/it' instead on input line 769.
+
+
+
+[7]
+
+LaTeX Font Warning: Font shape `TU/ptm/b/it' undefined
+(Font)              using `TU/ptm/bx/it' instead on input line 772.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/it' undefined
+(Font)              using `TU/ptm/bx/it' instead on input line 778.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 794.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 799.
+
+File: figs/exp/chain_tree.pdf Graphic file (type pdf)
+<use figs/exp/chain_tree.pdf>
+File: figs/exp/stree_micro.pdf Graphic file (type pdf)
+<use figs/exp/stree_micro.pdf>
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 825.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 827.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 827--829
+[]\TU/ptm/m/sc/10 Satellite Computing Capability. We suppose
+ []
+
+
+Underfull \hbox (badness 3209) in paragraph at lines 827--829
+\TU/ptm/m/sc/10 LEO satellites are equipped with several onboard
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 827--829
+\TU/ptm/m/sc/10 processors and storage components. According
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 827--829
+\TU/ptm/m/sc/10 to [27], we assign the satellite computing
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 827--829
+\TU/ptm/m/sc/10 capability following a uniform distribution, as
+ []
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 830.
+
+
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 836.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 838.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 840.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 842.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 843.
+
+
+LaTeX Font Warning: Font shape `TU/ptm/b/n' undefined
+(Font)              using `TU/ptm/bx/n' instead on input line 844.
+
+
+
+[8]
 File: figs/new-exp/constellation72.pdf Graphic file (type pdf)
 <use figs/new-exp/constellation72.pdf>
-Package pdftex.def Info: figs/new-exp/constellation72.pdf  used on input line 1
-579.
-(pdftex.def)             Requested size: 144.47937pt x 114.53247pt.
-<figs/new-exp/constellation48.pdf, id=180, 587.40211pt x 465.66281pt>
 File: figs/new-exp/constellation48.pdf Graphic file (type pdf)
 <use figs/new-exp/constellation48.pdf>
-Package pdftex.def Info: figs/new-exp/constellation48.pdf  used on input line 1
-585.
-(pdftex.def)             Requested size: 144.47937pt x 114.53247pt.
-<figs/new-exp/constellation108.pdf, id=181, 587.42pt x 465.66281pt>
 File: figs/new-exp/constellation108.pdf Graphic file (type pdf)
 <use figs/new-exp/constellation108.pdf>
-Package pdftex.def Info: figs/new-exp/constellation108.pdf  used on input line 
-1591.
-(pdftex.def)             Requested size: 144.47937pt x 114.53247pt.
-<figs/new-exp/trans_power_chain.pdf, id=182, 629.78592pt x 453.80531pt>
 File: figs/new-exp/trans_power_chain.pdf Graphic file (type pdf)
 <use figs/new-exp/trans_power_chain.pdf>
-Package pdftex.def Info: figs/new-exp/trans_power_chain.pdf  used on input line
- 1604.
-(pdftex.def)             Requested size: 144.47937pt x 104.10297pt.
-<figs/new-exp/trans_power_tree.pdf, id=183, 629.78592pt x 453.7979pt>
 File: figs/new-exp/trans_power_tree.pdf Graphic file (type pdf)
 <use figs/new-exp/trans_power_tree.pdf>
-Package pdftex.def Info: figs/new-exp/trans_power_tree.pdf  used on input line 
-1610.
-(pdftex.def)             Requested size: 144.47937pt x 104.10126pt.
-<figs/new-exp/trans_power_stree.pdf, id=184, 629.78592pt x 453.7979pt>
 File: figs/new-exp/trans_power_stree.pdf Graphic file (type pdf)
 <use figs/new-exp/trans_power_stree.pdf>
-Package pdftex.def Info: figs/new-exp/trans_power_stree.pdf  used on input line
- 1616.
-(pdftex.def)             Requested size: 144.47937pt x 104.10126pt.
-<figs/new-exp/robust_chain.pdf, id=185, 593.19186pt x 485.0953pt>
+
+
 File: figs/new-exp/robust_chain.pdf Graphic file (type pdf)
 <use figs/new-exp/robust_chain.pdf>
-Package pdftex.def Info: figs/new-exp/robust_chain.pdf  used on input line 1653
-.
-(pdftex.def)             Requested size: 144.47937pt x 118.1499pt.
-<figs/new-exp/robust_tree.pdf, id=186, 593.19554pt x 485.0953pt>
+
+Underfull \hbox (badness 4954) in paragraph at lines 948--948
+[]\TU/ptm/bx/it/8 (a) Robustness over faulty satellites
+ []
+
 File: figs/new-exp/robust_tree.pdf Graphic file (type pdf)
 <use figs/new-exp/robust_tree.pdf>
-Package pdftex.def Info: figs/new-exp/robust_tree.pdf  used on input line 1659.
 
-(pdftex.def)             Requested size: 144.47937pt x 118.1499pt.
-<figs/new-exp/robust_stree.pdf, id=187, 593.19554pt x 485.0953pt>
+Underfull \hbox (badness 4569) in paragraph at lines 954--954
+[]\TU/ptm/bx/it/8 (b) Robustness over faulty satellites
+ []
+
 File: figs/new-exp/robust_stree.pdf Graphic file (type pdf)
 <use figs/new-exp/robust_stree.pdf>
-Package pdftex.def Info: figs/new-exp/robust_stree.pdf  used on input line 1665
-.
-(pdftex.def)             Requested size: 144.47937pt x 118.1499pt.
-[10]
-<figs/new-exp/svc_replica_chain.pdf, id=191, 592.11472pt x 489.36327pt>
+
+Underfull \hbox (badness 5359) in paragraph at lines 960--960
+[]\TU/ptm/bx/it/8 (c) Robustness over faulty satellites
+ []
+
 File: figs/new-exp/svc_replica_chain.pdf Graphic file (type pdf)
 <use figs/new-exp/svc_replica_chain.pdf>
-Package pdftex.def Info: figs/new-exp/svc_replica_chain.pdf  used on input line
- 1678.
-(pdftex.def)             Requested size: 144.47937pt x 119.40594pt.
-<figs/new-exp/svc_replica_tree.pdf, id=192, 592.11472pt x 489.36327pt>
 File: figs/new-exp/svc_replica_tree.pdf Graphic file (type pdf)
 <use figs/new-exp/svc_replica_tree.pdf>
-Package pdftex.def Info: figs/new-exp/svc_replica_tree.pdf  used on input line 
-1684.
-(pdftex.def)             Requested size: 144.47937pt x 119.40594pt.
-<figs/new-exp/svc_replica_stree.pdf, id=193, 592.11472pt x 489.36327pt>
 File: figs/new-exp/svc_replica_stree.pdf Graphic file (type pdf)
 <use figs/new-exp/svc_replica_stree.pdf>
-Package pdftex.def Info: figs/new-exp/svc_replica_stree.pdf  used on input line
- 1690.
-(pdftex.def)             Requested size: 144.47937pt x 119.40594pt.
-<figs/new-exp/StreeDist.pdf, id=194, 599.24867pt x 467.9645pt>
+
+
+[9]
 File: figs/new-exp/StreeDist.pdf Graphic file (type pdf)
 <use figs/new-exp/StreeDist.pdf>
-Package pdftex.def Info: figs/new-exp/StreeDist.pdf  used on input line 1712.
-(pdftex.def)             Requested size: 189.0pt x 147.59525pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
-(./main.bbl [11 <./figs/new-exp/constellation72.pdf> <./figs/new-exp/constellat
-ion48.pdf
 
-pdfTeX warning: pdflatex.exe (file ./figs/new-exp/constellation48.pdf): PDF inc
-lusion: multiple pdfs with page group included in a single page
-> <./figs/new-exp/constellation108.pdf
 
-pdfTeX warning: pdflatex.exe (file ./figs/new-exp/constellation108.pdf): PDF in
-clusion: multiple pdfs with page group included in a single page
-> <./figs/new-exp/trans_power_chain.pdf
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
-pdfTeX warning: pdflatex.exe (file ./figs/new-exp/trans_power_chain.pdf): PDF i
-nclusion: multiple pdfs with page group included in a single page
-> <./figs/new-exp/trans_power_tree.pdf
 
-pdfTeX warning: pdflatex.exe (file ./figs/new-exp/trans_power_tree.pdf): PDF in
-clusion: multiple pdfs with page group included in a single page
-> <./figs/new-exp/trans_power_stree.pdf
 
-pdfTeX warning: pdflatex.exe (file ./figs/new-exp/trans_power_stree.pdf): PDF i
-nclusion: multiple pdfs with page group included in a single page
->]
-Underfull \hbox (badness 3000) in paragraph at lines 26--30
-[]\OT1/ptm/m/n/8 H. Al-Hraishawi, H. Chougrani, S. Kisse-l-eff, E. La-gu-nas, a
-nd
- []
+[10] (./main.bbl
 
-[12 <./figs/new-exp/robust_chain.pdf> <./figs/new-exp/robust_tree.pdf
 
-pdfTeX warning: pdflatex.exe (file ./figs/new-exp/robust_tree.pdf): PDF inclusi
-on: multiple pdfs with page group included in a single page
-> <./figs/new-exp/robust_stree.pdf
 
-pdfTeX warning: pdflatex.exe (file ./figs/new-exp/robust_stree.pdf): PDF inclus
-ion: multiple pdfs with page group included in a single page
-> <./figs/new-exp/svc_replica_chain.pdf
+[11]
 
-pdfTeX warning: pdflatex.exe (file ./figs/new-exp/svc_replica_chain.pdf): PDF i
-nclusion: multiple pdfs with page group included in a single page
-> <./figs/new-exp/svc_replica_tree.pdf
-
-pdfTeX warning: pdflatex.exe (file ./figs/new-exp/svc_replica_tree.pdf): PDF in
-clusion: multiple pdfs with page group included in a single page
-> <./figs/new-exp/svc_replica_stree.pdf
-
-pdfTeX warning: pdflatex.exe (file ./figs/new-exp/svc_replica_stree.pdf): PDF i
-nclusion: multiple pdfs with page group included in a single page
-> <./figs/new-exp/StreeDist.pdf
-
-pdfTeX warning: pdflatex.exe (file ./figs/new-exp/StreeDist.pdf): PDF inclusion
-: multiple pdfs with page group included in a single page
->])
+)
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -848,51 +1440,28 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[13] (./main.aux)
+
+
+[12] (./main.aux)
  ***********
-LaTeX2e <2025-11-01>
-L3 programming layer <2026-03-20>
+LaTeX2e <2024-11-01> patch level 2
+L3 programming layer <2025-01-18>
  ***********
+
+
+LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 
 LaTeX Warning: There were undefined references.
 
-
-LaTeX Warning: There were multiply-defined labels.
-
  ) 
 Here is how much of TeX's memory you used:
- 8225 strings out of 467349
- 142121 string characters out of 5412450
- 580913 words of memory out of 5000000
- 37168 multiletter control sequences out of 15000+600000
- 669972 words of font info for 114 fonts, out of 8000000 for 9000
- 1144 hyphenation exceptions out of 8191
- 71i,20n,83p,1369b,561s stack positions out of 10000i,1000n,20000p,200000b,200000s
-<d:/Program Files/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx
-10.pfb><d:/Program Files/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmbx7.pfb><d:/Program Files/texlive/2026/texmf-dist/fonts/type1/public/amsfont
-s/cm/cmex10.pfb><d:/Program Files/texlive/2026/texmf-dist/fonts/type1/public/am
-sfonts/cm/cmmi10.pfb><d:/Program Files/texlive/2026/texmf-dist/fonts/type1/publ
-ic/amsfonts/cm/cmmi5.pfb><d:/Program Files/texlive/2026/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmmi7.pfb><d:/Program Files/texlive/2026/texmf-dist/fonts/ty
-pe1/public/amsfonts/cm/cmr10.pfb><d:/Program Files/texlive/2026/texmf-dist/font
-s/type1/public/amsfonts/cm/cmr5.pfb><d:/Program Files/texlive/2026/texmf-dist/f
-onts/type1/public/amsfonts/cm/cmr7.pfb><d:/Program Files/texlive/2026/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmsy10.pfb><d:/Program Files/texlive/2026/texm
-f-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb><d:/Program Files/texlive/2026/
-texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb><d:/Program Files/texlive/2
-026/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb><d:/Program Files
-/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb><d:/Pro
-gram Files/texlive/2026/texmf-dist/fonts/type1/urw/times/utmb8a.pfb><d:/Program
- Files/texlive/2026/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb><d:/Program Fi
-les/texlive/2026/texmf-dist/fonts/type1/urw/times/utmr8a.pfb><d:/Program Files/
-texlive/2026/texmf-dist/fonts/type1/urw/times/utmri8a.pfb><d:/Program Files/tex
-live/2026/texmf-dist/fonts/type1/urw/zapfding/uzdr.pfb>
-Output written on main.pdf (13 pages, 3565369 bytes).
-PDF statistics:
- 476 PDF objects out of 1000 (max. 8388607)
- 318 compressed objects within 4 object streams
- 0 named destinations out of 1000 (max. 500000)
- 96 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 7860 strings out of 473832
+ 136954 string characters out of 5729480
+ 556014 words of memory out of 5000000
+ 30772 multiletter control sequences out of 15000+600000
+ 564558 words of font info for 68 fonts, out of 8000000 for 9000
+ 1351 hyphenation exceptions out of 8191
+ 71i,20n,79p,1369b,560s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
+Output written on main.pdf (12 pages).
