@@ -39,7 +39,7 @@
 \usepackage{indentfirst}
 \graphicspath{{figs/}}
 \hyphenation{op-tical net-works semi-conduc-tor}
-\SetCommentSty{\textit\footnotesize}
+\SetCommentSty{\textit\footnotesize} 
 
 \begin{document}
 
@@ -67,8 +67,8 @@ Energy, Microservice, Routing, Space Network
 \section{Introduction}
 \label{sec:intro}
 In recent years, large-scale LEO satellite networks have garnered widespread attention as one of the recognized highlights of 6G technology \cite{xiao2022leo}.
-Modern LEO mega-constellations, consisting of hundreds to thousands of LEO satellites connected by inter-satellite links (ISLs), enable the globally ubiquitous connections \cite{net_char_StarLink_LEO}.
-Meanwhile, advancements in remote sensing and chip technology have enabled modern LEO satellites to be equipped with high-performance imaging and intelligent computing payloads \cite{mi2019intelligent, shen2023survey}, thus supporting ubiquitous intelligent services such as weather forecasting, environmental monitoring, and national security \cite{satellite_sys_survey, progress_challenge_RS_satellite}.
+Modern LEO mega-constellations, consisting of hundreds to thousands of LEO satellites connected by inter-satellite links (ISLs), enable the globally ubiquitous connections \cite{net_char_StarLink_LEO}. 
+Meanwhile, advancements in remote sensing and chip technology have enabled modern LEO satellites to be equipped with high-performance imaging and intelligent computing payloads \cite{mi2019intelligent, shen2023survey}, thus supporting ubiquitous intelligent services such as weather forecasting, environmental monitoring, and national security \cite{satellite_sys_survey, progress_challenge_RS_satellite}. 
 Hundreds to thousands of satellite computing nodes collectively form the SCPN, where the strategic allocation of sensing, communication, and computing resources to efficiently fulfill diverse intelligent service requests has emerged as a critical challenge in the context of 6G integrated space-air-ground networks \cite{SAG_survey_6g}.
 
 Particularly, due to the large-scale deployment of LEO satellites, advancements in satellite remote sensing and data analytics technology, and the high image resolution afforded by the lower orbital altitude, LEO satellite remote sensing services have demonstrated unprecedented momentum. These services continuously generate massive amounts of data featuring multiple formats and modalities, catering to extensive user demands \cite{survey_on_nextg_comp_tech_SAGIN,sate_fed_edge_learning, li2023leo}.
@@ -116,7 +116,7 @@ In addition to microservice scenarios, this method is also applicable to other r
 The remainder of this paper is organized as follows.
 Section \ref{sec:related_work} reviews the related works.
 Section \ref{sec:sys_model} presents the system models.
-The problem formulation is introduced in Section \ref{sec:E2CR4Micro}.
+The problem formulation is introduced in Section \ref{sec:prob_form}.
 Section \ref{sec:algo} details the proposed heuristic algorithms.
 Section \ref{sec:eval} shows and analyses the experiment results.
 Section \ref{sec:conclusion} draws the conclusion.
@@ -279,7 +279,7 @@ Furthermore, the aggregate storage footprint of all replicas hosted on a single 
 % It is worth noting that all microservices operate in a stateless manner, which can be dynamically added, removed, or migrated without incurring the prohibitive communication overhead of inter-replica state synchronization.
 
 
-Let $r = \langle v_s, m_1, m_2, \ldots, m_L, v_d, \tau_{\text{in}} \rangle$ denote an incoming request with a deadline $D_r$.
+Let $r = \langle v_s, m_1, m_2, \ldots, m_L, v_d, \tau_{\text{in}} \rangle$ denote an incoming request with a deadline $D_r$. 
 Here, $v_s$ and $v_d$ are the source and destination satellites, $m_i$ is the $i$-th microservice in the sequential execution chain, and $\tau_{\text{in}}$ is the continuous arrival time.
 Let $B_{r,i}$ be the data volume that should be transmitted before invoking $m_i$, while $B_{r,L+1}$ denotes the final output routed to $v_d$.
 % Since a request can arrive at any arbitrary instant and its data transmission may span multiple topology slots, ELARA formulates this sequential service execution as a continuous-time online decision process.
@@ -293,8 +293,8 @@ For the $i$-th service routing operation, the source and destination satellites 
 
 
 Since the endpoints may be non-adjacent and transmission may start near a slot boundary, one routing operation can span $H\geq 1$ phases over time-varying multi-hop routes.
-For phase $h$, let $\tau_{r,i}^{h}$ be its start time, $t_h=s(\tau_{r,i}^{h})$ the active topology slot, $\bar{\Delta}_h$ the remaining slot time, and $B_{r,i}^{h}$ the residual data, with $B_{r,i}^{1}=B_{r,i}$.
-Let $\mathcal{P}_{r,i}^{h}$ be the feasible and active end-to-end path set from $u_{r,i}$ to $v_{r,i}$ in slot $t_h$, where each path $p\in\mathcal{P}_{r,i}^{h}$ is an ordered sequence of one or more ISLs, i.e., $p=(e_1,\ldots,e_{|p|})$, and different path may partially share the same ISLs.
+For phase $h$, let $\tau_{r,i}^{h}$ be its start time, $t_h=s(\tau_{r,i}^{h})$ the active topology slot, $\bar{\Delta}_h$ the remaining slot time, and $B_{r,i}^{h}$ the residual data, with $B_{r,i}^{1}=B_{r,i}$. 
+Let $\mathcal{P}_{r,i}^{h}$ be the feasible and active end-to-end path set from $u_{r,i}$ to $v_{r,i}$ in slot $t_h$, where each path $p\in\mathcal{P}_{r,i}^{h}$ is an ordered sequence of one or more ISLs, i.e., $p=(e_1,\ldots,e_{|p|})$, and different path may partially share the same ISLs. 
 If $D_h$ bits are transmitted, ELARA splits them across multiple such paths, and path $p$ receives fraction $\lambda_p^h\in[0,1]$:
 \begin{equation}
 d_p^h=\lambda_p^h D_h,\qquad
@@ -367,21 +367,21 @@ E^{\text{tot}}_r
 where $i=L+1$ denotes the final output delivery to $v_d$.
 
 \paragraph{Service Replica Migration Model}
-Let $\mathbf{X}(t)=[x_{m,v}(t)]$ represent the microservice replica deployment matrix at slot $t$.
-ElARA periodically updates the deployment matrix every few time slots by selecting an action $ a_{m_i} \in \{\text{add}, \text{remove}, \text{move}, \text{no-op}\} $ for each $m_i$ in a microservice subset $\mathcal{M'}(t) \subset \mathcal{M}$ at time slot $t$.
+Let $\mathbf{X}(t)=[x_{m,v}(t)]$ represent the microservice replica deployment matrix at slot $t$. 
+ElARA periodically updates the deployment matrix every few time slots by selecting an action $ a_{m_i} \in \{\text{add}, \text{remove}, \text{move}, \text{no-op}\} $ for each $m_i$ in a microservice subset $\mathcal{M'}(t) \subset \mathcal{M}$ at time slot $t$. 
 Then we have:
 \begin{align}
-    \mathbf{X}(t+1) = \Phi(\mathbf{X}(t), \mathcal{A}_t),
-    \label{eq:deployment_transition}
+\mathbf{X}(t+1) = \Phi(\mathbf{X}(t), \mathcal{A}_t),
+\label{eq:deployment_transition}
 \end{align}
 where $\Phi(\cdot)$ denotes the deployment transition induced by the selected action set $\mathcal{A}_t = \{ a_{m_i} | \forall m_i \in \mathcal{M'}(t) \}$.
-All redeployment actions should preserve the replica-count and storage constraints in \eqref{eq:replica_count_elara} and \eqref{eq:storage_elara}.
+All redeployment actions should preserve the replica-count and storage constraints in \eqref{eq:replica_count_elara} and \eqref{eq:storage_elara}. 
 % The single normalized migration cost is:
 % \begin{align}
 %     C^{\text{mg}}(a_{m_i}, t) = \omega^{\text{mg}}_{t}\frac{T^{\text{mg}}(a_{m_i}, t)}{T_0} + \omega^{\text{mg}}_{e}\frac{E^{\text{mg}}(a_{m_i}, t)}{E_0},
 %     \label{eq:migration_cost_elara}
 % \end{align}
-% where $T^{\text{mg}}(a_t)$ and $E^{\text{mg}}(a_t)$ are the delay and energy overheads for transferring the service images, and they can be calculated by \eqref{eq:cross_slot_routing_cost_model}. $T_0$ and $E_0$ are the normalization constants, $\omega^{\text{mg}}_{t}$ and $\omega^{\text{mg}}_{e}$ are the weights of migration delay and energy consumpation, respectivaly.
+% where $T^{\text{mg}}(a_t)$ and $E^{\text{mg}}(a_t)$ are the delay and energy overheads for transferring the service images, and they can be calculated by \eqref{eq:cross_slot_routing_cost_model}. $T_0$ and $E_0$ are the normalization constants, $\omega^{\text{mg}}_{t}$ and $\omega^{\text{mg}}_{e}$ are the weights of migration delay and energy consumpation, respectivaly. 
 % Because all microservice are stateless, remove and no-op operations incur zero migration cost.
 
 \section{Problem Formulation of ELARA}
@@ -408,7 +408,7 @@ ELARA then makes the cross-slot routing policy for service-routing segment $i$:
 which follows the multi-hop routing model in Sec.~\ref{subsec:microservice_request_elara}.
 Additionally, ELARA periodically updates the deployment matrix by applying $\mathcal{A}(t), \forall t \in \mathcal{T'}$, where $\mathcal{T'} \subset \mathcal{T}$.
 
-Following \eqref{eq:req_e2e_lat} and \eqref{eq:req_tot_eng}, given an online request $r$ the request-level optimization objective is defined as:
+Following \eqref{eq:req_e2e_lat} and \eqref{eq:req_tot_eng}, given an online request $r$, the request-level optimization objective is defined as:
 \begin{subequations}
 \label{eq:elara_prob_form}
 \begin{align}
@@ -421,21 +421,23 @@ Following \eqref{eq:req_e2e_lat} and \eqref{eq:req_tot_eng}, given an online req
 % &  T^{\text{e2e}}_{r} \le D_r \quad \text{or}  \quad \mathbb{I}_r^{\text{fail}} =1, \quad \forall r \in \mathcal{Q}.  \tag{C4}
 \end{align}
 \end{subequations}
-where $\alpha$, $\beta$, and $\rho$ are non-negative weights, and $\mathbb{I}_r^{\text{fail}}$ indicates whether request $r$ violates its deadline.
-Constraint C1 enforces serving-satellite selection by assigning each microservice stage to exactly one satellite hosting a valid replica and defining the corresponding routing policy for the service-routing segment. Constraint C2 ensures feasible cross-slot multi-hop routing under time-varying topology by enforcing path splitting, shared ISL capacity, phase duration, and residual data update constraints. Constraint C3 restricts adaptive replica redeployment to states that satisfy both replica-count and onboard storage constraints after each migration action.
+where $\alpha$, $\beta$, and $\rho$ are non-negative weights, and $\mathbb{I}_r^{\text{fail}}$ indicates whether request $r$ violates its deadline. 
+Constraint C1 enforces serving satellite selection by assigning each microservice stage to exactly one satellite hosting a valid replica, and defining the corresponding routing policy for each service routing segment. 
+Constraint C2 ensures feasible cross-slot multi-hop routing under time-varying topology by enforcing path splitting, shared ISL capacity, phase duration, and residual data update constraints. 
+Constraint C3 restricts adaptive replica redeployment to states that satisfy both replica-count and onboard storage constraints after each migration action. 
 
 
 \subsection{Problem Hardness}
 \label{subsec:problem_hardness_elara}
 
 Problem $\mathscr{P}$ is NP-hard.
-Even in a single-slot static case with fixed deployment and fixed link and computing capacities, $\mathscr{P}$ still requires selecting replicas for a service chain and connecting them through capacity-constrained paths.
-This restricted case contains service function chain placement and constrained routing as special cases, and is therefore NP-hard.
-The full problem further couples these decisions with cross-slot routing and adaptive replica redeployment, motivating ELARA's online decomposition.
+Even in a single-slot static case with fixed deployment and fixed link and computing capacities, $\mathscr{P}$ requires selecting replicas for a service chain and connecting them through capacity-constrained paths.
+This restricted case contains the placement of service function chains and constrained routeing as special cases and is therefore NP-hard.
+The full problem further couples these decisions with cross-slot routeing and adaptive replica redeployment, motivating ELARA's online decomposition. 
 
 
 \begin{comment}
- \section{System Model}
+\section{System Model}
 \label{sec:sys_model}
 
 \subsection{LEO Constellation Model}
@@ -523,7 +525,7 @@ The variable $\theta_{u,v}(t)$ denotes the relative tracking angle, which is bou
 The third constraint enforces a polar exclusion zone parameterized by a latitude boundary $\varphi_{\text{max}}$ (e.g., $70^{\circ}$).
 This mechanism disconnects satellites entering polar regions, mitigating the severe pointing dynamics and extreme Doppler shifts inherent to high-inclination orbits.
 
-% This mechanism proactively severs the links when either communicating satellite enters the polar regions, thereby circumventing the violent pointing dynamics and extreme Doppler shifts characteristic of high-inclination constellations.
+% This mechanism proactively severs the links when either communicating satellite enters the polar regions, thereby circumventing the violent pointing dynamics and extreme Doppler shifts characteristic of high-inclination constellations.   
 \end{comment}
 
 
@@ -556,19 +558,19 @@ Initialize augmented directed graph $\mathcal{G}_z$ with vertex set $\mathcal{V}
 $\mathcal{V}_{z} \gets \mathcal{V}_{z} \bigcup  \{ v^{src}, v^{{dst}_1}, \dots, v^{{dst}_{\rho}}\}$ \;
 \For{$m_i$ in $\mathcal{M}_f$}{
 \For{$v_k$ in $\mathcal{V}_{m_i}$}{
-	$\mathcal{V}_z \gets \mathcal{V}_z \bigcup  \{ v^{m_i}_{k^r}, v^{m_i}_{k^c}, v^{m_i}_{k^t}\}$\;
-	$\mathcal{E}_z \gets \mathcal{E}_z \bigcup  \{  (v^{m_i}_{k^r} \to v^{m_i}_{k^c}), (v^{m_i}_{k^c} \to v^{m_i}_{k^t}) \}$\;
-	Set $\mathbf{w}(v^{m_i}_{k^r} \to v^{m_i}_{k^c}) \doteq {E_{m_i}(v_k)} / {2}$\;
-	Set $\mathbf{w}(v^{m_i}_{k^c} \to v^{m_i}_{k^t}) \doteq {E_{m_i}(v_k)} / {2}$\;
+$\mathcal{V}_z \gets \mathcal{V}_z \bigcup  \{ v^{m_i}_{k^r}, v^{m_i}_{k^c}, v^{m_i}_{k^t}\}$\;
+$\mathcal{E}_z \gets \mathcal{E}_z \bigcup  \{  (v^{m_i}_{k^r} \to v^{m_i}_{k^c}), (v^{m_i}_{k^c} \to v^{m_i}_{k^t}) \}$\;
+Set $\mathbf{w}(v^{m_i}_{k^r} \to v^{m_i}_{k^c}) \doteq {E_{m_i}(v_k)} / {2}$\;
+Set $\mathbf{w}(v^{m_i}_{k^c} \to v^{m_i}_{k^t}) \doteq {E_{m_i}(v_k)} / {2}$\;
 }
 }
 \For{$w_{i,j}$ in $\mathcal{W}_f$}{
 \For{$v^{m_i}_{k}$ in $\mathcal{V}_{m_i}$}{
-	\For{$v^{m_j}_{k}$ in $\mathcal{V}_{m_j}$}{
-		$\mathcal{V}^{re}_{o}, \mathcal{E}^{re}_{o}$ = \textbf{GISRSA}($\mathcal{G}, v^{m_i}_{k}, v^{m_j}_{k}$) \;
-		$\mathcal{V}_{z} \gets \mathcal{V}_{z} \bigcup \mathcal{V}^{re}_{o}$ \;
-		$\mathcal{E}_{z} \gets \mathcal{E}_{z} \bigcup \mathcal{E}^{re}_{o}$ \;
-	}
+\For{$v^{m_j}_{k}$ in $\mathcal{V}_{m_j}$}{
+$\mathcal{V}^{re}_{o}, \mathcal{E}^{re}_{o}$ = \textbf{GISRSA}($\mathcal{G}, v^{m_i}_{k}, v^{m_j}_{k}$) \;
+$\mathcal{V}_{z} \gets \mathcal{V}_{z} \bigcup \mathcal{V}^{re}_{o}$ \;
+$\mathcal{E}_{z} \gets \mathcal{E}_{z} \bigcup \mathcal{E}^{re}_{o}$ \;
+}
 }
 }
 \For{$v^{m_{src}}_{k}$ in $\mathcal{V}_{m_{src}}$}{
@@ -578,9 +580,9 @@ $\mathcal{E}_{z} \gets \mathcal{E}_{z} \bigcup \mathcal{E}^{re}_{o}$ \;
 }
 \For{$v^{m_{dst}}_{k}$ in $\mathcal{V}_{m_{dst}}$}{
 \For{$g$ in $[1, \rho]$}{
-	$\mathcal{V}^{re}_{o}, \mathcal{E}^{re}_{o}$ = \textbf{GISRSA}($\mathcal{G}, v^{m_{dst}}_{k}, V^{{dst}_g}$) \;
-	$\mathcal{V}_{z} \gets \mathcal{V}_{z} \bigcup \mathcal{V}^{re}_{o}$ \;
-	$\mathcal{E}_{z} \gets \mathcal{E}_{z} \bigcup \mathcal{E}^{re}_{o}$ \;
+$\mathcal{V}^{re}_{o}, \mathcal{E}^{re}_{o}$ = \textbf{GISRSA}($\mathcal{G}, v^{m_{dst}}_{k}, V^{{dst}_g}$) \;
+$\mathcal{V}_{z} \gets \mathcal{V}_{z} \bigcup \mathcal{V}^{re}_{o}$ \;
+$\mathcal{E}_{z} \gets \mathcal{E}_{z} \bigcup \mathcal{E}^{re}_{o}$ \;
 }
 }
 \end{algorithm}
@@ -704,11 +706,11 @@ $\mathcal{V}_{\text{a}} \gets \bigcap_{\text{g}=1}^{{\rho}} \mathcal{V}_{\text{g
 $\mathcal{E}_{\text{a}} \gets \mathcal{E}_{1} $\;
 \For{$\text{g}$ in $[2,\rho]$}{
 \For{$e$ in $\mathcal{E}_{\text{g}}$}{
-	\uIf{$e \in \mathcal{E}_{\text{a}}$}{
-		$\text{w}(e) \doteq \min(\text{w}(\mathcal{E}^{e}_{\text{a}}), \text{w}(\mathcal{E}^{e}_{\text{g}})) $
-	}\Else{
-		$\mathcal{E}_{\text{a}} \gets \mathcal{E}_{\text{a}} \cup  \{ e \}$
-	}
+\uIf{$e \in \mathcal{E}_{\text{a}}$}{
+$\text{w}(e) \doteq \min(\text{w}(\mathcal{E}^{e}_{\text{a}}), \text{w}(\mathcal{E}^{e}_{\text{g}})) $
+}\Else{
+$\mathcal{E}_{\text{a}} \gets \mathcal{E}_{\text{a}} \cup  \{ e \}$
+}
 }
 }
 Construct $\mathcal{A}(\mathcal{V}_{\text{a}}, \mathcal{E}_{\text{a}})$\;
@@ -741,19 +743,19 @@ Specifically, the time-varying nature of ISLs owing to the constant movement of 
 \Output{$\mathcal{V}^{re}_{o}, \mathcal{E}^{re}_{o}$}
 Initialize the vertex set and edge set with $\mathcal{V}^{re}_{o} \gets \varnothing, \mathcal{E}^{re}_{o} \gets \varnothing$ \;
 \uIf {$v^{m_i}_{k}$ is adjacent to $v^{m_j}_{k}$} {
-	$\mathcal{E}^{re}_{o} \gets \mathcal{E}_z \bigcup  \{  (v^{m_i}_{k^r} \to v^{m_j}_{k^t}) \}$\;
-	$\mathbf{w}(v^{m_i}_{k^r} \to v^{m_j}_{k^t}) \doteq \mathbf{e}^{tr}(v^{m_i}_{k^{r}} \to v^{m_j}_{k^{t}})$\;
+$\mathcal{E}^{re}_{o} \gets \mathcal{E}_z \bigcup  \{  (v^{m_i}_{k^r} \to v^{m_j}_{k^t}) \}$\;
+$\mathbf{w}(v^{m_i}_{k^r} \to v^{m_j}_{k^t}) \doteq \mathbf{e}^{tr}(v^{m_i}_{k^{r}} \to v^{m_j}_{k^{t}})$\;
 } \Else{
-	$\mathcal{V}^{re}_{o}$, path = Floyd($\mathcal{G}, v^{m_i}_{k}, v^{m_j}_{k}$) \;
-	$\mathcal{V}^{re}_{o} \gets \mathcal{V}^{re}_{o} \setminus \{v^{m_i}_{k}, v^{m_i}_{k}  \} $\;
-	$\mathcal{E}^{re}_{o} \gets \mathcal{E}^{re}_{o} \bigcup  \{  (v^{m_i}_{k^{t}} \to v^{re}_{1}), (v^{re}_{\xi} \to v^{m_j}_{k^{r}}) \}$\;
-	$\mathbf{w} (v^{m_i}_{k^{t}} \to v^{re}_{1}) \doteq \mathbf{e}^{tr}_{{re}_1} (v^{m_i}_{k^{t}} \to v^{re}_{1}) $\;
-	$\mathbf{w} (v^{re}_{\xi} \to v^{m_j}_{k^{r}})  \doteq \mathbf{e}^{tr}_{{re}_3} (v^{re}_{\xi} \to v^{m_j}_{k^{r}}) $\;
-	\For{$a \in [1, \xi - 1]$}{
-		$\mathcal{V}^{re}_{o} \gets \mathcal{V}^{re}_{o} \bigcup  \{ v^{re}_{a}, v^{re}_{a_1} \}$\;
-		$\mathcal{E}^{re}_{o} \gets \mathcal{E}^{re}_{o} \bigcup  \{  (v^{re}_{a} \to v^{re}_{a_1}) \}$\;
-		$\mathbf{w}(v^{re}_{a} \to v^{re}_{a_1}) \doteq \mathbf{e}^{tr}_{{re}_2} (v^{re}_{a} \to v^{re}_{a_1})$\;
-	}
+$\mathcal{V}^{re}_{o}$, path = Floyd($\mathcal{G}, v^{m_i}_{k}, v^{m_j}_{k}$) \;
+$\mathcal{V}^{re}_{o} \gets \mathcal{V}^{re}_{o} \setminus \{v^{m_i}_{k}, v^{m_i}_{k}  \} $\;
+$\mathcal{E}^{re}_{o} \gets \mathcal{E}^{re}_{o} \bigcup  \{  (v^{m_i}_{k^{t}} \to v^{re}_{1}), (v^{re}_{\xi} \to v^{m_j}_{k^{r}}) \}$\;
+$\mathbf{w} (v^{m_i}_{k^{t}} \to v^{re}_{1}) \doteq \mathbf{e}^{tr}_{{re}_1} (v^{m_i}_{k^{t}} \to v^{re}_{1}) $\;
+$\mathbf{w} (v^{re}_{\xi} \to v^{m_j}_{k^{r}})  \doteq \mathbf{e}^{tr}_{{re}_3} (v^{re}_{\xi} \to v^{m_j}_{k^{r}}) $\;
+\For{$a \in [1, \xi - 1]$}{
+$\mathcal{V}^{re}_{o} \gets \mathcal{V}^{re}_{o} \bigcup  \{ v^{re}_{a}, v^{re}_{a_1} \}$\;
+$\mathcal{E}^{re}_{o} \gets \mathcal{E}^{re}_{o} \bigcup  \{  (v^{re}_{a} \to v^{re}_{a_1}) \}$\;
+$\mathbf{w}(v^{re}_{a} \to v^{re}_{a_1}) \doteq \mathbf{e}^{tr}_{{re}_2} (v^{re}_{a} \to v^{re}_{a_1})$\;
+}
 }
 % \KwRet{$\mathcal{V}^{re}_{o}, \mathcal{E}^{re}_{o}$}
 \end{algorithm}
@@ -804,21 +806,21 @@ $\mathcal{O}(|\mathcal{V}^{*}|( |\mathcal{E}| + |\mathcal{V}|\log|\mathcal{V}| )
 
 
 \begin{figure}[!b]
-	\centering
-	\subfigure[Chained and Treed topologies.]{
-		\includegraphics[width=0.5\linewidth]{figs/exp/chain_tree.pdf}
-		\label{fig:chain_miro}
-		\vspace{-0.3cm}
-	}
-	% \quad
-	\subfigure[Sophisticated-Treed (Soph-Treed) topology.]{
-		\includegraphics[width=0.7\linewidth]{figs/exp/stree_micro.pdf}
-		\label{fig:stree_micro}
-	}
-	\vspace{-0.2cm}
-	\caption{The overview of service request topologies from terrestrial stations.}
-	\label{fig:svc_requests}
-	\vspace{-0.2cm}
+\centering
+\subfigure[Chained and Treed topologies.]{
+\includegraphics[width=0.5\linewidth]{figs/exp/chain_tree.pdf}
+\label{fig:chain_miro}
+\vspace{-0.3cm}
+}
+% \quad
+\subfigure[Sophisticated-Treed (Soph-Treed) topology.]{
+\includegraphics[width=0.7\linewidth]{figs/exp/stree_micro.pdf}
+\label{fig:stree_micro}
+}
+\vspace{-0.2cm}
+\caption{The overview of service request topologies from terrestrial stations.}
+\label{fig:svc_requests}
+\vspace{-0.2cm}
 \end{figure}
 
 \subsection{Experiment Setup}
@@ -837,13 +839,13 @@ Besides, we specify the antenna diameter transceiver as $D_{R}$=6$(mm)$, the poi
 
 \textbf{Ablation Solutions:} We design the following benchmarks to evaluate the performance of our proposed algorithm.
 \begin{enumerate}
-	\item \textbf{Random:} 
-	It randomly selects a satellite for each microservice and uses the Dijkstra algorithm to get the shortest path when dealing with relay links.
-	\item \textbf{Computation greedy (Comp-greedy):} 
-	It chooses the satellite that offers the minimum computation energy cost for executing each microservice. The relay routing policy is the same as \textbf{Random} policy.
-	\item \textbf{Communication greedy (Comm-greedy):} 
-	It picks the satellite pair with the minimum communication energy cost, including the potential relay links.
-	
+\item \textbf{Random:} 
+It randomly selects a satellite for each microservice and uses the Dijkstra algorithm to get the shortest path when dealing with relay links.
+\item \textbf{Computation greedy (Comp-greedy):} 
+It chooses the satellite that offers the minimum computation energy cost for executing each microservice. The relay routing policy is the same as \textbf{Random} policy.
+\item \textbf{Communication greedy (Comm-greedy):} 
+It picks the satellite pair with the minimum communication energy cost, including the potential relay links.
+
 \end{enumerate}
 
 
@@ -865,53 +867,53 @@ These findings emphasize the necessity of accounting for both computation and co
 
 
 \begin{figure*}[!ht]
-	\centering
-	\subfigure[Constellation with 72 satellites.]{
-		\begin{minipage}[b]{0.28\textwidth}
-			\includegraphics[width=1\textwidth]{figs/new-exp/constellation72.pdf}
-		\end{minipage}
-		\label{fig:constellation72}
-	}
-	\subfigure[Constellation with 48 satellites.]{
-		\begin{minipage}[b]{0.28\textwidth}
-			\includegraphics[width=1\textwidth]{figs/new-exp/constellation48.pdf}
-		\end{minipage}
-		\label{fig:constellation48}
-	}
-	\subfigure[Constellation with 108 satellites.]{
-		\begin{minipage}[b]{0.28\textwidth}
-			\includegraphics[width=1\textwidth,]{figs/new-exp/constellation108.pdf}
-		\end{minipage}
-		\label{fig:constellation108}
-	}       
-	\caption{Performance comparison on energy-cost under varying constellation scales for dynamic microservice request topologies.}
-	\label{fig:constellation}
-	\vspace{-2mm}
+\centering
+\subfigure[Constellation with 72 satellites.]{
+\begin{minipage}[b]{0.28\textwidth}
+	\includegraphics[width=1\textwidth]{figs/new-exp/constellation72.pdf}
+\end{minipage}
+\label{fig:constellation72}
+}
+\subfigure[Constellation with 48 satellites.]{
+\begin{minipage}[b]{0.28\textwidth}
+	\includegraphics[width=1\textwidth]{figs/new-exp/constellation48.pdf}
+\end{minipage}
+\label{fig:constellation48}
+}
+\subfigure[Constellation with 108 satellites.]{
+\begin{minipage}[b]{0.28\textwidth}
+	\includegraphics[width=1\textwidth,]{figs/new-exp/constellation108.pdf}
+\end{minipage}
+\label{fig:constellation108}
+}       
+\caption{Performance comparison on energy-cost under varying constellation scales for dynamic microservice request topologies.}
+\label{fig:constellation}
+\vspace{-2mm}
 \end{figure*}
 
 \begin{figure*}[!ht]
-	\centering
-	\subfigure[Chained service topology.]{
-		\begin{minipage}[b]{0.28\textwidth}
-			\includegraphics[width=1\textwidth]{figs/new-exp/trans_power_chain.pdf}
-		\end{minipage}
-		\label{fig:trans_power_chain}
-	}
-	\subfigure[Treed service topology.]{
-		\begin{minipage}[b]{0.28\textwidth}
-			\includegraphics[width=1\textwidth]{figs/new-exp/trans_power_tree.pdf}
-		\end{minipage}
-		\label{fig:trans_power_tree}
-	}
-	\subfigure[Sophisticated Treed service topology.]{
-		\begin{minipage}[b]{0.28\textwidth}
-			\includegraphics[width=1\textwidth,]{figs/new-exp/trans_power_stree.pdf}
-		\end{minipage}
-		\label{fig:trans_power_stree}
-	}       
-	\caption{Performance comparison on energy-cost under different onboard transmitter power configurations for dynamic microservice request topologies.}
-	\label{fig:trans_power}
-	\vspace{-0.3cm}
+\centering
+\subfigure[Chained service topology.]{
+\begin{minipage}[b]{0.28\textwidth}
+	\includegraphics[width=1\textwidth]{figs/new-exp/trans_power_chain.pdf}
+\end{minipage}
+\label{fig:trans_power_chain}
+}
+\subfigure[Treed service topology.]{
+\begin{minipage}[b]{0.28\textwidth}
+	\includegraphics[width=1\textwidth]{figs/new-exp/trans_power_tree.pdf}
+\end{minipage}
+\label{fig:trans_power_tree}
+}
+\subfigure[Sophisticated Treed service topology.]{
+\begin{minipage}[b]{0.28\textwidth}
+	\includegraphics[width=1\textwidth,]{figs/new-exp/trans_power_stree.pdf}
+\end{minipage}
+\label{fig:trans_power_stree}
+}       
+\caption{Performance comparison on energy-cost under different onboard transmitter power configurations for dynamic microservice request topologies.}
+\label{fig:trans_power}
+\vspace{-0.3cm}
 \end{figure*}
 
 
@@ -939,53 +941,53 @@ To evaluate the robustness of our proposed method under such conditions, we cond
 The results reveal that energy cost generally increases with an increasing number of faulty satellites for all methods. This trend can be attributed to the reduced availability of active nodes, which forces longer transmission paths and higher energy consumption for maintaining connectivity (much more relay satellites are required for message forwarding). Despite this challenge, Steiner invariably outperforms other methods in all scenarios. Its superior performance is attributed to its robust design, which can effectively adapt to changes in network topology and operational conditions. By optimizing power allocation and service routing decisions, the algorithm minimizes disruptions caused by satellite failures.
 
 \begin{figure*}[!htbp]
-	\centering
-	\subfigure[Robustness over faulty satellites (Chain).]{
-		\begin{minipage}[b]{0.28\textwidth}
-			\includegraphics[width=1\textwidth]{figs/new-exp/robust_chain.pdf}
-		\end{minipage}
-		\label{fig:robust_chain}
-	}
-	\subfigure[Robustness over faulty satellites (Tree).]{
-		\begin{minipage}[b]{0.28\textwidth}
-			\includegraphics[width=1\textwidth]{figs/new-exp/robust_tree.pdf}
-		\end{minipage}
-		\label{fig:robust_tree}
-	}
-	\subfigure[Robustness over faulty satellites (Soph Tree).]{
-		\begin{minipage}[b]{0.28\textwidth}
-			\includegraphics[width=1\textwidth,]{figs/new-exp/robust_stree.pdf}
-		\end{minipage}
-		\label{fig:robust_stree}
-	}       
-	\caption{Performance comparison on energy-cost under different configurations on number of faulty satellites for dynamic service request topologies.}
-	\label{fig:robust}
-	\vspace{-2mm}
+\centering
+\subfigure[Robustness over faulty satellites (Chain).]{
+\begin{minipage}[b]{0.28\textwidth}
+	\includegraphics[width=1\textwidth]{figs/new-exp/robust_chain.pdf}
+\end{minipage}
+\label{fig:robust_chain}
+}
+\subfigure[Robustness over faulty satellites (Tree).]{
+\begin{minipage}[b]{0.28\textwidth}
+	\includegraphics[width=1\textwidth]{figs/new-exp/robust_tree.pdf}
+\end{minipage}
+\label{fig:robust_tree}
+}
+\subfigure[Robustness over faulty satellites (Soph Tree).]{
+\begin{minipage}[b]{0.28\textwidth}
+	\includegraphics[width=1\textwidth,]{figs/new-exp/robust_stree.pdf}
+\end{minipage}
+\label{fig:robust_stree}
+}       
+\caption{Performance comparison on energy-cost under different configurations on number of faulty satellites for dynamic service request topologies.}
+\label{fig:robust}
+\vspace{-2mm}
 \end{figure*}
 
 \begin{figure*}[!htbp]
-	\centering
-	\subfigure[Microservice scale (Chain).]{
-		\begin{minipage}[b]{0.28\textwidth}
-			\includegraphics[width=1\textwidth]{figs/new-exp/svc_replica_chain.pdf}
-		\end{minipage}
-		\label{fig:svc_replica_chain}
-	}
-	\subfigure[Microservice scale (Tree).]{
-		\begin{minipage}[b]{0.28\textwidth}
-			\includegraphics[width=1\textwidth]{figs/new-exp/svc_replica_tree.pdf}
-		\end{minipage}
-		\label{fig:svc_replica_tree}
-	}
-	\subfigure[Microservice scale (Soph Tree).]{
-		\begin{minipage}[b]{0.28\textwidth}
-			\includegraphics[width=1\textwidth,]{figs/new-exp/svc_replica_stree.pdf}
-		\end{minipage}
-		\label{fig:svc_replica_stree}
-	}       
-	\caption{Performance comparison on energy-cost under different configurations on number of replicas of microservices for dynamic service request topologies.}
-	\label{fig:svc_replica}
-	\vspace{-0.4cm}
+\centering
+\subfigure[Microservice scale (Chain).]{
+\begin{minipage}[b]{0.28\textwidth}
+	\includegraphics[width=1\textwidth]{figs/new-exp/svc_replica_chain.pdf}
+\end{minipage}
+\label{fig:svc_replica_chain}
+}
+\subfigure[Microservice scale (Tree).]{
+\begin{minipage}[b]{0.28\textwidth}
+	\includegraphics[width=1\textwidth]{figs/new-exp/svc_replica_tree.pdf}
+\end{minipage}
+\label{fig:svc_replica_tree}
+}
+\subfigure[Microservice scale (Soph Tree).]{
+\begin{minipage}[b]{0.28\textwidth}
+	\includegraphics[width=1\textwidth,]{figs/new-exp/svc_replica_stree.pdf}
+\end{minipage}
+\label{fig:svc_replica_stree}
+}       
+\caption{Performance comparison on energy-cost under different configurations on number of replicas of microservices for dynamic service request topologies.}
+\label{fig:svc_replica}
+\vspace{-0.4cm}
 \end{figure*}
 
 
@@ -1003,12 +1005,12 @@ By contrast, the energy costs associated with routing paths generated by random 
 % Conversely, the energy costs of routing paths generated by the random and comp-greedy sometimes increase. This rise can be attributed to the higher number of service calling paths and service nodes, which can complicate the decision-making process and lead to less efficient routing choices. 
 
 \begin{figure}[!t]
-	\centering
-	\includegraphics[width=0.75\linewidth]{figs/new-exp/StreeDist.pdf}
-	% \vspace{-0.2cm}
-	\caption{Energy distribution of Soph Tree.}
-	\label{fig:StreeDist}
-	\vspace{-0.4cm}
+\centering
+\includegraphics[width=0.75\linewidth]{figs/new-exp/StreeDist.pdf}
+% \vspace{-0.2cm}
+\caption{Energy distribution of Soph Tree.}
+\label{fig:StreeDist}
+\vspace{-0.4cm}
 \end{figure}
 
 \subsubsection{Adaptability and stability}
@@ -1088,21 +1090,21 @@ In this paper, we proposed a DST-based solution to provide an energy-efficient s
 % or if you just want to reserve a space for a photo:
 
 % \begin{IEEEbiography}{Michael Shell}
-	% Biography text here.
-	% \end{IEEEbiography}
+% Biography text here.
+% \end{IEEEbiography}
 
 % if you will not have a photo at all:
 % \begin{IEEEbiographynophoto}{John Doe}
-	% Biography text here.
-	% \end{IEEEbiographynophoto}
+% Biography text here.
+% \end{IEEEbiographynophoto}
 
 % insert where needed to balance the two columns on the last page with
 % biographies
 %\newpage
 
 % \begin{IEEEbiographynophoto}{Jane Doe}
-	% Biography text here.
-	% \end{IEEEbiographynophoto}
+% Biography text here.
+% \end{IEEEbiographynophoto}
 
 % You can push biographies down or up by placing
 % a \vfill before or after them. The appropriate
