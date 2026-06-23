@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.10.29)  21 JUN 2026 21:51
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.10.29)  23 JUN 2026 21:41
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -569,41 +569,42 @@ Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: float package is loaded.
 Package caption Info: End \AtBeginDocument code.
 
-Underfull \hbox (badness 5260) in paragraph at lines 69--74
+Underfull \hbox (badness 5260) in paragraph at lines 74--79
 []\OT1/ptm/m/n/10 Recent ad-vances in low Earth or-bit (LEO) mega-
  []
 
 
 
-<figs/sys_scenario2.pdf, id=1, 1248.37828pt x 493.94208pt>
-File: figs/sys_scenario2.pdf Graphic file (type pdf)
-<use figs/sys_scenario2.pdf>
-Package pdftex.def Info: figs/sys_scenario2.pdf  used on input line 83.
-(pdftex.def)             Requested size: 231.83954pt x 91.72455pt.
 
 
 [1{/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/usr/l
 ocal/texlive/2025/texmf-dist/fonts/enc/dvips/base/8r.enc}
 
 
- <./figs/sys_scenario2.pdf>]
+]
+
+<figs/sys_scenario2.pdf, id=9, 1248.37828pt x 493.94208pt>
+File: figs/sys_scenario2.pdf Graphic file (type pdf)
+<use figs/sys_scenario2.pdf>
+Package pdftex.def Info: figs/sys_scenario2.pdf  used on input line 147.
+(pdftex.def)             Requested size: 231.83954pt x 91.72455pt.
 
 
-
-[2]
-LaTeX Font Info:    Trying to load font information for U+msa on input line 165
+[2 <./figs/sys_scenario2.pdf>]
+LaTeX Font Info:    Trying to load font information for U+msa on input line 217
 .
- (/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/umsa.fd
+
+(/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 165
+LaTeX Font Info:    Trying to load font information for U+msb on input line 217
 .
 
 (/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-LaTeX Font Info:    Trying to load font information for U+rsfs on input line 16
-5.
+LaTeX Font Info:    Trying to load font information for U+rsfs on input line 21
+7.
 
 (/usr/local/texlive/2025/texmf-dist/tex/latex/jknapltx/ursfs.fd
 File: ursfs.fd 1998/03/24 rsfs font definition file (jk)
@@ -612,16 +613,16 @@ File: ursfs.fd 1998/03/24 rsfs font definition file (jk)
 
 
 [3]
-Underfull \hbox (badness 3364) in paragraph at lines 298--302
+
+
+Underfull \hbox (badness 3364) in paragraph at lines 350--354
  \OT1/ptm/m/it/10 a) Cross-slot Ser-vice Rout-ing La-tency and En-ergy
  []
 
 
 
-
-
 [4]
-Underfull \hbox (badness 1668) in paragraph at lines 379--382
+Underfull \hbox (badness 1668) in paragraph at lines 431--434
  \OT1/ptm/m/it/10 b) Ser-vice Replica Mi-gra-tion Model: [][] \OT1/ptm/m/n/10 L
 et $\OT1/cmr/bx/n/10 X\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 t\OT1/cmr/m/n/10 ) =
  []
@@ -631,7 +632,7 @@ et $\OT1/cmr/bx/n/10 X\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 t\OT1/cmr/m/n/10 ) =
 <figs/ms_split.pdf, id=93, 749.92169pt x 198.7425pt>
 File: figs/ms_split.pdf Graphic file (type pdf)
 <use figs/ms_split.pdf>
-Package pdftex.def Info: figs/ms_split.pdf  used on input line 549.
+Package pdftex.def Info: figs/ms_split.pdf  used on input line 601.
 (pdftex.def)             Requested size: 252.0pt x 66.78308pt.
 
 
@@ -639,29 +640,25 @@ Package pdftex.def Info: figs/ms_split.pdf  used on input line 549.
 
 
 LaTeX Warning: Reference `eq:shannon_rate2' on page 6 undefined on input line 6
-45.
+97.
 
 
 LaTeX Warning: Reference `eq:comm_energy_cost' on page 6 undefined on input lin
-e 645.
+e 697.
 
 <figs/satellite_routing.pdf, id=113, 770.43419pt x 346.20764pt>
 File: figs/satellite_routing.pdf Graphic file (type pdf)
 <use figs/satellite_routing.pdf>
-Package pdftex.def Info: figs/satellite_routing.pdf  used on input line 656.
+Package pdftex.def Info: figs/satellite_routing.pdf  used on input line 708.
 (pdftex.def)             Requested size: 189.0pt x 84.9299pt.
 <figs/2.pdf, id=114, 1746.525pt x 440.39531pt>
 File: figs/2.pdf Graphic file (type pdf)
 <use figs/2.pdf>
-Package pdftex.def Info: figs/2.pdf  used on input line 673.
+Package pdftex.def Info: figs/2.pdf  used on input line 725.
 (pdftex.def)             Requested size: 495.36346pt x 124.90916pt.
 
 
 [6 <./figs/satellite_routing.pdf>]
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
 
 
 
@@ -669,17 +666,17 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 <figs/exp/chain_tree.pdf, id=152, 427.5975pt x 193.6836pt>
 File: figs/exp/chain_tree.pdf Graphic file (type pdf)
 <use figs/exp/chain_tree.pdf>
-Package pdftex.def Info: figs/exp/chain_tree.pdf  used on input line 823.
+Package pdftex.def Info: figs/exp/chain_tree.pdf  used on input line 875.
 (pdftex.def)             Requested size: 126.0pt x 57.07114pt.
 <figs/exp/stree_micro.pdf, id=153, 627.30356pt x 283.0575pt>
 File: figs/exp/stree_micro.pdf Graphic file (type pdf)
 <use figs/exp/stree_micro.pdf>
-Package pdftex.def Info: figs/exp/stree_micro.pdf  used on input line 828.
+Package pdftex.def Info: figs/exp/stree_micro.pdf  used on input line 880.
 (pdftex.def)             Requested size: 176.39923pt x 79.59676pt.
 
 
 
-Underfull \hbox (badness 2635) in paragraph at lines 847--848
+Underfull \hbox (badness 2635) in paragraph at lines 899--900
 []\OT1/ptm/b/n/10 Microservices. \OT1/ptm/m/n/10 Ac-cord-ing to the mi-croser-v
 ice set-ting
  []
@@ -690,80 +687,81 @@ ice set-ting
 <figs/new-exp/constellation72.pdf, id=175, 587.42pt x 465.66281pt>
 File: figs/new-exp/constellation72.pdf Graphic file (type pdf)
 <use figs/new-exp/constellation72.pdf>
-Package pdftex.def Info: figs/new-exp/constellation72.pdf  used on input line 8
-85.
+Package pdftex.def Info: figs/new-exp/constellation72.pdf  used on input line 9
+37.
 (pdftex.def)             Requested size: 144.47937pt x 114.53247pt.
 <figs/new-exp/constellation48.pdf, id=176, 587.40211pt x 465.66281pt>
 File: figs/new-exp/constellation48.pdf Graphic file (type pdf)
 <use figs/new-exp/constellation48.pdf>
-Package pdftex.def Info: figs/new-exp/constellation48.pdf  used on input line 8
-91.
+Package pdftex.def Info: figs/new-exp/constellation48.pdf  used on input line 9
+43.
 (pdftex.def)             Requested size: 144.47937pt x 114.53247pt.
 <figs/new-exp/constellation108.pdf, id=177, 587.42pt x 465.66281pt>
 File: figs/new-exp/constellation108.pdf Graphic file (type pdf)
 <use figs/new-exp/constellation108.pdf>
 Package pdftex.def Info: figs/new-exp/constellation108.pdf  used on input line 
-897.
+949.
 (pdftex.def)             Requested size: 144.47937pt x 114.53247pt.
 <figs/new-exp/trans_power_chain.pdf, id=178, 629.78592pt x 453.80531pt>
 File: figs/new-exp/trans_power_chain.pdf Graphic file (type pdf)
 <use figs/new-exp/trans_power_chain.pdf>
 Package pdftex.def Info: figs/new-exp/trans_power_chain.pdf  used on input line
- 910.
+ 962.
 (pdftex.def)             Requested size: 144.47937pt x 104.10297pt.
 <figs/new-exp/trans_power_tree.pdf, id=179, 629.78592pt x 453.7979pt>
 File: figs/new-exp/trans_power_tree.pdf Graphic file (type pdf)
 <use figs/new-exp/trans_power_tree.pdf>
 Package pdftex.def Info: figs/new-exp/trans_power_tree.pdf  used on input line 
-916.
+968.
 (pdftex.def)             Requested size: 144.47937pt x 104.10126pt.
 <figs/new-exp/trans_power_stree.pdf, id=180, 629.78592pt x 453.7979pt>
 File: figs/new-exp/trans_power_stree.pdf Graphic file (type pdf)
 <use figs/new-exp/trans_power_stree.pdf>
 Package pdftex.def Info: figs/new-exp/trans_power_stree.pdf  used on input line
- 922.
+ 974.
 (pdftex.def)             Requested size: 144.47937pt x 104.10126pt.
 
 
 <figs/new-exp/robust_chain.pdf, id=181, 593.19186pt x 485.0953pt>
 File: figs/new-exp/robust_chain.pdf Graphic file (type pdf)
 <use figs/new-exp/robust_chain.pdf>
-Package pdftex.def Info: figs/new-exp/robust_chain.pdf  used on input line 959.
-
+Package pdftex.def Info: figs/new-exp/robust_chain.pdf  used on input line 1011
+.
 (pdftex.def)             Requested size: 144.47937pt x 118.1499pt.
 <figs/new-exp/robust_tree.pdf, id=182, 593.19554pt x 485.0953pt>
 File: figs/new-exp/robust_tree.pdf Graphic file (type pdf)
 <use figs/new-exp/robust_tree.pdf>
-Package pdftex.def Info: figs/new-exp/robust_tree.pdf  used on input line 965.
+Package pdftex.def Info: figs/new-exp/robust_tree.pdf  used on input line 1017.
+
 (pdftex.def)             Requested size: 144.47937pt x 118.1499pt.
 <figs/new-exp/robust_stree.pdf, id=183, 593.19554pt x 485.0953pt>
 File: figs/new-exp/robust_stree.pdf Graphic file (type pdf)
 <use figs/new-exp/robust_stree.pdf>
-Package pdftex.def Info: figs/new-exp/robust_stree.pdf  used on input line 971.
-
+Package pdftex.def Info: figs/new-exp/robust_stree.pdf  used on input line 1023
+.
 (pdftex.def)             Requested size: 144.47937pt x 118.1499pt.
 <figs/new-exp/svc_replica_chain.pdf, id=184, 592.11472pt x 489.36327pt>
 File: figs/new-exp/svc_replica_chain.pdf Graphic file (type pdf)
 <use figs/new-exp/svc_replica_chain.pdf>
 Package pdftex.def Info: figs/new-exp/svc_replica_chain.pdf  used on input line
- 984.
+ 1036.
 (pdftex.def)             Requested size: 144.47937pt x 119.40594pt.
 <figs/new-exp/svc_replica_tree.pdf, id=185, 592.11472pt x 489.36327pt>
 File: figs/new-exp/svc_replica_tree.pdf Graphic file (type pdf)
 <use figs/new-exp/svc_replica_tree.pdf>
 Package pdftex.def Info: figs/new-exp/svc_replica_tree.pdf  used on input line 
-990.
+1042.
 (pdftex.def)             Requested size: 144.47937pt x 119.40594pt.
 <figs/new-exp/svc_replica_stree.pdf, id=186, 592.11472pt x 489.36327pt>
 File: figs/new-exp/svc_replica_stree.pdf Graphic file (type pdf)
 <use figs/new-exp/svc_replica_stree.pdf>
 Package pdftex.def Info: figs/new-exp/svc_replica_stree.pdf  used on input line
- 996.
+ 1048.
 (pdftex.def)             Requested size: 144.47937pt x 119.40594pt.
 <figs/new-exp/StreeDist.pdf, id=187, 599.24867pt x 467.9645pt>
 File: figs/new-exp/StreeDist.pdf Graphic file (type pdf)
 <use figs/new-exp/StreeDist.pdf>
-Package pdftex.def Info: figs/new-exp/StreeDist.pdf  used on input line 1018.
+Package pdftex.def Info: figs/new-exp/StreeDist.pdf  used on input line 1070.
 (pdftex.def)             Requested size: 189.0pt x 147.59525pt.
 
 
@@ -875,10 +873,10 @@ LaTeX Warning: There were undefined references.
 
  ) 
 Here is how much of TeX's memory you used:
- 8243 strings out of 473190
- 141851 string characters out of 5715799
- 568765 words of memory out of 5000000
- 31343 multiletter control sequences out of 15000+600000
+ 8245 strings out of 473190
+ 141888 string characters out of 5715799
+ 565774 words of memory out of 5000000
+ 31345 multiletter control sequences out of 15000+600000
  601583 words of font info for 113 fonts, out of 8000000 for 9000
  1144 hyphenation exceptions out of 8191
  71i,20n,79p,1369b,556s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -900,7 +898,7 @@ ist/fonts/type1/urw/times/utmbi8a.pfb></usr/local/texlive/2025/texmf-dist/fonts
 /type1/urw/times/utmr8a.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/urw
 /times/utmri8a.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/urw/zapfding
 /uzdr.pfb>
-Output written on main.pdf (12 pages, 3539277 bytes).
+Output written on main.pdf (12 pages, 3540505 bytes).
 PDF statistics:
  467 PDF objects out of 1000 (max. 8388607)
  312 compressed objects within 4 object streams

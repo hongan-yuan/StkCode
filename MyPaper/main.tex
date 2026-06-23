@@ -43,13 +43,13 @@
 
 \begin{document}
 
-\title{ELARA: Energy-Efficient and Latency-Aware Service Routing with Adaptive Replica Redeployment for Microservices in Space Computing Power Networks
+\title{ELARA: Energy-Efficient and Latency-Aware Microservice Orchestration in Space Computing Power Networks
 }
 % \title{Microservices Routing in Space Computing Power Networks}
 
 \author{\IEEEauthorblockN{Anonymous Authors}}
 
-\maketitle
+\maketitle 
 
 \begin{abstract}
 
@@ -66,17 +66,81 @@ Energy, Microservice, Routing, Space Network
 
 \section{Introduction}
 \label{sec:intro}
-Recent advances in low Earth orbit (LEO) mega-constellations are transforming satellites from bent-pipe communication relays into distributed computing nodes in space.
-Modern LEO satellites are increasingly equipped with inter-satellite links (ISLs), high-resolution sensing payloads, onboard processors, and storage resources, enabling global connectivity and near-data processing for time-sensitive applications \cite{xiao2022leo,net_char_StarLink_LEO,satellite_sys_survey}.
-This evolution is particularly important for Earth observation, disaster response, environmental monitoring, and remote sensing analytics, where raw images and multi-modal sensing data are continuously generated in orbit \cite{progress_challenge_RS_satellite,li2023leo,seco_infocom2024}.
-Directly downloading these large volumes of raw data to terrestrial data centers may consume scarce satellite-to-ground bandwidth and delay mission response, especially when contact windows and channel conditions are limited \cite{leyva2023satellite,joint_orbit_comp_comm4data_Download}.
-As a result, space computing power networks (SCPNs), which pool sensing, communication, and computing resources across LEO satellites, have emerged as a promising infrastructure for in-orbit intelligent services \cite{survey_on_nextg_comp_tech_SAGIN,SAG_integ_net}.
+% In recent years, large-scale LEO satellite networks have garnered widespread attention as one of the recognized highlights of 6G technology \cite{xiao2022leo}.
+% Modern LEO mega-constellations, consisting of hundreds to thousands of LEO satellites connected by inter-satellite links (ISLs), enable the globally ubiquitous connections \cite{net_char_StarLink_LEO}.
+% Meanwhile, advancements in remote sensing and chip technology have enabled modern LEO satellites to be equipped with high-performance imaging and intelligent computing payloads \cite{mi2019intelligent, shen2023survey}, thus supporting ubiquitous intelligent services such as weather forecasting, environmental monitoring, and national security \cite{satellite_sys_survey, progress_challenge_RS_satellite}.
+% Hundreds to thousands of satellite computing nodes collectively form the SCPN, where the strategic allocation of sensing, communication, and computing resources to efficiently fulfill diverse intelligent service requests has emerged as a critical challenge in the context of 6G integrated space-air-ground networks \cite{SAG_survey_6g}.
 
-Microservice architecture provides a natural software abstraction for building such in-orbit services.
-Instead of deploying a monolithic application on a single satellite, complex remote sensing and AI applications can be decomposed into fine-grained, loosely coupled, and reusable microservices, each packaged as an independent container \cite{Docker,salah2016evolution,geoAIasMicroService,3D_assets_microservice}.
-Since individual satellites have limited computing, storage, thermal, and energy budgets, distributed microservice replicas allow a service chain to be collaboratively executed by multiple satellites rather than being constrained by the capability of one node \cite{sate_computing_case_study,ye2024galaxy}.
-Fig.~\ref{fig:net_topo} illustrates this service scenario, where a user request may invoke a sequence of microservices whose replicas are distributed across the constellation.
-This architecture, however, turns request execution into a coupled decision problem: for each microservice stage, the system must select a suitable serving satellite and route intermediate data through the time-varying ISL network.
+Recent advances in low Earth orbit (LEO) mega-constellations are transforming satellites from bent-pipe communication relays into distributed computing nodes in space.
+These large-scale constellations, comprising hundreds to thousands of satellites connected by inter-satellite links (ISLs) and equipped with onboard processors and storage resources, enable global connectivity and near-data processing for time-sensitive applications \cite{xiao2022leo,net_char_StarLink_LEO,satellite_sys_survey}.
+This evolution is particularly critical for Earth observation, disaster response, environmental monitoring, and remote sensing analytics, where massive volumes of images and multi-modal data are continuously generated in orbit \cite{progress_challenge_RS_satellite,li2023leo,seco_infocom2024}.
+Directly downloading such raw data to terrestrial data centers for analysising will consume scarce satellite-to-ground bandwidth and significantly delays mission response, especially under limited contact windows and unfavorable channel conditions \cite{leyva2023satellite,joint_orbit_comp_comm4data_Download}.
+As a result, space computing power networks (SCPNs), which pool sensing, communication, and computing resources across LEO satellites, have emerged as a promising infrastructure for onboard intelligent services \cite{survey_on_nextg_comp_tech_SAGIN,SAG_integ_net}.
+
+Promising but challenging, running these complex monolithic applications on a single LEO satellite remains infeasible due to stringent constraints on computing, storage, energy privisions, and thermal dissipation~\cite{sate_computing_case_study, ye2024galaxy}.
+Microservice architecture provides an effective solution by decomposing these remote sensing and AI applications into fine-grained, loosely coupled, and reusable microservices, each encapsulating a distinct functional module~\cite{Docker,salah2016evolution,geoAIasMicroService,3D_assets_microservice}.
+By packaging them into lightweight containers and deploying them across interconnected satellites, this architecture alleviates individual satellite resource limitations and enables onboard cooperative execution of complex applications.
+Furthermore, upon detecting hotspot microservices, the system can dynamically scale their replicas and adjust deployment strategies to ensure robust and efficient service provisioning. 
+
+Typically, a single request initiated by terrestial user involves a subset of microservices.
+Due to its arbitrary arrival time, the intermediate data transmission process can be affected by dynamic and time-varying ISL states.
+Moreover, the harware heterogeneity and limited onboard energy provision further complicate the scheduling decisions at each microservice execution stage.
+
+To enable energy-efficient and low-latency service provision in SCPNs, there are several major challenges must be addressed.
+First, the satellite network topology is predictable but highly time-varying. Intra-plane ISLs are relatively stable, whereas cross-plane ISLs are sensitive to orbital geometry and change frequently across slots. Consequently, routing intermediate data along a single static path often suffers from link disruptions, excessive detours, or degraded transmission rates.
+Second, serving satellite selection and ISL routing are tightly coupled. Selecting a nearby replica may reduce transmission delay but lead to long computation queues on overloaded satellites, while choosing an idle satellite can incur high multi-hop communication costs. This coupling is further complicated by satellite energy constraints, as both onboard computation and laser-based inter-satellite transmission consume scarce power resources~\cite{energy_efficient_routing_tsinghua,energy_drain_attact_on_satellite,cao_comp_routing}.
+Third, microservice replica deployment cannot remain static. As request distributions, satellite workloads, and network topology evolve, previously optimal placements quickly become inefficient. Nevertheless, frequent redeployment is costly because of limited ISL bandwidth for image transfers and bounded storage capacity on each satellite.
+
+% However, the arrival time of requests initiated by terrestial user can be arbitrary, and a single request typically involves of a subset of microservices.
+% Consequently, the complete computation and communication process of a single request may affected by time-varying consteallation topology and
+
+% this distributed approach introduces several challenges to be addressed.
+% First, the
+% : for each microservice execution stage, the system must jointly select an appropriate serving satellite and determine the route path for intermediate data over the time-varying LEO topology.
+% Since the constellation tolopogy evolves continuously with satellite motion, it is typically modeled as a sequence of short quasi-static snapshots, within which ISL states and single-satellite avaiable computing capacity remain approximately stable.
+% Nevertheless, the complete computation and communication process of a single request may span multiple snapshots, during which ISLs may be estabilshed or torn down beacuse of line-of-sight constraints, polar-region exclusions, and severe pointing dynamics~\cite{IPIS_sate,analysis_of_ISL4LEO_mega_net}.
+% Consequently, a routing decision that is efficient in the current slot may become suboptimal or even infeasible in subsequent slots.
+
+Existing studies have extnsively investigated satellite edge computing, in-orbit computation, service placement, and NFV-enabled service chaining in the context of SCPN~\cite{leyva2023satellite,joint_orbit_comp_comm4data_Download,optim4server_svc_place_in_STIECN,sc_nfv_tmc2024,fairness_vnf_tnsm2024,service_pressure,service_deploy_RL}.
+However, most of them fail to fully capture the continuous execution of microservice chains and ignore the joint optimization of service routing and replica deployment under time-varying communication conditions and heterogeneous onboard hareware environments.
+In particular, many satellite-oriented service and function execution models rely on quasi-static constellation snapshots, implicitly assuming that each task can be completed within a single period during which link states remain unchanged.
+While this abstraction simplifies modeling and algorithm design, it deviates from practical in-orbit service execution, where data routing, computation, and scheduling could frequently span multiple time slots~\cite{cross_slot_optim_infocom2025}.
+Although terrestrial microservice routing studies have explored the joint optimization of service deployment and request routing~\cite{optim_svc_req_routing_inst_place4microsvc,optim_svc_dep_req_reouting_in_MEC}, their assumptions of stable networks, abundant power supply, and fixed edge infrastructure are not directly applicable to the SCPNs.
+
+\subsection{Contributions}
+To address the aforementioned challenges, we propose ELARA, an energy-efficient and low-latency microservice orchestration framework for SCPNs. ELARA jointly optimizes routing and deployment decisions for distributed microservice-based applications in spatio-temporally dynamic SCPN environments.
+Specifically, upon a request arrives at an arbitrary continuous time, ELARA divides the entire execution process into multiple sequential stages. For each execution stage, after completing the current service on a serving satellite, ELARA first selects the next computing node from the subset of satellites hosting replicas of the subsequent microservice, while considering the volume of intermediate data, real-time onboard computing capacities, and relay ISL states. 
+ELARA then executes a service routing algorithm based on the source and destination satellites, available bandwidths, and congestion levels of ISLs, generating a set of parallel routing paths to accelerate data transmission and enhance robustness against link disruptions caused by the time-varying constellation topology. 
+Finally, ELARA periodically adjusts microservice deployments according to historical service invocation patterns and the real-time computing and communication conditions of the SCPN. 
+Built upon this design, ELARA introduces a continuous-time cross-slot service provisioning mechanism along with an adaptive routing-and-redeployment strategy. This enables the system to jointly optimize end-to-end latency, energy consumption, and deadline satisfaction under dynamic constellation topologies and constrained onboard resources.
+
+In summary, the main contributions are as follows:
+\begin{enumerate}
+\item
+We identify and formalize a new microservice-chain execution paradigm for SCPNs, where stateless service replicas are distributed across LEO satellites and each request may arrive at an arbitrary time. 
+This formulation captures the coupled impact of serving satellite selection, inter-satellite routing, onboard computation, and replica deployment on request-level service quality.
+
+\item
+We develop a dynamic SCPN system model that characterizes Walker-Delta constellation dynamics, time-varying ISL availability, distance-dependent link capacity, communication latency and energy, and onboard computation latency and energy.
+This model enables cross-slot service execution analysis by explicitly accounting for queuing, transmission, propagation, waiting, and execution costs under evolving network and computing conditions.
+
+\item
+We formulate the ELARA service routing problem as an online energy- and latency-aware optimization problem over three coupled decisions: serving satellite selection, cross-slot multi-hop routing, and adaptive replica redeployment.
+The formulation incorporates link-capacity, replica-count, and onboard storage constraints, thereby capturing the practical resource limitations of SCPNs.
+
+\item
+We design ELARA to coordinate request-level routing with periodic replica redeployment by exploiting real-time satellite computing states and time-varying ISL topology.
+Extensive simulations under dynamic LEO constellations and diverse service-chain workloads demonstrate that ELARA reduces end-to-end latency, energy consumption, and deadline violations compared with representative baselines.
+\end{enumerate}
+
+% Particularly, due to the large-scale deployment of LEO satellites, advancements in satellite remote sensing and data analytics technology, and the high image resolution afforded by the lower orbital altitude, LEO satellite remote sensing services have demonstrated unprecedented momentum. These services continuously generate massive amounts of data featuring multiple formats and modalities, catering to extensive user demands \cite{survey_on_nextg_comp_tech_SAGIN,sate_fed_edge_learning, li2023leo}.
+% This paper illustrates these application scenarios as depicted in Fig.~\ref{fig:net_topo}.
+
+% Due to the enormous and continuously growing volume of remote sensing data, downloading all satellite data to the ground for centralized processing consumes substantial satellite-to-ground communication resources and may cause congestion for other services.
+% Therefore, leveraging onboard computational resources to perform partial or complete processing of remote sensing tasks and then downloading the computational results to the ground can save communication resources and mitigate privacy and security risks associated with downloading raw data \cite{tronchetti2015legal}.
+% Furthermore, considering the potential computational resource constraints of a single satellite, the multi-satellite collaborative computing paradigm has emerged as a mainstream research focus \cite{jia2022collaborative, leyva2023satellite}.
+% Specifically, thanks to the development of containerization technologies and the evolution of microservice architectures \cite{Docker,salah2016evolution,3D_assets_microservice}, the functional modules of the user applications, which are traditionally deployed in terrestrial data centers to process raw data postback from satellites, \cite{joint_orbit_comp_comm4data_Download}, can now be decomposed into stateless microservices and packaged as independent and isolated containers \cite{geoAIasMicroService}.
+% These services can then be dispatched to computing nodes of the SCPN for on-board computation so as to reduce the transmission delay caused by limited bandwidth and vulnerable channel conditions between ground and space networks \cite{cubesat_comm,uplink_interference_tsinghua}.
 
 \begin{figure}[!htbp]
 \centering
@@ -87,39 +151,27 @@ This architecture, however, turns request execution into a coupled decision prob
 \vspace{-0.3cm}
 \end{figure}
 
-The key problem studied in this paper is how to route a microservice service chain over a dynamic LEO constellation.
-For a request arriving at an arbitrary continuous time, its data may need to be transmitted from the source satellite to the replica of the first microservice, then between successive serving satellites, and finally to the destination satellite.
-The end-to-end performance depends not only on communication delay and energy over multi-hop ISLs, but also on computation waiting time, execution time, and computing energy at the selected satellites.
-Moreover, the execution of one request can span multiple topology slots, during which cross-plane ISLs may be established or torn down because of line-of-sight constraints, polar-region exclusions, and pointing dynamics \cite{IPIS_sate,analysis_of_ISL4LEO_mega_net}.
-Therefore, a service routing decision that is efficient in the current slot may become inefficient or even infeasible in subsequent slots.
 
-To enable energy- and latency-aware microservice routing in SCPNs, several challenges must be addressed.
-First, the satellite network topology is predictable but highly time-varying.
-Intra-plane ISLs are relatively stable, whereas cross-plane ISLs are sensitive to orbital geometry and may change across slots.
-Thus, routing intermediate service data through a single static path can suffer from link disruption, excessive detours, or degraded transmission rates.
-Second, serving satellite selection and ISL routing are tightly coupled.
-Selecting a nearby replica may reduce transmission delay but increase computation waiting time if the satellite is heavily loaded, while selecting an idle satellite may introduce long multi-hop communication cost.
-This coupling is further complicated by satellite energy constraints, since both onboard computation and laser transmission consume scarce power resources \cite{energy_efficient_routing_tsinghua,energy_drain_attact_on_satellite,cao_comp_routing}.
-Third, microservice replica deployment cannot remain static.
-As request distributions, satellite workloads, and network topology evolve, a previously good replica placement may become inefficient; nevertheless, frequent redeployment is also costly because service images must be transferred over limited ISL resources and each satellite has bounded storage capacity.
+% However, unlike terrestrial computing nodes with adequate computing resources and power supply.
+% The SCPN nodes present unique limitations, i.e., constrained computing resources and poor power supply.
+% On the one hand, satellites can only be equipped with limited computing and storage resources as a consequence of the constraints of size and weight, as well as the damage risk caused to circuit boards by intense radiation in space \cite{sate_computing_case_study}.
+% On the other hand, the energy supply for satellites is primarily derived from solar energy harvesting, which is utilized for various satellite functions, including attitude control, transceivers, cameras, and processors.
+% % Due to the significant temperature variations in different positions in space, the energy system also needs to manage thermal control.
+% Furthermore, considering the area of solar panels, the efficiency of the materials used for energy harvesting, and hardware degradation, the battery power available for satellites is extremely limited compared to the energy supply available to terrestrial servers. \cite{energy_efficient_routing_tsinghua,energy_drain_attact_on_satellite}.
 
-Existing studies have made important progress in satellite edge computing, in-orbit computation, service placement, and NFV-enabled service chaining \cite{leyva2023satellite,joint_orbit_comp_comm4data_Download,optim4server_svc_place_in_STIECN,sc_nfv_tmc2024,fairness_vnf_tnsm2024}.
-However, most of them do not fully capture the continuous execution of microservice chains over time-varying ISL topologies with distributed stateless replicas.
-In particular, many satellite service/function execution models rely on quasi-static snapshots and implicitly assume that a task can be completed within a fixed constellation period where link states remain unchanged.
-This abstraction simplifies modeling and algorithm design, but it does not match practical in-orbit service execution, where data routing, computation, and scheduling may span multiple time slots.
-Terrestrial microservice routing studies jointly optimize service deployment and request routing \cite{optim_svc_req_routing_inst_place4microsvc,optim_svc_dep_req_reouting_in_MEC}, but their assumptions on stable networks, abundant power supply, and fixed edge infrastructure are not directly applicable to SCPNs.
 
-To address these challenges, we propose ELARA, an energy- and latency-aware service routing framework with adaptive replica redeployment for microservices in SCPNs.
-ELARA tracks each request in continuous time and jointly considers serving satellite selection, cross-slot multi-hop service routing, and periodic replica redeployment.
-For communication, ELARA accounts for queuing, transmission, and propagation delays over time-varying ISLs, as well as the energy consumed by traffic-carrying links.
-For computation, ELARA models both waiting delay and execution delay under dynamic onboard computing availability.
-By adapting replica deployment at a slower timescale while making request-level routing decisions online, ELARA aims to reduce end-to-end latency, total energy consumption, and deadline violations under dynamic constellation topology and resource constraints.
+% Hence, different from terrestrial settings \cite{optim_svc_dep_req_reouting_in_MEC, optim_svc_req_routing_inst_place4microsvc, sfc_optim_deploy_link_influence}, the energy efficiency should be given high priority and regarded as the main concern when devising the routing schemes in the SCPN \cite{cao_comp_routing,energy_efficient_routing_tsinghua,energy_alloc_addmission_ctrl4comm_satellite}.
+% To this end, this work presents an energy-aware service routing algorithm for microservices in the SCPN, aiming to minimize energy consumption in both computation and communication to meet the task requirements of terrestrial clients.
+% Specifically, we first model the service routing problem as a Directed Steiner Tree (DST) on the directed graph, which is a classic combinatorial optimization problem and has been proved to be NP-hard \cite{appro_algo4DST, redu_DST}, then design a series of heuristic-based algorithms to obtain the approximate optimal solution for the service routing problem in the SCPN.
 
-The main contributions of this paper are summarized as follows.
-First, we develop a dynamic SCPN microservice model that captures Walker-Delta constellation dynamics, ISL availability, distance-dependent link capacity, communication delay and energy, onboard computation delay and energy, and stateless microservice replicas.
-Second, we formulate an online energy- and latency-aware microservice routing problem that jointly optimizes serving satellite selection, cross-slot multi-hop routing, and adaptive replica redeployment under link-capacity, replica-count, and onboard storage constraints.
-Third, we design ELARA to coordinate real-time service routing with periodic replica redeployment by exploiting current satellite computing states and time-varying ISL topology.
-Fourth, we conduct extensive simulations under dynamic LEO constellations and diverse service-chain workloads, demonstrating that ELARA reduces end-to-end latency, energy consumption, and deadline violations compared with representative baselines.
+
+% Our main contributions are summarized as follows:
+% \begin{itemize}
+% \item \textbf{Service Routing Modeling in the SCPN}: We identify satellite energy consumption as a critical bottleneck of microservice routing in the SCPN. To this end, we meticulously model the satellite energy consumption associated with microservice communication and computation as well as mathematically formulate the energy resource optimization problem for satellite microservices.
+% \item \textbf{Augmented Satellite-Microservice Subgraph Construction}: We propose an innovative augmented satellite-microservice subgraph construction method, which equivalently transforms the original problem into a classical DST problem in graph theory, thereby elucidating the mathematical essence of this engineering challenge. In addition to microservice scenarios, this method is also applicable to other routing problems that jointly optimize the computational and communication resource costs.
+% \item \textbf{Heuristic Algorithms for the DST Problem}: We implement a series of heuristic algorithms to approximate the optimal solution for the NP-hard DST problem. Extensive experiments demonstrate that our proposed algorithm not only significantly outperforms baseline algorithms in energy efficiency but also exhibits remarkable stability, thereby validating the efficacy of our augmented graph construction methodology.
+% attempting to greedily address the original problem in terms of energy cost
+% \end{itemize}
 
 
 The remainder of this paper is organized as follows.
@@ -127,7 +179,7 @@ Section \ref{sec:related_work} reviews the related works.
 Section \ref{sec:sys_model} presents the system models.
 The problem formulation is introduced in Section \ref{sec:prob_form}.
 Section \ref{sec:algo} details the proposed heuristic algorithms.
-Section \ref{sec:eval} shows and analyses the experiment results.
+Section \ref{sec:eval} shows and analyses the Simulation results.
 Section \ref{sec:conclusion} draws the conclusion.
 
 \section{Related Work}
@@ -288,7 +340,7 @@ Furthermore, the aggregate storage footprint of all replicas hosted on a single 
 % It is worth noting that all microservices operate in a stateless manner, which can be dynamically added, removed, or migrated without incurring the prohibitive communication overhead of inter-replica state synchronization.
 
 
-Let $r = \langle v_s, m_1, m_2, \ldots, m_L, v_d, \tau_{\text{in}} \rangle$ denote an incoming request with a deadline $D_r$. 
+Let $r = \langle v_s, m_1, m_2, \ldots, m_L, v_d, \tau_{\text{in}} \rangle$ denote an incoming request with a deadline $D_r$.
 Here, $v_s$ and $v_d$ are the source and destination satellites, $m_i$ is the $i$-th microservice in the sequential execution chain, and $\tau_{\text{in}}$ is the continuous arrival time.
 Let $B_{r,i}$ be the data volume that should be transmitted before invoking $m_i$, while $B_{r,L+1}$ denotes the final output routed to $v_d$.
 % Since a request can arrive at any arbitrary instant and its data transmission may span multiple topology slots, ELARA formulates this sequential service execution as a continuous-time online decision process.
@@ -302,8 +354,8 @@ For the $i$-th service routing operation, the source and destination satellites 
 
 
 Since the endpoints may be non-adjacent and transmission may start near a slot boundary, one routing operation can span $H\geq 1$ phases over time-varying multi-hop routes.
-For phase $h$, let $\tau_{r,i}^{h}$ be its start time, $t_h=s(\tau_{r,i}^{h})$ the active topology slot, $\bar{\Delta}_h$ the remaining slot time, and $B_{r,i}^{h}$ the residual data, with $B_{r,i}^{1}=B_{r,i}$. 
-Let $\mathcal{P}_{r,i}^{h}$ be the feasible and active end-to-end path set from $u_{r,i}$ to $v_{r,i}$ in slot $t_h$, where each path $p\in\mathcal{P}_{r,i}^{h}$ is an ordered sequence of one or more ISLs, i.e., $p=(e_1,\ldots,e_{|p|})$, and different path may partially share the same ISLs. 
+For phase $h$, let $\tau_{r,i}^{h}$ be its start time, $t_h=s(\tau_{r,i}^{h})$ the active topology slot, $\bar{\Delta}_h$ the remaining slot time, and $B_{r,i}^{h}$ the residual data, with $B_{r,i}^{1}=B_{r,i}$.
+Let $\mathcal{P}_{r,i}^{h}$ be the feasible and active end-to-end path set from $u_{r,i}$ to $v_{r,i}$ in slot $t_h$, where each path $p\in\mathcal{P}_{r,i}^{h}$ is an ordered sequence of one or more ISLs, i.e., $p=(e_1,\ldots,e_{|p|})$, and different path may partially share the same ISLs.
 If $D_h$ bits are transmitted, ELARA splits them across multiple such paths, and path $p$ receives fraction $\lambda_p^h\in[0,1]$:
 \begin{equation}
 d_p^h=\lambda_p^h D_h,\qquad
@@ -376,21 +428,21 @@ E^{\text{tot}}_r
 where $i=L+1$ denotes the final output delivery to $v_d$.
 
 \paragraph{Service Replica Migration Model}
-Let $\mathbf{X}(t)=[x_{m,v}(t)]$ represent the microservice replica deployment matrix at slot $t$. 
-ElARA periodically updates the deployment matrix every few time slots by selecting an action $ a_{m_i} \in \{\text{add}, \text{remove}, \text{move}, \text{no-op}\} $ for each $m_i$ in a microservice subset $\mathcal{M'}(t) \subset \mathcal{M}$ at time slot $t$. 
+Let $\mathbf{X}(t)=[x_{m,v}(t)]$ represent the microservice replica deployment matrix at slot $t$.
+ElARA periodically updates the deployment matrix every few time slots by selecting an action $ a_{m_i} \in \{\text{add}, \text{remove}, \text{move}, \text{no-op}\} $ for each $m_i$ in a microservice subset $\mathcal{M'}(t) \subset \mathcal{M}$ at time slot $t$.
 Then we have:
 \begin{align}
 \mathbf{X}(t+1) = \Phi(\mathbf{X}(t), \mathcal{A}_t),
 \label{eq:deployment_transition}
 \end{align}
 where $\Phi(\cdot)$ denotes the deployment transition induced by the selected action set $\mathcal{A}_t = \{ a_{m_i} | \forall m_i \in \mathcal{M'}(t) \}$.
-All redeployment actions should preserve the replica-count and storage constraints in \eqref{eq:replica_count_elara} and \eqref{eq:storage_elara}. 
+All redeployment actions should preserve the replica-count and storage constraints in \eqref{eq:replica_count_elara} and \eqref{eq:storage_elara}.
 % The single normalized migration cost is:
 % \begin{align}
 %     C^{\text{mg}}(a_{m_i}, t) = \omega^{\text{mg}}_{t}\frac{T^{\text{mg}}(a_{m_i}, t)}{T_0} + \omega^{\text{mg}}_{e}\frac{E^{\text{mg}}(a_{m_i}, t)}{E_0},
 %     \label{eq:migration_cost_elara}
 % \end{align}
-% where $T^{\text{mg}}(a_t)$ and $E^{\text{mg}}(a_t)$ are the delay and energy overheads for transferring the service images, and they can be calculated by \eqref{eq:cross_slot_routing_cost_model}. $T_0$ and $E_0$ are the normalization constants, $\omega^{\text{mg}}_{t}$ and $\omega^{\text{mg}}_{e}$ are the weights of migration delay and energy consumpation, respectivaly. 
+% where $T^{\text{mg}}(a_t)$ and $E^{\text{mg}}(a_t)$ are the delay and energy overheads for transferring the service images, and they can be calculated by \eqref{eq:cross_slot_routing_cost_model}. $T_0$ and $E_0$ are the normalization constants, $\omega^{\text{mg}}_{t}$ and $\omega^{\text{mg}}_{e}$ are the weights of migration delay and energy consumpation, respectivaly.
 % Because all microservice are stateless, remove and no-op operations incur zero migration cost.
 
 \section{Problem Formulation of ELARA}
@@ -430,10 +482,10 @@ Following \eqref{eq:req_e2e_lat} and \eqref{eq:req_tot_eng}, given an online req
 % &  T^{\text{e2e}}_{r} \le D_r \quad \text{or}  \quad \mathbb{I}_r^{\text{fail}} =1, \quad \forall r \in \mathcal{Q}.  \tag{C4}
 \end{align}
 \end{subequations}
-where $\alpha$, $\beta$, and $\rho$ are non-negative weights, and $\mathbb{I}_r^{\text{fail}}$ indicates whether request $r$ violates its deadline. 
-Constraint C1 enforces serving satellite selection by assigning each microservice stage to exactly one satellite hosting a valid replica, and defining the corresponding routing policy for each service routing segment. 
-Constraint C2 ensures feasible cross-slot multi-hop routing under time-varying topology by enforcing path splitting, shared ISL capacity, phase duration, and residual data update constraints. 
-Constraint C3 restricts adaptive replica redeployment to states that satisfy both replica-count and onboard storage constraints after each migration action. 
+where $\alpha$, $\beta$, and $\rho$ are non-negative weights, and $\mathbb{I}_r^{\text{fail}}$ indicates whether request $r$ violates its deadline.
+Constraint C1 enforces serving satellite selection by assigning each microservice stage to exactly one satellite hosting a valid replica, and defining the corresponding routing policy for each service routing segment.
+Constraint C2 ensures feasible cross-slot multi-hop routing under time-varying topology by enforcing path splitting, shared ISL capacity, phase duration, and residual data update constraints.
+Constraint C3 restricts adaptive replica redeployment to states that satisfy both replica-count and onboard storage constraints after each migration action.
 
 
 \subsection{Problem Hardness}
@@ -442,7 +494,7 @@ Constraint C3 restricts adaptive replica redeployment to states that satisfy bot
 Problem $\mathscr{P}$ is NP-hard.
 Even in a single-slot static case with fixed deployment and fixed link and computing capacities, $\mathscr{P}$ requires selecting replicas for a service chain and connecting them through capacity-constrained paths.
 This restricted case contains the placement of service function chains and constrained routeing as special cases and is therefore NP-hard.
-The full problem further couples these decisions with cross-slot routeing and adaptive replica redeployment, motivating ELARA's online decomposition. 
+The full problem further couples these decisions with cross-slot routeing and adaptive replica redeployment, motivating ELARA's online decomposition.
 
 
 \begin{comment}
@@ -534,7 +586,7 @@ The variable $\theta_{u,v}(t)$ denotes the relative tracking angle, which is bou
 The third constraint enforces a polar exclusion zone parameterized by a latitude boundary $\varphi_{\text{max}}$ (e.g., $70^{\circ}$).
 This mechanism disconnects satellites entering polar regions, mitigating the severe pointing dynamics and extreme Doppler shifts inherent to high-inclination orbits.
 
-% This mechanism proactively severs the links when either communicating satellite enters the polar regions, thereby circumventing the violent pointing dynamics and extreme Doppler shifts characteristic of high-inclination constellations.   
+% This mechanism proactively severs the links when either communicating satellite enters the polar regions, thereby circumventing the violent pointing dynamics and extreme Doppler shifts characteristic of high-inclination constellations.
 \end{comment}
 
 
@@ -576,9 +628,9 @@ Set $\mathbf{w}(v^{m_i}_{k^c} \to v^{m_i}_{k^t}) \doteq {E_{m_i}(v_k)} / {2}$\;
 \For{$w_{i,j}$ in $\mathcal{W}_f$}{
 \For{$v^{m_i}_{k}$ in $\mathcal{V}_{m_i}$}{
 \For{$v^{m_j}_{k}$ in $\mathcal{V}_{m_j}$}{
-$\mathcal{V}^{re}_{o}, \mathcal{E}^{re}_{o}$ = \textbf{GISRSA}($\mathcal{G}, v^{m_i}_{k}, v^{m_j}_{k}$) \;
-$\mathcal{V}_{z} \gets \mathcal{V}_{z} \bigcup \mathcal{V}^{re}_{o}$ \;
-$\mathcal{E}_{z} \gets \mathcal{E}_{z} \bigcup \mathcal{E}^{re}_{o}$ \;
+	$\mathcal{V}^{re}_{o}, \mathcal{E}^{re}_{o}$ = \textbf{GISRSA}($\mathcal{G}, v^{m_i}_{k}, v^{m_j}_{k}$) \;
+	$\mathcal{V}_{z} \gets \mathcal{V}_{z} \bigcup \mathcal{V}^{re}_{o}$ \;
+	$\mathcal{E}_{z} \gets \mathcal{E}_{z} \bigcup \mathcal{E}^{re}_{o}$ \;
 }
 }
 }
@@ -646,7 +698,7 @@ $v^{m_i}_{k^{t}} \to v^{re}_{a} , v^{re}_{a} \to v^{re}_{a+1} , v^{re}_{\xi} \to
 \begin{eqnarray}
 \label{eq:comm_link_weight2}
 \mathbf{e}^{tr}_{{re}_1}(v^{m_i}_{k^{t}} \to v^{re}_{a}) = P^{v^{m_i}_{k^{t}} \to v^{re}_{a}}_{T} \frac{w_{i,j}} {\text{w}(v^{m_i}_{k^{t}} \to v^{re}_{a})}, \\
-\mathbf{e}^{tr}_{{re}_2}(v^{re}_{a} \to v^{re}_{a+1}) = P^{v^{re}_{a} \to v^{re}_{a+1}}_{T} \frac{w_{i,j}} {\text{w}(v^{re}_{a} \to v^{re}_{a+1})}, \\ 
+\mathbf{e}^{tr}_{{re}_2}(v^{re}_{a} \to v^{re}_{a+1}) = P^{v^{re}_{a} \to v^{re}_{a+1}}_{T} \frac{w_{i,j}} {\text{w}(v^{re}_{a} \to v^{re}_{a+1})}, \\
 \mathbf{e}^{tr}_{{re}_3}(v^{re}_{\xi} \to v^{m_j}_{k^r}) = P^{v^{re}_{\xi} \to v^{m_j}_{k^r}}_{T} \frac{w_{i,j}} {\text{w}(v^{re}_{\xi} \to v^{m_j}_{k^r})}.
 \end{eqnarray}
 This process is depicted in Fig . \ref{fig:satellite_routing}.
@@ -662,9 +714,9 @@ This process is depicted in Fig . \ref{fig:satellite_routing}.
 
 % \noindent
 % Step-4
-\textbf{Step \textcolor{red}{\ding{185}}}. For the first executed microservice $m_{src}$ and the final executed microservices $\{ 
+\textbf{Step \textcolor{red}{\ding{185}}}. For the first executed microservice $m_{src}$ and the final executed microservices $\{
 m_{{dst}^{1}}, \dots, m_{{dst}^{\rho}} \}$, the algorithm searches for the collection of satellite nodes hosting these microservices.
-Subsequently, it constructs the edges ${v}^{src} \to v^{m_{src}}_{k^{r}}$ and $v^{m_{{dst}}}_{k^{t}} \to v^{{dst}_{\text{g}}}, \forall \text{g} \in [1, \rho]$. 
+Subsequently, it constructs the edges ${v}^{src} \to v^{m_{src}}_{k^{r}}$ and $v^{m_{{dst}}}_{k^{t}} \to v^{{dst}_{\text{g}}}, \forall \text{g} \in [1, \rho]$.
 The detailed procedures for the construction of the newly generated vertices and edges are similar to those outlined in \textbf{Step} \textcolor{red}{\ding{184}}.
 
 \begin{figure*}[!t]
@@ -676,12 +728,12 @@ The detailed procedures for the construction of the newly generated vertices and
 \vspace{-0.4cm}
 \end{figure*}
 
-We summarize the above steps in Algorithm \ref{algo:aug_graph_construc}. 
+We summarize the above steps in Algorithm \ref{algo:aug_graph_construc}.
 This systematic approach guarantees that within the augmented graph $\mathcal{G}_z$, each tree rooted at the source node $v^{src}$, which includes the destination node $v^{dst}$ and all $v^{m_i}_{k^c}$ nodes, constitutes a feasible service routing scheme $\psi$.
-% And in this way, we can ensure that in the augmented graph $\mathcal{G}_z$, each tree with the source node $v^{src}$ as the root, containing the destination node $v^{dst}$ and all $v^{m_i}_{k^c}$ nodes, constitutes a feasible computing power routing scheme $\psi$. 
+% And in this way, we can ensure that in the augmented graph $\mathcal{G}_z$, each tree with the source node $v^{src}$ as the root, containing the destination node $v^{dst}$ and all $v^{m_i}_{k^c}$ nodes, constitutes a feasible computing power routing scheme $\psi$.
 This scheme ensures that all computation and communication processes required in $\mathcal{G}^{m}_{f^{'}}$ are executed sequentially, and the sum of the weights of all edges in this tree quantifies the total energy $\text{E}^{total}$ required for the routing scheme.
-% According to this scheme, all the computation and communication processes required in $\mathcal{G}^{m}_{f^{'}}$ can be executed sequentially, and the sum of the weights of all edges in the tree is the total energy $\text{E}^{total}$ required for the corresponding computing power routing scheme. 
-Subsequently, solving the original problem can essentially be transformed into tackling a DST problem on the graph $\mathcal{G}_z$. The objective is to identify a connected subgraph that contains all specified nodes in graph $\mathcal{G}_z$ such that the sum of the weights of all edges in the subgraph is minimized. 
+% According to this scheme, all the computation and communication processes required in $\mathcal{G}^{m}_{f^{'}}$ can be executed sequentially, and the sum of the weights of all edges in the tree is the total energy $\text{E}^{total}$ required for the corresponding computing power routing scheme.
+Subsequently, solving the original problem can essentially be transformed into tackling a DST problem on the graph $\mathcal{G}_z$. The objective is to identify a connected subgraph that contains all specified nodes in graph $\mathcal{G}_z$ such that the sum of the weights of all edges in the subgraph is minimized.
 The directed Steiner tree problem is defined as follows.
 
 
@@ -708,7 +760,7 @@ Init the terminal pairs set, $ \left\{ (v^{src}, v^{{dst}_{\text{g}}})| \forall 
 Init $\mathcal{V}_{\text{a}} \gets \varnothing, \mathcal{E}_{\text{a}} \gets \varnothing$\;
 \For{$\text{g}$ in $[1, \rho]$}{
 % \tcp{Calculate the $\text{g}$-th shortest path.}
-$\mathcal{V}_g, \mathcal{E}_g$ = Dijkstra($\mathcal{G}_{z}, v^{src}, v^{{dst}_{\text{g}}}$)  
+$\mathcal{V}_g, \mathcal{E}_g$ = Dijkstra($\mathcal{G}_{z}, v^{src}, v^{{dst}_{\text{g}}}$)
 }
 % \tcp{Merge the $\rho$ vertex sets into one}
 $\mathcal{V}_{\text{a}} \gets \bigcap_{\text{g}=1}^{{\rho}} \mathcal{V}_{\text{g}}$\;
@@ -716,9 +768,9 @@ $\mathcal{E}_{\text{a}} \gets \mathcal{E}_{1} $\;
 \For{$\text{g}$ in $[2,\rho]$}{
 \For{$e$ in $\mathcal{E}_{\text{g}}$}{
 \uIf{$e \in \mathcal{E}_{\text{a}}$}{
-$\text{w}(e) \doteq \min(\text{w}(\mathcal{E}^{e}_{\text{a}}), \text{w}(\mathcal{E}^{e}_{\text{g}})) $
+	$\text{w}(e) \doteq \min(\text{w}(\mathcal{E}^{e}_{\text{a}}), \text{w}(\mathcal{E}^{e}_{\text{g}})) $
 }\Else{
-$\mathcal{E}_{\text{a}} \gets \mathcal{E}_{\text{a}} \cup  \{ e \}$
+	$\mathcal{E}_{\text{a}} \gets \mathcal{E}_{\text{a}} \cup  \{ e \}$
 }
 }
 }
@@ -731,7 +783,7 @@ Construct $\mathcal{A}(\mathcal{V}_{\text{a}}, \mathcal{E}_{\text{a}})$\;
 % \subsection{Adopted Directed Steiner Tree Algorithm}
 \subsection{DST-based Service Routing Algorithm}
 \label{sec:adopted_algo}
-% The DST problem is known to be NP-hard, and the research on this problem is well-established, where there are many proposed works that provide approximation solutions for the original problem \cite{appro_algo4DST,redu_DST}. 
+% The DST problem is known to be NP-hard, and the research on this problem is well-established, where there are many proposed works that provide approximation solutions for the original problem \cite{appro_algo4DST,redu_DST}.
 The DST problem is known to be NP-hard, and extensive research has been conducted on it. Numerous studies have proposed approximation solutions for the original problem \cite{appro_algo4DST,redu_DST}.
 However, solving the DST problem within the LEO network topology introduces unique and particularly severe challenges due to the dynamic nature of satellite constellations.
 Specifically, the time-varying nature of ISLs owing to the constant movement of satellites results in a highly dynamic network topology, making the link connectivity a complex issue. LoS constraints further complicate the ability to guarantee consistent connections between terminals. Additionally, microservices that need to communicate may not be colocated on the same or directly adjacent satellites, necessitating the use of relay satellites to establish communication paths. These challenges motivate us to design a specialized heuristic algorithm tailored to the ever-changing LEO satellite networks.
@@ -761,9 +813,9 @@ $\mathcal{E}^{re}_{o} \gets \mathcal{E}^{re}_{o} \bigcup  \{  (v^{m_i}_{k^{t}} \
 $\mathbf{w} (v^{m_i}_{k^{t}} \to v^{re}_{1}) \doteq \mathbf{e}^{tr}_{{re}_1} (v^{m_i}_{k^{t}} \to v^{re}_{1}) $\;
 $\mathbf{w} (v^{re}_{\xi} \to v^{m_j}_{k^{r}})  \doteq \mathbf{e}^{tr}_{{re}_3} (v^{re}_{\xi} \to v^{m_j}_{k^{r}}) $\;
 \For{$a \in [1, \xi - 1]$}{
-$\mathcal{V}^{re}_{o} \gets \mathcal{V}^{re}_{o} \bigcup  \{ v^{re}_{a}, v^{re}_{a_1} \}$\;
-$\mathcal{E}^{re}_{o} \gets \mathcal{E}^{re}_{o} \bigcup  \{  (v^{re}_{a} \to v^{re}_{a_1}) \}$\;
-$\mathbf{w}(v^{re}_{a} \to v^{re}_{a_1}) \doteq \mathbf{e}^{tr}_{{re}_2} (v^{re}_{a} \to v^{re}_{a_1})$\;
+	$\mathcal{V}^{re}_{o} \gets \mathcal{V}^{re}_{o} \bigcup  \{ v^{re}_{a}, v^{re}_{a_1} \}$\;
+	$\mathcal{E}^{re}_{o} \gets \mathcal{E}^{re}_{o} \bigcup  \{  (v^{re}_{a} \to v^{re}_{a_1}) \}$\;
+	$\mathbf{w}(v^{re}_{a} \to v^{re}_{a_1}) \doteq \mathbf{e}^{tr}_{{re}_2} (v^{re}_{a} \to v^{re}_{a_1})$\;
 }
 }
 % \KwRet{$\mathcal{V}^{re}_{o}, \mathcal{E}^{re}_{o}$}
@@ -774,25 +826,25 @@ $\mathbf{w}(v^{re}_{a} \to v^{re}_{a_1}) \doteq \mathbf{e}^{tr}_{{re}_2} (v^{re}
 % The main steps of the proposed algorithm for the energy-aware service request routing problem based on DST can be summarized as follows:
 The main steps of our energy-aware DST-based service routing algorithm are as follows:
 
-\textit{\textbf{1) Augmented Graph Initialization:}} In time slot $\text{s}$, the augmented graph $\mathcal{G}_z(\text{s}) = ( \mathcal{V}_z(\text{s}), \mathcal{E}_z(\text{s}) )$ is initialized with weighed edges. 	
+\textit{\textbf{1) Augmented Graph Initialization:}} In time slot $\text{s}$, the augmented graph $\mathcal{G}_z(\text{s}) = ( \mathcal{V}_z(\text{s}), \mathcal{E}_z(\text{s}) )$ is initialized with weighed edges.
 
 
-\textit{\textbf{2) Get the Shortest Path:}} For each root and terminal node pairs $({v}^{src}, {v}^{{dst}_{\text{g}}}), \forall \text{g} \in [1, \rho]$, it recursively finds the minimum cost path by utilizing the Dijkstra algorithm. Record the involved vertices and edges that constitute each path, represented by $\{\mathcal{V}_{1}(\text{s}), \dots, \mathcal{V}_{\rho}(\text{s})\}$ and $\{\mathcal{E}_{1}(\text{s}), \dots, \mathcal{E}_{\rho}(\text{s})\}$.	
+\textit{\textbf{2) Get the Shortest Path:}} For each root and terminal node pairs $({v}^{src}, {v}^{{dst}_{\text{g}}}), \forall \text{g} \in [1, \rho]$, it recursively finds the minimum cost path by utilizing the Dijkstra algorithm. Record the involved vertices and edges that constitute each path, represented by $\{\mathcal{V}_{1}(\text{s}), \dots, \mathcal{V}_{\rho}(\text{s})\}$ and $\{\mathcal{E}_{1}(\text{s}), \dots, \mathcal{E}_{\rho}(\text{s})\}$.
 
 
-\textit{\textbf{3) Merge the Shortest Paths:}} 
+\textit{\textbf{3) Merge the Shortest Paths:}}
 Aggregate the vertex sets from the minimum cost paths and remove any duplicates to obtain $\mathcal{V}_{\text{a}}(\text{s}) =   {\textstyle \bigcap_{\text{g}=1}^{\rho} \mathcal{V}_{\text{g}}(\text{s})}$. Then, consolidate these edge sets to $\mathcal{E}_{\text{a}}(\text{s}) =   {\textstyle \bigcap_{\text{g}=1}^{\rho} \mathcal{E}_{\text{g}}(\text{s})}$. Note that if any edges share common vertices, select the edge with the smaller weight to ensure the most cost-effective connections.
-%    Based on the pre-collected minimum cost paths, it firstly aggregates these collected vertex sets and removes the duplicate vertices, as 
+%    Based on the pre-collected minimum cost paths, it firstly aggregates these collected vertex sets and removes the duplicate vertices, as
 % $\mathcal{V}_{\text{a}}(\text{s}) =   {\textstyle \bigcap_{\text{g}=1}^{\rho} \mathcal{V}_{\text{g}}(\text{s}) } $, then, it rearranges these edge sets, as $\mathcal{E}_{\text{a}}(\text{s}) =   {\textstyle \bigcap_{\text{g}=1}^{\rho} \mathcal{E}_{\text{g}}(\text{s}) } $.
-% It should be noted that if there are two edges sharing common vertices, the edge with the smaller weight will be selected.	
+% It should be noted that if there are two edges sharing common vertices, the edge with the smaller weight will be selected.
 
-\textit{\textbf{4) Minimum Spanning Steiner Arborescence:}} 
+\textit{\textbf{4) Minimum Spanning Steiner Arborescence:}}
 Utilize the aggregated vertex and edge collections to construct the minimum spanning Steiner arborescence for the snapshot $\text{s}$, denoted by $\mathcal{A}(\text{s}) = ( \mathcal{V}_{\text{a}}(\text{s}), \mathcal{E}_{\text{a}}(\text{s}) )$. This step provides an approximate solution to the DST problem, optimizing the cost while ensuring connectivity among specified nodes.
 % According to the pre-collected collections over vertex and edge, we can get the approximate solution about the minimum spanning Steiner arborescence in the snapshot $\text{s}$, that is, $\mathcal{A}(\text{s}) = ( \mathcal{V}_{\text{a}}(\text{s}), \mathcal{E}_{\text{a}}(\text{s}) )$.
 
-% The detailed procedures of the proposed algorithm are presented in 
+% The detailed procedures of the proposed algorithm are presented in
 % Algorithm \ref{algo:DST} details the procedure of the proposed approach, and a simple example is illustrated in Fig..
-Algorithm \ref{algo:DST} presents a detailed step-by-step procedure for the proposed approach, offering a comprehensive view of its implementation. To enhance understanding, a simplified example is provided in Fig.  \ref{fig:wk_flow}, which visually demonstrates the key steps and logic of the algorithm. 
+Algorithm \ref{algo:DST} presents a detailed step-by-step procedure for the proposed approach, offering a comprehensive view of its implementation. To enhance understanding, a simplified example is provided in Fig.  \ref{fig:wk_flow}, which visually demonstrates the key steps and logic of the algorithm.
 
 
 %\begin{comment}
@@ -801,8 +853,8 @@ Algorithm \ref{algo:DST} presents a detailed step-by-step procedure for the prop
 The complexity of Algorithm \ref{algo:aug_graph_construc} and \ref{algo:DST} is analyzed as follows.
 
 % \begin{itemize}
-% 	\item 
-\textbf{Complexity of Algorithm \ref{algo:aug_graph_construc}.} The time complexity of Dijkstra algorithm is given by $\mathcal{O}( |\mathcal{E}| + |\mathcal{V}|\log|\mathcal{V}| )$. In the worst case, the algorithm needs to run $|\mathcal{V}^{*}|$ times, which is the number of destination satellites, and the total time complexity deteriorates to 
+% 	\item
+\textbf{Complexity of Algorithm \ref{algo:aug_graph_construc}.} The time complexity of Dijkstra algorithm is given by $\mathcal{O}( |\mathcal{E}| + |\mathcal{V}|\log|\mathcal{V}| )$. In the worst case, the algorithm needs to run $|\mathcal{V}^{*}|$ times, which is the number of destination satellites, and the total time complexity deteriorates to
 $\mathcal{O}(|\mathcal{V}^{*}|( |\mathcal{E}| + |\mathcal{V}|\log|\mathcal{V}| ))$. This signifies that the complexity is contingent upon the structure of both the service request graph and the space network topology.
 
 
@@ -817,14 +869,14 @@ $\mathcal{O}(|\mathcal{V}^{*}|( |\mathcal{E}| + |\mathcal{V}|\log|\mathcal{V}| )
 \begin{figure}[!b]
 \centering
 \subfigure[Chained and Treed topologies.]{
-\includegraphics[width=0.5\linewidth]{figs/exp/chain_tree.pdf}
-\label{fig:chain_miro}
-\vspace{-0.3cm}
+	\includegraphics[width=0.5\linewidth]{figs/exp/chain_tree.pdf}
+	\label{fig:chain_miro}
+	\vspace{-0.3cm}
 }
 % \quad
 \subfigure[Sophisticated-Treed (Soph-Treed) topology.]{
-\includegraphics[width=0.7\linewidth]{figs/exp/stree_micro.pdf}
-\label{fig:stree_micro}
+	\includegraphics[width=0.7\linewidth]{figs/exp/stree_micro.pdf}
+	\label{fig:stree_micro}
 }
 \vspace{-0.2cm}
 \caption{The overview of service request topologies from terrestrial stations.}
@@ -833,14 +885,14 @@ $\mathcal{O}(|\mathcal{V}^{*}|( |\mathcal{E}| + |\mathcal{V}|\log|\mathcal{V}| )
 \end{figure}
 
 \subsection{Experiment Setup}
-\textbf{Constellation.} In experiments, we consider a 72/12/1 Telesat Star Constellation system, which consists of $P=6$ polar orbit planes whose inclination is ${99.5}^{\circ}$, and the orbital altitude is $h=1000{km}$ on the ground\cite{telesat_constellation}. 
+\textbf{Constellation.} In experiments, we consider a 72/12/1 Telesat Star Constellation system, which consists of $P=6$ polar orbit planes whose inclination is ${99.5}^{\circ}$, and the orbital altitude is $h=1000{km}$ on the ground\cite{telesat_constellation}.
 
-\textbf{Satellite Computing Capability.} We suppose LEO satellites are equipped with several onboard processors and storage components. 
+\textbf{Satellite Computing Capability.} We suppose LEO satellites are equipped with several onboard processors and storage components.
 According to \cite{cao_comp_routing}, we assign the satellite computing capability following a uniform distribution, as $\varphi(v_{k}) \sim \text{DiscreteUniform}(\{100, 160, 220, 280, 340, 400\})$, while the processor power $\Psi(v_{k}) = \varphi(v_{k})\times {0.01}$ in Watts.
 
-\textbf{ISL Parameters.} 
-Similar to settings in \cite{channel_model,IPIS_sate,laser_sate}, 
-the transmission power of all relevant satellites is standardized at $P_T = \text{3 (Watt)}$. 
+\textbf{ISL Parameters.}
+Similar to settings in \cite{channel_model,IPIS_sate,laser_sate},
+the transmission power of all relevant satellites is standardized at $P_T = \text{3 (Watt)}$.
 In the context of the Telesat Constellation, which achieve inter-satellite interconnection across free-space optical link, the carrier frequency of  each of satellite is set as $f_c$=193$(THz)$, , and the corresponding carrier wavelength is $\lambda$=1550$(nm)$ while the channel bandwidth between two satellites is defined as $BW$=2$\%f_c$.
 Besides, we specify the antenna diameter transceiver as $D_{R}$=6$(mm)$, the pointing loss angle $\theta_0=0.01\pi$ and the optical conversion efficiency of the transceiver modules $\eta=\text{0.8}$.
 
@@ -848,11 +900,11 @@ Besides, we specify the antenna diameter transceiver as $D_{R}$=6$(mm)$, the poi
 
 \textbf{Ablation Solutions:} We design the following benchmarks to evaluate the performance of our proposed algorithm.
 \begin{enumerate}
-\item \textbf{Random:} 
+\item \textbf{Random:}
 It randomly selects a satellite for each microservice and uses the Dijkstra algorithm to get the shortest path when dealing with relay links.
-\item \textbf{Computation greedy (Comp-greedy):} 
+\item \textbf{Computation greedy (Comp-greedy):}
 It chooses the satellite that offers the minimum computation energy cost for executing each microservice. The relay routing policy is the same as \textbf{Random} policy.
-\item \textbf{Communication greedy (Comm-greedy):} 
+\item \textbf{Communication greedy (Comm-greedy):}
 It picks the satellite pair with the minimum communication energy cost, including the potential relay links.
 
 \end{enumerate}
@@ -860,17 +912,17 @@ It picks the satellite pair with the minimum communication energy cost, includin
 
 We define three service request topologies: the Chained topology, the multi-forked Treed topology, and the Sophisticated Treed (Soph Tree) topology,  as depicted in Fig. \ref{fig:svc_requests}.
 
-To verify the effectiveness of our algorithm, we conducted a series of experiments on a space topology comprising 72 satellites, each hosting 60 microservices with 4$\sim$6 replicas. 
+To verify the effectiveness of our algorithm, we conducted a series of experiments on a space topology comprising 72 satellites, each hosting 60 microservices with 4$\sim$6 replicas.
 We generated 100 service request chains, varying in length from 10 to 20, to simulate a chained microservice topology. We also constructed 100 random treed topologies, containing 20 to 45, featuring a stochastic number of leaf nodes and varying branch configurations. For each sophisticated treed topology, microservices were randomly assigned to nodes, and this assignment process was independently repeated 100 times.
-% We then average the energy cost data from 100 samples for each topology to obtain the final results. 
-For each topology, energy cost data was collected from 100 samples. The final results were derived by averaging the energy cost values across these samples. It ensures robust and reliable performance evaluation by mitigating variations caused by randomness in the topology generation and microservice allocation processes. 
+% We then average the energy cost data from 100 samples for each topology to obtain the final results.
+For each topology, energy cost data was collected from 100 samples. The final results were derived by averaging the energy cost values across these samples. It ensures robust and reliable performance evaluation by mitigating variations caused by randomness in the topology generation and microservice allocation processes.
 
 \subsection{Experimental Results}
 \label{sec:exp_result}
-\subsubsection{Effectiveness} 
-As illustrated in Fig. \ref{fig:constellation72}, our proposed Steiner consistently outperforms all baseline methods across various microservices topology scenarios, and its advantages become more pronounced in more complex topologies. 
-This enhanced performance is charged to our comprehensive approach that simultaneously considers both computation and communication costs when determining the most efficient routing paths. 
-The comp-greedy method outperforms the random method by prioritizing minimizing computation costs. The comm-greedy method surpasses both comp-greedy and random methods by focusing on minimizing communication costs. 
+\subsubsection{Effectiveness}
+As illustrated in Fig. \ref{fig:constellation72}, our proposed Steiner consistently outperforms all baseline methods across various microservices topology scenarios, and its advantages become more pronounced in more complex topologies.
+This enhanced performance is charged to our comprehensive approach that simultaneously considers both computation and communication costs when determining the most efficient routing paths.
+The comp-greedy method outperforms the random method by prioritizing minimizing computation costs. The comm-greedy method surpasses both comp-greedy and random methods by focusing on minimizing communication costs.
 % This highlights the crucial importance of communication costs in designing energy-efficient service routing policies in the SCPN.
 These findings emphasize the necessity of accounting for both computation and communication factors to design effective and energy-conscious routing strategies for the SCPN.
 
@@ -878,23 +930,23 @@ These findings emphasize the necessity of accounting for both computation and co
 \begin{figure*}[!ht]
 \centering
 \subfigure[Constellation with 72 satellites.]{
-\begin{minipage}[b]{0.28\textwidth}
-	\includegraphics[width=1\textwidth]{figs/new-exp/constellation72.pdf}
-\end{minipage}
-\label{fig:constellation72}
+	\begin{minipage}[b]{0.28\textwidth}
+		\includegraphics[width=1\textwidth]{figs/new-exp/constellation72.pdf}
+	\end{minipage}
+	\label{fig:constellation72}
 }
 \subfigure[Constellation with 48 satellites.]{
-\begin{minipage}[b]{0.28\textwidth}
-	\includegraphics[width=1\textwidth]{figs/new-exp/constellation48.pdf}
-\end{minipage}
-\label{fig:constellation48}
+	\begin{minipage}[b]{0.28\textwidth}
+		\includegraphics[width=1\textwidth]{figs/new-exp/constellation48.pdf}
+	\end{minipage}
+	\label{fig:constellation48}
 }
 \subfigure[Constellation with 108 satellites.]{
-\begin{minipage}[b]{0.28\textwidth}
-	\includegraphics[width=1\textwidth,]{figs/new-exp/constellation108.pdf}
-\end{minipage}
-\label{fig:constellation108}
-}       
+	\begin{minipage}[b]{0.28\textwidth}
+		\includegraphics[width=1\textwidth,]{figs/new-exp/constellation108.pdf}
+	\end{minipage}
+	\label{fig:constellation108}
+}
 \caption{Performance comparison on energy-cost under varying constellation scales for dynamic microservice request topologies.}
 \label{fig:constellation}
 \vspace{-2mm}
@@ -903,23 +955,23 @@ These findings emphasize the necessity of accounting for both computation and co
 \begin{figure*}[!ht]
 \centering
 \subfigure[Chained service topology.]{
-\begin{minipage}[b]{0.28\textwidth}
-	\includegraphics[width=1\textwidth]{figs/new-exp/trans_power_chain.pdf}
-\end{minipage}
-\label{fig:trans_power_chain}
+	\begin{minipage}[b]{0.28\textwidth}
+		\includegraphics[width=1\textwidth]{figs/new-exp/trans_power_chain.pdf}
+	\end{minipage}
+	\label{fig:trans_power_chain}
 }
 \subfigure[Treed service topology.]{
-\begin{minipage}[b]{0.28\textwidth}
-	\includegraphics[width=1\textwidth]{figs/new-exp/trans_power_tree.pdf}
-\end{minipage}
-\label{fig:trans_power_tree}
+	\begin{minipage}[b]{0.28\textwidth}
+		\includegraphics[width=1\textwidth]{figs/new-exp/trans_power_tree.pdf}
+	\end{minipage}
+	\label{fig:trans_power_tree}
 }
 \subfigure[Sophisticated Treed service topology.]{
-\begin{minipage}[b]{0.28\textwidth}
-	\includegraphics[width=1\textwidth,]{figs/new-exp/trans_power_stree.pdf}
-\end{minipage}
-\label{fig:trans_power_stree}
-}       
+	\begin{minipage}[b]{0.28\textwidth}
+		\includegraphics[width=1\textwidth,]{figs/new-exp/trans_power_stree.pdf}
+	\end{minipage}
+	\label{fig:trans_power_stree}
+}
 \caption{Performance comparison on energy-cost under different onboard transmitter power configurations for dynamic microservice request topologies.}
 \label{fig:trans_power}
 \vspace{-0.3cm}
@@ -928,47 +980,47 @@ These findings emphasize the necessity of accounting for both computation and co
 
 \subsubsection{Impact of constellation scales}
 To evaluate the scalability of our algorithm, we systematically varied the number of satellites in the constellation by adjusting the number of orbits while maintaining consistent microservice deployment strategies.
-Experiments were conducted in two constellation settings separately, as illustrated in Fig. \ref{fig:constellation48} and Fig. \ref{fig:constellation108}. 
+Experiments were conducted in two constellation settings separately, as illustrated in Fig. \ref{fig:constellation48} and Fig. \ref{fig:constellation108}.
 % Showing that, our approach consistently outperforms others across various constellation scales in all topology cases. Its effectiveness becomes even more evident as the complexity of the network and service topologies increases, demonstrating its robustness and adaptability to complex environments.
-These configurations allowed us to assess the algorithm's performance under varying levels of network complexity and service topology. Our results demonstrate that the proposed approach consistently outperforms alternative methods across all tested constellation scales and topological scenarios. Notably, its effectiveness becomes increasingly pronounced as the network complexity escalates, highlighting its robustness and adaptability to intricate environments. 
+These configurations allowed us to assess the algorithm's performance under varying levels of network complexity and service topology. Our results demonstrate that the proposed approach consistently outperforms alternative methods across all tested constellation scales and topological scenarios. Notably, its effectiveness becomes increasingly pronounced as the network complexity escalates, highlighting its robustness and adaptability to intricate environments.
 
 
-\subsubsection{Impact of transmitter power}  
-Given the dominant role of communication costs in the total energy consumption of satellite systems, we conducted a series of experiments to explore how varying channel conditions influence the performance of our Steiner scheme. 
-Specifically, we experimented with four different transmitter power levels on satellites across diverse microservice request schemes to examine their effect on energy efficiency. 
-% We experimented with four different values of power of the transmitter on satellites across various microservice topologies. 
+\subsubsection{Impact of transmitter power}
+Given the dominant role of communication costs in the total energy consumption of satellite systems, we conducted a series of experiments to explore how varying channel conditions influence the performance of our Steiner scheme.
+Specifically, we experimented with four different transmitter power levels on satellites across diverse microservice request schemes to examine their effect on energy efficiency.
+% We experimented with four different values of power of the transmitter on satellites across various microservice topologies.
 The results shown in Figs. \ref{fig:trans_power_chain}, \ref{fig:trans_power_tree} and \ref{fig:trans_power_stree} indicate that as transmitter power increases, the average energy cost shows an upward trend. This trend highlights the trade-off between signal strength and energy consumption, with higher power levels leading to greater energy expenditure.
-% , with higher power levels leading to greater energy cost. 
+% , with higher power levels leading to greater energy cost.
 % Despite this trend, our Steiner algorithm continually outperforms other benchmark strategies. This advantage is largely due to its enhanced adaptability to the complexities of space network topology and varying channel conditions.
-Despite this increase in energy cost, our Steiner algorithm consistently outperformed other benchmark strategies across all service request scenarios. This superior performance is attributed to the algorithm's ability to dynamically adapt to the complexities of space network topologies and fluctuating channel conditions. 
+Despite this increase in energy cost, our Steiner algorithm consistently outperformed other benchmark strategies across all service request scenarios. This superior performance is attributed to the algorithm's ability to dynamically adapt to the complexities of space network topologies and fluctuating channel conditions.
 By optimizing service routing paths, our approach minimizes unnecessary energy use under varying channel conditions. These findings underscore the importance of intelligent service routing mechanisms in the SCPN, particularly in environments with variable communication links.
 
 
 \subsubsection{Impact of faulty satellites}
-Given the constraints of limited power supply and the effects of solar eclipses, some satellites may need to enter a low-power mode, functioning solely as relay nodes for message forwarding \cite{energy_efficient_routing_tsinghua}. 
-To evaluate the robustness of our proposed method under such conditions, we conducted experiments by randomly disabling a subset of satellites in a constellation of 72 satellites. Specifically, we tested scenarios with 10, 20, and 25 faulty satellites by eliminating their microservices, as shown in Figs \ref{fig:robust_chain}, \ref{fig:robust_tree}, \ref{fig:robust_stree}. 
+Given the constraints of limited power supply and the effects of solar eclipses, some satellites may need to enter a low-power mode, functioning solely as relay nodes for message forwarding \cite{energy_efficient_routing_tsinghua}.
+To evaluate the robustness of our proposed method under such conditions, we conducted experiments by randomly disabling a subset of satellites in a constellation of 72 satellites. Specifically, we tested scenarios with 10, 20, and 25 faulty satellites by eliminating their microservices, as shown in Figs \ref{fig:robust_chain}, \ref{fig:robust_tree}, \ref{fig:robust_stree}.
 The results reveal that energy cost generally increases with an increasing number of faulty satellites for all methods. This trend can be attributed to the reduced availability of active nodes, which forces longer transmission paths and higher energy consumption for maintaining connectivity (much more relay satellites are required for message forwarding). Despite this challenge, Steiner invariably outperforms other methods in all scenarios. Its superior performance is attributed to its robust design, which can effectively adapt to changes in network topology and operational conditions. By optimizing power allocation and service routing decisions, the algorithm minimizes disruptions caused by satellite failures.
 
 \begin{figure*}[!htbp]
 \centering
 \subfigure[Robustness over faulty satellites (Chain).]{
-\begin{minipage}[b]{0.28\textwidth}
-	\includegraphics[width=1\textwidth]{figs/new-exp/robust_chain.pdf}
-\end{minipage}
-\label{fig:robust_chain}
+	\begin{minipage}[b]{0.28\textwidth}
+		\includegraphics[width=1\textwidth]{figs/new-exp/robust_chain.pdf}
+	\end{minipage}
+	\label{fig:robust_chain}
 }
 \subfigure[Robustness over faulty satellites (Tree).]{
-\begin{minipage}[b]{0.28\textwidth}
-	\includegraphics[width=1\textwidth]{figs/new-exp/robust_tree.pdf}
-\end{minipage}
-\label{fig:robust_tree}
+	\begin{minipage}[b]{0.28\textwidth}
+		\includegraphics[width=1\textwidth]{figs/new-exp/robust_tree.pdf}
+	\end{minipage}
+	\label{fig:robust_tree}
 }
 \subfigure[Robustness over faulty satellites (Soph Tree).]{
-\begin{minipage}[b]{0.28\textwidth}
-	\includegraphics[width=1\textwidth,]{figs/new-exp/robust_stree.pdf}
-\end{minipage}
-\label{fig:robust_stree}
-}       
+	\begin{minipage}[b]{0.28\textwidth}
+		\includegraphics[width=1\textwidth,]{figs/new-exp/robust_stree.pdf}
+	\end{minipage}
+	\label{fig:robust_stree}
+}
 \caption{Performance comparison on energy-cost under different configurations on number of faulty satellites for dynamic service request topologies.}
 \label{fig:robust}
 \vspace{-2mm}
@@ -977,23 +1029,23 @@ The results reveal that energy cost generally increases with an increasing numbe
 \begin{figure*}[!htbp]
 \centering
 \subfigure[Microservice scale (Chain).]{
-\begin{minipage}[b]{0.28\textwidth}
-	\includegraphics[width=1\textwidth]{figs/new-exp/svc_replica_chain.pdf}
-\end{minipage}
-\label{fig:svc_replica_chain}
+	\begin{minipage}[b]{0.28\textwidth}
+		\includegraphics[width=1\textwidth]{figs/new-exp/svc_replica_chain.pdf}
+	\end{minipage}
+	\label{fig:svc_replica_chain}
 }
 \subfigure[Microservice scale (Tree).]{
-\begin{minipage}[b]{0.28\textwidth}
-	\includegraphics[width=1\textwidth]{figs/new-exp/svc_replica_tree.pdf}
-\end{minipage}
-\label{fig:svc_replica_tree}
+	\begin{minipage}[b]{0.28\textwidth}
+		\includegraphics[width=1\textwidth]{figs/new-exp/svc_replica_tree.pdf}
+	\end{minipage}
+	\label{fig:svc_replica_tree}
 }
 \subfigure[Microservice scale (Soph Tree).]{
-\begin{minipage}[b]{0.28\textwidth}
-	\includegraphics[width=1\textwidth,]{figs/new-exp/svc_replica_stree.pdf}
-\end{minipage}
-\label{fig:svc_replica_stree}
-}       
+	\begin{minipage}[b]{0.28\textwidth}
+		\includegraphics[width=1\textwidth,]{figs/new-exp/svc_replica_stree.pdf}
+	\end{minipage}
+	\label{fig:svc_replica_stree}
+}
 \caption{Performance comparison on energy-cost under different configurations on number of replicas of microservices for dynamic service request topologies.}
 \label{fig:svc_replica}
 \vspace{-0.4cm}
@@ -1001,17 +1053,17 @@ The results reveal that energy cost generally increases with an increasing numbe
 
 
 \subsubsection{Impact of microservice deployment schemes}
-To investigate the influence of microservice deployment and scaling strategies on energy consumption with in the SCPN, we conducted experiments by varying the number of replicas allocated for each microservice. Specifically, we tested three replica ranges: $[2, 6]$, $[4, 6]$, and $[6, 10]$. 
+To investigate the influence of microservice deployment and scaling strategies on energy consumption with in the SCPN, we conducted experiments by varying the number of replicas allocated for each microservice. Specifically, we tested three replica ranges: $[2, 6]$, $[4, 6]$, and $[6, 10]$.
 % We explored how different microservice deployment strategies impact energy consumption in the SCPN by varying the number of replicas allocated for each microservice.
-% We conducted comparison tests with replica ranges of $[2, 6]$, $[4, 6]$, and $[6, 10]$. 
+% We conducted comparison tests with replica ranges of $[2, 6]$, $[4, 6]$, and $[6, 10]$.
 And the experimental results, illustrated in Figs. \ref{fig:svc_replica_chain}, \ref{fig:svc_replica_tree}, and \ref{fig:svc_replica_stree}, reveal that energy costs generally decreases as the scale of microservice deployment expands. This trend is attributed to the increased availability of service nodes and routing paths, which provide more opportunities for route optimization and efficient power utilization.
 Our algorithm regularly demonstrates superior performance in reducing energy costs compared to other benchmarks, particularly in more complex microservice-satellite patterns.
-% This improvement stems from its ability to dynamically adapt to the expanded service topology, leveraging the additional replicas to optimize routing and minimize energy-intensive transmissions and computations. 
+% This improvement stems from its ability to dynamically adapt to the expanded service topology, leveraging the additional replicas to optimize routing and minimize energy-intensive transmissions and computations.
 This superior performance can be attributed to the algorithm's ability to leverage the increased number of service routing paths and nodes, enabling more advanced route strategies. The expanded deployment range provides greater flexibility in service selections and routing decisions, allowing the algorithm to identify more energy-efficient configurations.
 By contrast, the energy costs associated with routing paths generated by random and comp-greedy methods occasionally increased as the number of replicas grew. This counterintuitive behavior can be attributed to inefficient routing decisions caused by the higher number of service nodes and calling paths, which complicate the decision-making process and lead to suboptimal resource utilization.
 
 % This improvement can be attributed to the increased number of service routing paths and nodes, providing more options for route optimization.
-% Conversely, the energy costs of routing paths generated by the random and comp-greedy sometimes increase. This rise can be attributed to the higher number of service calling paths and service nodes, which can complicate the decision-making process and lead to less efficient routing choices. 
+% Conversely, the energy costs of routing paths generated by the random and comp-greedy sometimes increase. This rise can be attributed to the higher number of service calling paths and service nodes, which can complicate the decision-making process and lead to less efficient routing choices.
 
 \begin{figure}[!t]
 \centering
@@ -1023,7 +1075,7 @@ By contrast, the energy costs associated with routing paths generated by random 
 \end{figure}
 
 \subsubsection{Adaptability and stability}
-% Figure \ref{fig:systhentic} illustrates how the Steiner policy's energy costs vary across different service topologies and constellation scales. The energy cost increment ranges from 14\% to 22\% across different topologies. The shift from chained to treed topologies leads to a higher energy cost increase than the transition from treed to sophisticated treed topologies, occasioned by the higher complexity and stricter service demands of the former. Despite these challenges, the Steiner policy demonstrates remarkable adaptability to diverse treed topologies without significant overhead. 
+% Figure \ref{fig:systhentic} illustrates how the Steiner policy's energy costs vary across different service topologies and constellation scales. The energy cost increment ranges from 14\% to 22\% across different topologies. The shift from chained to treed topologies leads to a higher energy cost increase than the transition from treed to sophisticated treed topologies, occasioned by the higher complexity and stricter service demands of the former. Despite these challenges, the Steiner policy demonstrates remarkable adaptability to diverse treed topologies without significant overhead.
 % Figure \ref{fig:StreeDist}, showing energy distribution from 300 independent experiments, further illustrates that the Steiner policy's performance is more stable compared to other benchmarks, especially with sophisticated treed topology.
 Furthermore, as depicted in Fig \ref{fig:StreeDist}, which presents the energy distribution derived from 300 independent experiments, underscores the superior stability of the Steiner policy compared to other benchmark strategies. The results reveal that, even under sophisticated treed topologies with heightened complexity, the Steiner policy exhibits less variance in energy costs. This stability highlights its robustness and adaptability in managing diverse network conditions and service requirements.
 
@@ -1088,7 +1140,7 @@ In this paper, we proposed a DST-based solution to provide an energy-efficient s
 \bibliography{ref.bib}
 
 % biography section
-% 
+%
 % If you have an EPS/PDF photo (graphicx package needed) extra braces are
 % needed around the contents of the optional argument to biography to prevent
 % the LaTeX parser from getting confused when it sees the complicated

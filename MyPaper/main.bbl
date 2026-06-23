@@ -32,7 +32,7 @@ Y.~Li, M.~Wang, K.~Hwang, Z.~Li, and T.~Ji, ``Leo satellite constellation for
 Z.~Zhai, L.~Zeng, T.~Ouyang, S.~Yu, Q.~Huang, and X.~Chen, ``Seco:
   Multi-satellite edge computing enabled wide-area and real-time earth
   observation missions,'' in {\em IEEE INFOCOM 2024 - IEEE Conference on
-  Computer Communications}, 2024.
+  Computer Communications}, pp.~2548--2557, 2024.
 
 \bibitem{leyva2023satellite}
 I.~Leyva-Mayorga, M.~Martinez-Gost, M.~Moretti, A.~P{\'e}rez-Neira, M.~{\'A}.
@@ -55,6 +55,16 @@ B.~Shang, Y.~Yi, and L.~Liu, ``Computing over space-air-ground integrated
   networks: Challenges and opportunities,'' {\em IEEE Network}, vol.~35, no.~4,
   pp.~302--309, 2021.
 
+\bibitem{sate_computing_case_study}
+C.~Wang, Y.~Zhang, Q.~Li, A.~Zhou, and S.~Wang, ``Satellite computing: A case
+  study of cloud-native satellites,'' in {\em 2023 IEEE International
+  Conference on Edge Computing and Communications (EDGE)}, pp.~262--270, 2023.
+
+\bibitem{ye2024galaxy}
+S.~Ye, J.~Du, L.~Zeng, W.~Ou, X.~Chu, Y.~Lu, and X.~Chen, ``Galaxy: A
+  resource-efficient collaborative edge ai system for in-situ transformer
+  inference,'' {\em arXiv preprint arXiv:2405.17245}, 2024.
+
 \bibitem{Docker}
 D.~Merkel {\em et~al.}, ``Docker: lightweight linux containers for consistent
   development and deployment,'' {\em Linux j}, vol.~239, no.~2, p.~2, 2014.
@@ -75,26 +85,6 @@ A.~Ruiz-Zafra, J.~Pigueiras-del Real, M.~Noguera, L.~Chung, D.~G. Barres, and
   K.~Benghazi, ``Servitization of customized 3d assets and performance
   comparison of services and microservices implementations,'' {\em IEEE
   Transactions on Services Computing}, vol.~17, no.~1, pp.~194--208, 2024.
-
-\bibitem{sate_computing_case_study}
-C.~Wang, Y.~Zhang, Q.~Li, A.~Zhou, and S.~Wang, ``Satellite computing: A case
-  study of cloud-native satellites,'' in {\em 2023 IEEE International
-  Conference on Edge Computing and Communications (EDGE)}, pp.~262--270, 2023.
-
-\bibitem{ye2024galaxy}
-S.~Ye, J.~Du, L.~Zeng, W.~Ou, X.~Chu, Y.~Lu, and X.~Chen, ``Galaxy: A
-  resource-efficient collaborative edge ai system for in-situ transformer
-  inference,'' {\em arXiv preprint arXiv:2405.17245}, 2024.
-
-\bibitem{IPIS_sate}
-I.~Leyva-Mayorga, B.~Soret, and P.~Popovski, ``Inter-plane inter-satellite
-  connectivity in dense leo constellations,'' {\em IEEE Transactions on
-  Wireless Communications}, vol.~20, no.~6, pp.~3430--3443, 2021.
-
-\bibitem{analysis_of_ISL4LEO_mega_net}
-Q.~Chen, G.~Giambene, L.~Yang, C.~Fan, and X.~Chen, ``Analysis of
-  inter-satellite link paths for leo mega-constellation networks,'' {\em IEEE
-  Transactions on Vehicular Technology}, vol.~70, no.~3, pp.~2743--2755, 2021.
 
 \bibitem{energy_efficient_routing_tsinghua}
 Y.~Yang, M.~Xu, D.~Wang, and Y.~Wang, ``Towards energy-efficient routing in
@@ -129,6 +119,23 @@ H.~G. Abreha, H.~Chougrani, I.~Maity, Y.~Drif, C.~Politis, and S.~Chatzinotas,
   mission-critical applications,'' {\em IEEE Transactions on Network and
   Service Management}, vol.~21, no.~6, pp.~6716--6730, 2024.
 
+\bibitem{service_pressure}
+X.~He, T.~Wang, Y.~Shi, and X.~Liu, ``Throughput-optimized service routing for
+  microservice flows in leo satellite networks,'' {\em IEEE Transactions on
+  Mobile Computing}, vol.~25, no.~5, pp.~7196--7209, 2026.
+
+\bibitem{service_deploy_RL}
+Z.~Yu, H.~V. Cheng, Z.~Yang, X.~Liu, Y.~Jiang, Y.~Zhou, and Y.~Shi,
+  ``Microservice deployment for satellite edge ai inference via deep
+  reinforcement learning,'' in {\em 2024 IEEE 35th International Symposium on
+  Personal, Indoor and Mobile Radio Communications (PIMRC)}, pp.~1--6, 2024.
+
+\bibitem{cross_slot_optim_infocom2025}
+D.~Ron, F.~A. Yusufzai, S.~Kwakye, S.~Roy, N.~Sastry, and V.~K. Shah, ``Time-
+  dependent network topology optimization for leo satellite constellations,''
+  in {\em IEEE INFOCOM 2025 - IEEE Conference on Computer Communications},
+  pp.~1--10, 2025.
+
 \bibitem{optim_svc_req_routing_inst_place4microsvc}
 Y.~Yu, J.~Yang, C.~Guo, H.~Zheng, and J.~He, ``Joint optimization of service
   request routing and instance placement in the microservice system,'' {\em
@@ -145,6 +152,11 @@ N.~Cheng, F.~Lyu, W.~Quan, C.~Zhou, H.~He, W.~Shi, and X.~Shen,
   ``Space/aerial-assisted computing offloading for iot applications: A
   learning-based approach,'' {\em IEEE Journal on Selected Areas in
   Communications}, vol.~37, no.~5, pp.~1117--1129, 2019.
+
+\bibitem{IPIS_sate}
+I.~Leyva-Mayorga, B.~Soret, and P.~Popovski, ``Inter-plane inter-satellite
+  connectivity in dense leo constellations,'' {\em IEEE Transactions on
+  Wireless Communications}, vol.~20, no.~6, pp.~3430--3443, 2021.
 
 \bibitem{laser_sate}
 A.~Polishuk and S.~Arnon, ``Optimization of a laser satellite communication
