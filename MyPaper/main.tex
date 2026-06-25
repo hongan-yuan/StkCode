@@ -146,28 +146,39 @@ Sec.~\ref{sec:eval} shows and analyses the Simulation results.
 Sec.~\ref{sec:conclusion} draws the conclusion.
 
 
+
 \section{Related Work}
 \label{sec:related_work}
 
-Recent advancements in satellite edge computing and SCPNs have supported near-data processing over LEO constellations with onboard computation and ISL connectivity \cite{survey_on_nextg_comp_tech_SAGIN,SAG_integ_net,xie2020stec,sate_computing_case_study}.
-Zhang et al. \cite{zhang2023sec_offloading} investigated energy-efficient peer offloading among satellites, where computation tasks are cooperatively migrated to reduce energy consumption.
-Leyva-Mayorga et al. \cite{leyva2023satellite} studied satellite edge computing for real-time very-high-resolution Earth observation, and Zhai et al. \cite{seco_infocom2024} proposed SECO to jointly optimize multi-satellite observation scheduling, routing, and computation node selection.
-These efforts mainly focus on task-level offloading, mission-specific processing, or computation-communication resource allocation.
-Microservice-oriented service provision, however, introduces finer-grained execution dependencies across distributed replicas, where intermediate data transmission and onboard computation are tightly coupled under dynamic SCPNs.
+% Recent advancements in satellite edge computing and SCPNs have supported near-data processing over LEO constellations with onboard computation and ISL connectivity \cite{survey_on_nextg_comp_tech_SAGIN,SAG_integ_net,xie2020stec,sate_computing_case_study}.
+% Zhang et al. \cite{zhang2023sec_offloading} investigated energy-efficient peer offloading among satellites, where computation tasks are cooperatively migrated to reduce energy consumption.
+% Leyva-Mayorga et al. \cite{leyva2023satellite} studied satellite edge computing for real-time very-high-resolution Earth observation, and Zhai et al. \cite{seco_infocom2024} proposed SECO to jointly optimize multi-satellite observation scheduling, routing, and computation node selection.
+% These efforts mainly focus on task-level offloading, mission-specific processing, or computation-communication resource allocation.
+% Microservice-oriented service provision, however, introduces finer-grained execution dependencies across distributed replicas, where intermediate data transmission and onboard computation are tightly coupled under dynamic SCPNs.
 
-Service routing and task scheduling in satellite networks have also been studied from various of perspectives.
-In \cite{cao_comp_routing}, the author proposed a computing-aware routing framework that integrates transmission and computation decisions for remote sensing tasks in LEO satellite networks.
-Xia et al. \cite{sc_nfv_tmc2024} studied service chaining in NFV-enabled satellite edge networks, while Abreha et al. \cite{fairness_vnf_tnsm2024} considered fairness-aware VNF mapping and scheduling for mission-critical services.
-For improve routing effiency and avoiding link congestion, He et al. \cite{service_pressure} investigated throughput-oriented routing for microservice flows in LEO satellite networks.
-Moreover, some works further model dynamic networks with time-expanded graphs or optimize routing over time-varying LEO topologies \cite{liu2023time_expanded_graph,routing_optim_in_multi_domain,cross_slot_optim_infocom2025}.
-However, most of them either optimize communication paths alone or consider computation-node selection within a given stable topology snapshot or a pre-defined topology sequence.
-They fails to capture the joint impact of broken inter-plane ISLs, heterogeneous serving node computing capacity, and time-varying SCPNs for microservice requests.
+Recent advancements in satellite edge computing and SCPNs have supported in-situ data processing over LEO constellations with onboard computation and ISL connectivity~\cite{survey_on_nextg_comp_tech_SAGIN,SAG_integ_net,xie2020stec,sate_computing_case_study}.
+Zhang et al.~\cite{zhang2023sec_offloading} investigated energy-efficient peer offloading among satellites, while Leyva-Mayorga et al.~\cite{leyva2023satellite} and Zhai et al.~\cite{seco_infocom2024} explored real-time Earth observation and joint optimization of observation scheduling, routing, and computation node selection, respectively.
+These studies primarily focus on task-level offloading, mission-specific processing, or joint computation-communication resource allocation.
+However, microservice-oriented service provisioning introduces finer-grained execution dependencies across distributed replicas, where intermediate data transmission and onboard computation are tightly coupled under the dynamic SCPN environment.
 
-Microservice deployment combined with request execution have been extensively studied in terrestrial edge systems.
-Yu et al. \cite{optim_svc_req_routing_inst_place4microsvc} formulated the joint optimization of request routing and instance placement in microservice systems, and Peng et al. \cite{optim_svc_dep_req_reouting_in_MEC} designed algorithms for joint service deployment and request routing in mobile edge computing.
-For satellite-oriented environments, Gao et al. \cite{optim4server_svc_place_in_STIECN} studied joint server and service selection in satellite-terrestrial integrated edge computing networks, and Yu et al. \cite{yu_deploy_tmc2025} proposed a robust reinforcement learning approach for microservice deployment in SCPNs.
-Nevertheless, existing deployment methods either are optimized for fixed terrestrial scenarios and not suit for time-varying SCPNs or lead to large satellite-service co-decision spaces.
-As a result, how to coordinate microservice deployment with request-time orchestration under time-varying satellite computing conditions and ISL states remains insufficiently explored and addressed.
+% Service routing and task scheduling in satellite networks have also been studied from various of perspectives.
+% In \cite{cao_comp_routing}, the author proposed a computing-aware routing framework that integrates transmission and computation decisions for remote sensing tasks in LEO satellite networks.
+% Xia et al. \cite{sc_nfv_tmc2024} studied service chaining in NFV-enabled satellite edge networks, while Abreha et al. \cite{fairness_vnf_tnsm2024} considered fairness-aware VNF mapping and scheduling for mission-critical services.
+% For improve routing effiency and avoiding link congestion, He et al. \cite{service_pressure} investigated throughput-oriented routing for microservice flows in LEO satellite networks.
+% Moreover, some works further model dynamic networks with time-expanded graphs or optimize routing over time-varying LEO topologies \cite{liu2023time_expanded_graph,routing_optim_in_multi_domain,cross_slot_optim_infocom2025}.
+% However, most of them either optimize communication paths alone or consider computation-node selection within a given stable topology snapshot or a pre-defined topology sequence.
+% They fails to capture the joint impact of broken inter-plane ISLs, heterogeneous serving node computing capacity, and time-varying SCPNs for microservice requests.
+
+At the same time, service routing and task scheduling in satellite networks have been extensively studied from various of perspectives.
+Cao et al.~\cite{cao_comp_routing} proposed a computing-aware routing framework that jointly optimizes transmission and computation decisions for remote sensing tasks in LEO satellite networks. Xia et al.~\cite{sc_nfv_tmc2024} investigated service chaining in NFV-enabled satellite edge networks, while Abreha et al.~\cite{fairness_vnf_tnsm2024} addressed fairness-aware VNF mapping and scheduling for mission-critical services. To improve routing efficiency and alleviate link congestion, He et al.~\cite{service_pressure} developed a throughput-oriented routing scheme for microservice flows. Some studies further model dynamic topologies using time-expanded graphs or optimize routing over time-varying LEO constellations~\cite{liu2023time_expanded_graph,routing_optim_in_multi_domain,cross_slot_optim_infocom2025}.
+However, most of these works either focus solely on communication path optimization or consider computation node selection within static topology snapshots or predefined sequences. They fail to capture the joint impact of dynamic inter-plane ISL disruptions, heterogeneous serving-node computing capacities, and time-varying network topology on microservice requests.
+
+
+Microservice deployment and request execution have been extensively studied in terrestrial edge systems.
+Yu et al.~\cite{optim_svc_req_routing_inst_place4microsvc} formulated the joint optimization of request routing and instance placement, while Peng et al.~\cite{optim_svc_dep_req_reouting_in_MEC} proposed efficient algorithms for joint service deployment and request routing in mobile edge computing.
+In satellite environments, Gao et al.~\cite{optim4server_svc_place_in_STIECN} investigated joint server and service selection in satellite-terrestrial integrated edge computing networks, and Yu et al.~\cite{yu_deploy_tmc2025} developed a robust reinforcement learning approach for microservice deployment in SCPNs.
+Nevertheless, existing methods are either designed for static terrestrial scenarios and thus unsuitable for time-varying SCPNs, or result in prohibitively large joint decision spaces for satellite-service co-optimization.
+Consequently, effectively coordinating microservice deployment with service routing under dynamic satellite computing conditions and time-varying ISL states remains an open challenge.
 
 
 \begin{comment}
@@ -474,13 +485,13 @@ Constraint C2 ensures feasible cross-slot multi-hop routing under time-varying t
 Constraint C3 restricts adaptive replica redeployment to states that satisfy both replica-count and onboard storage constraints after each migration action.
 
 
-\subsection{Problem Hardness}
-\label{subsec:problem_hardness_elara}
+% \subsection{Problem Hardness}
+% \label{subsec:problem_hardness_elara}
 
-Problem $\mathscr{P}$ is NP-hard.
-Even in a single-slot static case with fixed deployment and fixed link and computing capacities, $\mathscr{P}$ requires selecting replicas for a service chain and connecting them through capacity-constrained paths.
-This restricted case contains the placement of service function chains and constrained routeing as special cases and is therefore NP-hard.
-The full problem further couples these decisions with cross-slot routeing and adaptive replica redeployment, motivating ELARA's online decomposition.
+% Problem $\mathscr{P}$ is NP-hard.
+% Even in a single-slot static case with fixed deployment and fixed link and computing capacities, $\mathscr{P}$ requires selecting replicas for a service chain and connecting them through capacity-constrained paths.
+% This restricted case contains the placement of service function chains and constrained routeing as special cases and is therefore NP-hard.
+% The full problem further couples these decisions with cross-slot routeing and adaptive replica redeployment, motivating ELARA's online decomposition.
 
 
 \begin{comment}
@@ -709,7 +720,11 @@ The bandit selection follows UCB:
 where $\bar R_a$ is the empirical reward, $N_a$ is the number of pulls of arm $a$, and $N$ is the total number of pulls.
 Overall, the per-stage serving decision costs $\mathcal{O}(L_g(|\mathcal{V}|+|\mathcal{E}|)d_h+Kd_h)$, the cross-slot routing costs $\mathcal{O}(HA|\mathcal{E}|\log|\mathcal{V}|)$ for horizon $H$ and augmentations $A$, and the orbital-level redeployment evaluates only $\mathcal{O}(K_sK_p|\mathcal{P}|)$ arms per round.
 
+
 \begin{comment}
+\section{Energy-aware Service Routing Algorithm for Microservices in the SCPN}
+\label{sec:algo}
+% In this section, we introduce our adopted algorithm for the proposed problem \textbf{P} in Sec. \ref{sec:prob_form}.
 
 In this section, we present our approach to addressing the proposed problem \textbf{P} as outlined in Section \ref{sec:prob_form}. We first detail our augmented satellite-microservice connected sub-graph construction algorithm, and then elaborate on the design of our DST-based service routing algorithm tailored to optimize energy consumption in the SCPN.
 
@@ -721,9 +736,6 @@ In this section, we present our approach to addressing the proposed problem \tex
 \label{fig:ms_split}
 \vspace{-0.5cm}
 \end{figure}
-
-% Algorithm 1
-% \begin{figure}[htbp]\footnotesize
 
 \begin{algorithm}[t]
 % \begin{algorithm}[t]\small
@@ -775,11 +787,10 @@ Consequently, there should be multiple logical destination satellite nodes, deno
 $\{{v}^{{dst}_{1}}, \dots, {v}^{{dst}_{\rho}}\}$.
 The routing paths from the logical destination satellites hosting the terminal microservices to the real destination satellites can be straightforwardly generated by the control panel.
 Note that if a terminal microservice is deployed directly on its real destination satellite, this satellite also acts as the logical destination. In such cases, the communication cost between the terminal service and its destination is effectively zero.
-% and the routing paths between the satellites on which terminal service deployed, and “destination satellites" can be easily generated by the control panel.
 Next, we define the augmented graph to be constructed as
 $\mathcal{G}_z = (\mathcal{V}_z, \mathcal{E}_z)$,
 where initially, $\mathcal{V}_z = \varnothing$ and $\mathcal{E}_z = \varnothing$. Then, the process of constructing graph $\mathcal{G}_{z}$ is detailed as follows:
-% we then detail the creation process of graph $\mathcal{G}_{z}$ as follows:
+
 
 % \noindent
 % Step-1
@@ -792,25 +803,15 @@ to vertex collection $\mathcal{V}_z$.
 \textbf{Step \textcolor{red}{\ding{183}}}. For each microservice $m_i$ in $\mathcal{M}_f$, and $\forall v_k \in \mathcal{V}_{m_i}$, this step creates three distinct vertices: $v^{m_i}_{k^r}$, $v^{m_i}_{k^c}$ and $v^{m_i}_{k^t}$, which are then added to the set $\mathcal{V}_z$.
 Subsequently, it constructs two directed edges $v^{m_i}_{k^r} \to v^{m_i}_{k^c}$ and $v^{m_i}_{k^c} \to v^{m_i}_{k^t}$, both with weights equal to $E_{m_i}(v_k) / 2$. These edges are added to the edge set $\mathcal{E}_z$. This procedure is detailed in Fig. \ref{fig:ms_split}.
 
-% then constructs the directed edge $v^{m_i}_{k^r} \to v^{m_i}_{k^c}$ and $v^{m_i}_{k^c} \to v^{m_i}_{k^t}$, while both weights equal $E_{m_i}(v_k) / 2$, and adds them to the edge set $\mathcal{E}_z$, this procedure is detailed in Fig. \ref{fig:ms_split}.
-
 % \noindent
 % Step-3
 \textbf{Step \textcolor{red}{\ding{184}}}. For the calling relationship between two microservices $m_i$ and $m_j$, that is, $\forall w_{i,j} \in \mathcal{W}_{f}$,  the algorithm will iteratively identify all satellite nodes from collection $\mathcal{V}$ that host microservices $m_i$ and $m_j$, respectively.
-If satellites $v^{m_i}_{k}$ and $v^{m_j}_{k}$ are directly adjacent without needing any relay satellite to facilitate the communication, then a directed edge
-% $v^{m_i}_{k^{r}_{a}} \to v^{m_j}_{k^{t}_{b}}, (\forall a \in \{0, \dots , |\mathcal{V}^{m_i}|\}, \forall b \in \{0, \dots , |\mathcal{V}^{m_j}|\} )$,
-$v^{m_i}_{k^{r}} \to v^{m_j}_{k^{t}}$ is constructed,
-and its weight is set as the communication energy cost from $v^{m_i}_{k^{r}}$ to $v^{m_j}_{k_{t}}$ in $\mathcal{G}$, given as:
+If satellites $v^{m_i}_{k}$ and $v^{m_j}_{k}$ are directly adjacent without needing any relay satellite to facilitate the communication, then a directed edge $v^{m_i}_{k^{r}} \to v^{m_j}_{k^{t}}$ is constructed, and its weight is set as the communication energy cost from $v^{m_i}_{k^{r}}$ to $v^{m_j}_{k_{t}}$ in $\mathcal{G}$, given as:
 \begin{eqnarray}
 \label{eq:comm_link_weight1}
 \mathbf{e}^{tr} = P^{v^{m_i}_{k^{r}} \to v^{m_j}_{k^{t}}}_{T} \frac{w_{i,j}} {\text{w}(v^{m_i}_{k^{r}} \to v^{m_j}_{k^{t}})},
 \end{eqnarray}
-Otherwise, the algorithm then searches for available relay satellite nodes within $\mathcal{V}$, which can be efficiently resolved using the Floyd algorithm, resulting in a collection of relay satellite nodes denoted as
-% . So, we can easily get the relay satellite collection, and denote it as
-$\mathcal{V}^{re} = \{ v^{re}_1, \dots v^{re}_{\xi} \}$. Then, it adds these relay nodes to $\mathcal{V}_z$, and constructs and adds edges
-% then, it adds these relay nodes to the $\mathcal{V}_z$,
-% constructs and adds edges
-$v^{m_i}_{k^{t}} \to v^{re}_{a} , v^{re}_{a} \to v^{re}_{a+1} , v^{re}_{\xi} \to v^{m_j}_{k^r}, (\forall a\in[1, {\xi-1}])$ to $
+Otherwise, the algorithm then searches for available relay satellite nodes within $\mathcal{V}$, which can be efficiently resolved using the Floyd algorithm, resulting in a collection of relay satellite nodes denoted as $\mathcal{V}^{re} = \{ v^{re}_1, \dots v^{re}_{\xi} \}$. Then, it adds these relay nodes to $\mathcal{V}_z$, and constructs and adds edges $v^{m_i}_{k^{t}} \to v^{re}_{a} , v^{re}_{a} \to v^{re}_{a+1} , v^{re}_{\xi} \to v^{m_j}_{k^r}, (\forall a\in[1, {\xi-1}])$ to $
 \mathcal{E}_z$. The weights of these edges, representing the relay communication energy cost between satellites, are calculated according to Eq. \ref{eq:shannon_rate2} and \ref{eq:comm_energy_cost}, as below:
 \begin{eqnarray}
 \label{eq:comm_link_weight2}
@@ -977,8 +978,9 @@ $\mathcal{O}(|\mathcal{V}^{*}|( |\mathcal{E}| + |\mathcal{V}|\log|\mathcal{V}| )
 
 
 \textbf{Complexity of Algorithm \ref{algo:DST}.} The time complexity of merging these distinct sets into one set is $\mathcal{O}(\text{n})$, where $\text{n}$ is the total number of elements across all sets. Therefore, the time complexity of obtaining the minimum DST is inferred as $\mathcal{O}(|\mathcal{V}^{*}|( |\mathcal{E}| + |\mathcal{V}|\log|\mathcal{V}| ) + \text{2*n} + (|\mathcal{V}_{z}|+|\mathcal{E}_{z}|))$, where $\mathcal{O}(\text{2*n})$ represents the time complexity of merging the generated vertex and edge sets, and $\mathcal{O}(|\mathcal{V}_{z}|+|\mathcal{E}_{z}|)$ is the time complexity of constructing the directed Steiner tree.
-
 \end{comment}
+
+
 
 \section{Performance Evaluation}
 \label{sec:eval}
