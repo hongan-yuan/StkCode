@@ -589,136 +589,239 @@ This mechanism disconnects satellites entering polar regions, mitigating the sev
 
 \section{The Proposed ELARA Framework}
 \label{sec:algo}
-% In this section, we introduce our adopted algorithm for the proposed problem \textbf{P} in Sec. \ref{sec:prob_form}.
+This section presents ELARA, an online orchestration framework that coordinates service routing and replica deployment in dynamic SCPNs.
+For each arriving request, ELARA selects a serving satellite for every microservice invocation and delivers intermediate data over time-varying multi-hop ISLs.
+It further adapts replica placement periodically according to recent execution statistics, routing failures, and resource conditions.
+All decisions share the latency and energy models in Sec.~\ref{sec:sys_model}, enabling coordinated optimization of node selection, data routing, and replica migration.
 
-This section presents ELARA, an online framework that coordinates request-time microservice execution and periodic replica redeployment over dynamic SCPNs.
-ELARA has two interacting layers.
-The fast layer makes per-request decisions: for each microservice stage, it selects a serving satellite from valid replicas and routes intermediate data over time-varying multi-hop ISLs.
-The slow layer periodically adjusts replicas by exploiting recent request patterns, route failures, and execution feedback.
-Both layers share the same latency-energy cost model in Sec.~\ref{sec:sys_model}, so routing, computation, and migration are optimized under consistent system states.
 
-\subsection{Request-Time Orchestration}
+\subsection{GNN-PPO based Node Selection Agent}
 
-For an incoming request $r$, ELARA initializes the current node and time as $u\leftarrow v_s$ and $\tau\leftarrow \tau_{\rm in}$.
-Then it executes the requested microservices sequentially.
-At stage $i$, the controller first constructs the candidate set $\mathcal{C}_{r,i}\subseteq\mathcal{R}_{m_i}(t)$ from satellites hosting $m_i$.
-To reduce the action space, ELARA keeps at most $K$ candidates ranked by hop distance and compute queueing delay.
-The GNN-PPO policy then selects one serving satellite $v_{r,i}\in\mathcal{C}_{r,i}$.
-After that, the routing module transfers the required data from $u$ to $v_{r,i}$ and the onboard computing module executes $m_i$ after the data arrives.
-Finally, $u$ and $\tau$ are updated to the selected satellite and the completion time of this stage.
-After all stages finish, ELARA routes the output data to the destination satellite $v_d$.
-The whole procedure is summarized in Algorithm~\ref{algo:elara_request}.
+We formulate the sequential selection of serving satellites as a Markov Decision Process (MDP), wherein a complete episode corresponds to the end-to-end execution of a single service request. To effectively navigate the time-varying constellation topology and heterogeneous computational resources, ELARA employs a Graph Neural Network (GNN) enhanced Proximal Policy Optimization (PPO) agent to learn the optimal node selection policy.
+
+\paragraph{State Space and GNN Representation}
+For a given request $r = \langle v_{s}, m_{1}, \dots, m_{L}, v_{d}, \tau_{\text{in}} \rangle$, the $i$-th decision epoch is triggered when the required input data for microservice $m_{i}$ is ready on satellite $u_{r,i}$ at continuous time $\tau_{r,i}$. The system state is defined as a tuple:
+\begin{equation}
+    s_{r,i} = (\mathcal{G}^{a}(t), u_{r,i}, v_{d}, \mathcal{M}_{r,i:L}, B_{r,i:L})
+\end{equation}
+where $t = s(\tau_{r,i})$ is the current decision slot, $\mathcal{M}_{r,i:L}$ and $B_{r,i:L}$ represent the sequence of pending service invocations and their corresponding data volumes, respectively.
+Here, $\mathcal{G}^{a}(t)$ is an attributed SCPN graph defined as
+\begin{equation}
+    \mathcal{G}^{a}(t)=\big(\mathcal{V},\mathcal{E}(t),\mathcal{Q}^{v}(t),\mathcal{Q}^{e}(t)\big),
+\end{equation}
+where $\mathcal{Q}^{v}(t)$ denotes node states, including CPU capacity, computing queue length, service deployment, compute utilization, load state, and capacity discount factor.
+Similarly, $\mathcal{Q}^{e}(t)$ captures link states, including ISL availability, effective transmission rate, link queue length, and propagation delay within the current time slot.
+
+To enable the PPO agent to process the complex graph states, ELARA encodes each satellite $v$ with a 12-dimensional feature vector $x_{v}(t)$ for the current attributed graph $\mathcal{G}^{a}(t)$:
+\begin{equation}
+\begin{aligned}
+\mathbf{x}_v(t)= [&\bar f_v,\bar q_v(t),\bar s_v(t),\bar p_v,\bar n_v,
+\mathbb{I}_{v=u_{r,i}},\mathbb{I}_{v=v_d}, \\
+&\mathbb{I}_{m_i\in v},\bar d_v(t),\mu_v(t),\xi_v(t),\ell_v(t)].
+\end{aligned}
+\end{equation}
+where $\bar f_v$ is the normalized CPU frequency, $\bar q_v(t)$ is the compute queueing delay, $\bar s_v(t)$ is the normalized number of hosted services, $\bar p_v$ is the orbital-plane index, $\bar n_v$ is the intra-plane relative position, $\mathbb{I}_{v=u_{r,i}}$ and $\mathbb{I}_{v=v_d}$ indicate whether $v$ is the current node and the destination node, respectively, $\mathbb{I}_{m_i\in v}$ indicates whether $m_i$ is deployed on $v$, $\bar d_v(t)$ is the node degree, $\mu_v(t)$ is the compute utilization, $\xi_v(t)$ is the computing capacity discount factor, and $\ell_v(t)$ is the compute-load state.
+The bar notation denotes a normalized value obtained using the corresponding numerical range.
+Additionally, we encode the request context as $\mathbf{c}_{r,i} = [\bar{L}_{r}, \bar{i}, \overline{L_{r}-i}, \bar{C}_{m_i}, \bar{B}_{r,i}, \bar{B}_{r}^{\text{rem}}]$, encompassing the chain length, $\bar{L}_{r}$, current stage index, $\bar{i}$, remaining stages, $\overline{L_{r}-i}$, required CPU cycles of $m_i$, $\bar{C}_{m_i}$, current-stage input data volume, $\bar{B}_{r,i}$, and remaining data volume to be routed, $\bar{B}_{r}^{\text{rem}}$.
+The request context is then projected into a latent embedding $\mathbf{z}_{r,i}=\sigma(\mathbf{W}_{c}\mathbf{c}_{r,i})$.
+%which is used by the policy scorer together with node and candidate features.
+
+The GNN performs message passing over the active ISL graph to compute node embeddings.
+Let $\mathbf{h}_v^{(0)}=\sigma(\mathbf{W}_0\mathbf{x}_v)$.
+At the $l$-th GNN layer, each satellite $v$ updates its representation by combining its current embedding with the mean embedding of its one-hop neighbors:
+\begin{equation}
+\mathbf{h}_v^{(l+1)}
+=\sigma\left(\mathbf{W}_{l}
+\left[\mathbf{h}_v^{(l)},
+\frac{1}{|\mathcal{N}_v|}\sum_{u\in\mathcal{N}_v}\mathbf{h}_u^{(l)}\right]\right).
+\end{equation}
+where $\mathcal{N}_{v}$ is the set of neighboring satellites of $v$, $\sigma(\cdot)$ is the activation function, and $\mathbf{W}_c$, $\mathbf{W}_0$, and $\mathbf{W}_{l}$ are trainable projection or transformation matrices.
+The final embedding for node $v$ is denoted by $\mathbf{h}_{v}$.
+
+\paragraph{Action Space}
+Microservices may possess disparate numbers of replicas, leading to a variable scale of action sets for the serving satellite selection.
+For execution stage $i$, ELARA defines the legal action set  for state $s_{r,i}$ as the set of satellites currently hosting replicas of the requested microservice $m_i$:
+\begin{equation}
+    \mathcal{A}(s_{r,i}) = \mathcal{R}_{m_{i}}(t) = \{v \in \mathcal{V} \mid x_{m_{i},v}(t)=1\}
+\end{equation}
+Instead of employing a fixed-dimensional output layer over all satellites, ELARA utilizes a shared candidate scorer that independently evaluates each satellite $v \in \mathcal{A}(s_{r,i})$ and performs normalization exclusively over the current legal action set.
+\paragraph{Reward Function Design}
+Referring to the weighted scalar objective in \eqref{eq:elara_prob_form}, the reward function transforms the multi-objective latency-energy tradeoff into a scalar learning signal for node selection.
+Specifically, after executing stage $i$, ELARA assigns a dense local reward:
+\begin{align}
+    r_{r,i}^{\text{loc}} = -(\alpha T_{r,i}^{\text{step}} + \beta \tilde{E}_{r,i}^{\text{step}} + \lambda N_{r,i}^{\text{cross}})
+\end{align}
+where $T_{r,i}^{\text{step}}$ is the step-wise latency including routing, communication queuing, computation waiting, and execution times; $\tilde{E}_{r,i}^{\text{step}}$ denotes the normalized communication and computation energy consumption; and $N_{r,i}^{\text{cross}}$ penalizes the number of topology slots crossed to encourage timely task completion.
+
+Upon episode termination, the terminal signal is discounted and assigned to each stage transition, yielding the augmented reward used for PPO update:
+%Upon episode termination, a discounted terminal signal is backpropagated:
+\begin{align}
+    \hat{r}_{r,i} = r_{r,i}^{\text{loc}} + \omega_{r}\frac{\gamma^{L-i} r_{r}^{\text{term}}}{L}
+\end{align}
+where $r_{r}^{\text{term}} = -(\alpha T_{r}^{\text{e2e}} + \beta \tilde{E}_{r}^{\text{tot}})$ for a successfully completed request, $r_{r}^{\text{term}} = -P_{\text{fail}}$ if the request violates its deadline or encounters an routing failure, and $ \omega_{r}$ is the discount factor.
+
+\paragraph{PPO Policy and Update Mechanism}
+%For each candidate $v \in \mathcal{A}(s_{r,i})$, ELARA constructs a 4-dimensional candidate feature vector $\mathbf{e}_{v}$, including normalized routing delay, transmission risk, bottleneck capacity shortage, and estimated computing cost.
+%These features are derived from the routing and computing models in Sec.~\ref{sec:sys_model}.
+%Specifically, the routing module estimates the delivery delay from $u_{r,i}$ to $v$, the future link unavailability risk, and the bottleneck capacity gap with respect to the required data volume.
+%It also evaluates the outgoing capacity from $v$ to the next service stage or the destination, and uses the larger ingress or egress capacity shortage as the bottleneck feature.
+%After the data arrival time is obtained, the onboard computing model estimates the queueing delay, execution delay, and computation energy on $v$, which together form the computing cost feature.
+For each candidate $v \in \mathcal{A}(s_{r,i})$, ELARA constructs a 4-dimensional feature vector $\mathbf{e}_{v}$, including the normalized routing delay from the current satellite $u_{r,i}$ to $v$, the risk of future link unavailability, the bottleneck ISL capacity gap, and the estimated computing cost on candidate node $v$. These features are computed using the routing and computing models described in Sec.~\ref{sec:sys_model}.
+The policy network uses a multi-layer perceptron (MLP) to score each candidate:
+\begin{align}
+g_\theta(v)=
+\mathrm{MLP}_{\theta}\big([\mathbf{h}_v,\mathbf{h}_{u_{r,i}},
+\mathbf{h}_{v_d},\mathbf{z}_{r,i},\mathbf{e}_v]\big),
+\end{align}
+where $\mathbf{z}_{r,i}$ is the embedded request context vector.
+A masked softmax is applied to ensure that action probabilities are distributed over legal candidates:
+\begin{align}
+    \pi_{\theta}(v|s_{r,i}) = \frac{\exp(g_{\theta}(v))}{\sum_{v^{\prime}\in\mathcal{A}(s_{r,i})}\exp(g_{\theta}(v^{\prime}))}
+\end{align}
+
+The value head $V_{\phi}(s_{r,i})$ estimates the expected return from the current state.
+Using the generalized advantage estimate $\hat{A}_{j}$, ELARA updates the actor and critic networks by minimizing the following PPO loss function:
+\begin{align}
+\label{eq:ppo_loss}
+    \mathcal{L}(\theta,\phi)
+    =&-\mathbb{E}_{j}\!\left[\min(\rho_j\hat{A}_j,\bar{\rho}_j\hat{A}_j)\right] \nonumber\\
+    &+c_v\mathbb{E}_{j}\!\left[(V_{\phi}(s_j)-\hat{V}_j)^2\right]
+    -\eta_H\mathbb{E}_{j}\!\left[\mathcal{H}_j\right],
+\end{align}
+where $j$ is the index of a transition sampled from the PPO rollout buffer, $\rho_j=\pi_{\theta}(a_j|s_j)/\pi_{\theta_{\mathrm{old}}}(a_j|s_j)$ is the original probability ratio, and $\bar{\rho}_j=\text{clip}(\rho_j,1-\epsilon,1+\epsilon)$ is the clipped ratio.
+$\hat{V}_j$ is the value target and $\mathcal{H}_j=\mathcal{H}(\pi_{\theta}(\cdot|s_j))$ is the entropy term that encourages policy exploration.
+
+Algorithm~\ref{algo:elara_request} summarizes the online procedure of node selection and data routing.
 
 \begin{algorithm}[t]
 \SetAlFnt{times}
 \SetAlgoLined
-\caption{ELARA Request-Time Orchestration}
+\caption{ELARA Node Selection and Data Routing}
 \label{algo:elara_request}
 \SetKwInOut{Input}{Input}
 \SetKwInOut{Output}{Output}
-\Input{Request $r=\langle v_s,m_1,\ldots,m_L,v_d,\tau_{\rm in}\rangle$, topology snapshots $\{\mathcal{G}(t)\}$, deployment matrix $\mathbf{X}(t)$}
-\Output{Serving satellites, routing paths, delay and energy}
-$u\gets v_s$, $\tau\gets \tau_{\rm in}$, $T_r\gets0$, $E_r\gets0$\;
+\Input{Request $r$, attributed graph snapshots $\{\mathcal{G}^{a}(t)\}$, trained policy $\pi_\theta$}
+\Output{Serving nodes and routing paths}
+$u\gets v_s$, $\tau\gets\tau_{\text{in}}$, $T_r\gets0$, $E_r\gets0$\;
 \For{$i=1$ \KwTo $L$}{
-Obtain data size $B_{r,i}$ and candidate replicas $\mathcal{C}_{r,i}\subseteq\mathcal{R}_{m_i}(t)$\;
-$v_{r,i}\gets$ \textbf{GNN-PPO-Select}$(r,i,u,\tau,\mathcal{C}_{r,i})$\;
-\If{$v_{r,i}$ does not exist}{mark $r$ as failed and stop\;}
-$\Pi_{r,i},T^{\rm ru}_{r,i},E^{\rm ru}_{r,i}\gets$ \textbf{SlotFlowRoute}$(u,v_{r,i},B_{r,i},\tau)$\;
-\If{routing fails}{mark $r$ as failed and stop\;}
-Compute $m_i$ on $v_{r,i}$ and obtain $T^{\rm cp}_{r,i}$, $E^{\rm cp}_{r,i}$\;
-$T_r\gets T_r+T^{\rm ru}_{r,i}+T^{\rm cp}_{r,i}$, $E_r\gets E_r+E^{\rm ru}_{r,i}+E^{\rm cp}_{r,i}$\;
-$u\gets v_{r,i}$, $\tau\gets\tau+T^{\rm ru}_{r,i}+T^{\rm cp}_{r,i}$\;
-Record local reward and PPO transition\;
+Construct state $s_{r,i}$ and action space $\mathcal{A}(s_{r,i})$\;
+Encode $\mathcal{G}^{a}(t)$ and request features by GNN\;
+Select $v_{r,i}\sim\pi_\theta(\cdot|s_{r,i})$ during training, or $\arg\max_v\pi_\theta(v|s_{r,i})$ during inference\;
+\If{$v_{r,i}$ is invalid}{terminate request with failure penalty\;}
+% Route $B_{r,i}$ from $u$ to $v_{r,i}$ by min-cost max-flow routing\;
+Execute $u \overset{B_{r,i}}{\longrightarrow} v_{r,i}$ by min-cost max-flow routing\;
+\If{routing fails}{terminate request with failure penalty\;}
+Execute $m_i$ on $v_{r,i}$ and record $T_{r,i}^{\text{step}}$, $E_{r,i}^{\text{step}}$\;
+Store transition $(s_{r,i},v_{r,i},\hat r_{r,i})$ for PPO update\;
+$u\gets v_{r,i}$, $\tau\gets$ completion time of stage $i$\;
 }
-Route final output from $u$ to $v_d$ and update $T_r,E_r$\;
-Record terminal reward and update request result\;
+Route final output from $u$ to $v_d$ and compute $T_r^{\text{e2e}},E_r^{\text{tot}}$\;
+Distribute terminal reward and update PPO with \eqref{eq:ppo_loss}\;
 \end{algorithm}
 
-\subsection{GNN-PPO Serving Satellite Selection}
+\subsection{Min-Cost Max-Flow Data Routing}
 
-The serving satellite decision depends on the current topology, onboard computing state, replica placement, and the remaining request context.
-ELARA encodes the current snapshot $\mathcal{G}(t)$ as a graph whose node feature for satellite $v$ is
+For each selected source-destination pair $(u,v)$, ELARA routes data over a finite horizon of future topology slots.
+In each slot $t$, ELARA constructs a directed residual graph based on the current topology $\mathcal{G}(t)$.
+For an edge $e=(a,b)$, the residual transmission capacity within the slot is given by:
 \begin{equation}
-\begin{aligned}
-\mathbf{x}_v(t)= [&\bar f_v,\bar q_v(t),\bar s_v(t),\bar p_v,\bar n_v,
-\mathbb{I}_{v=u},\mathbb{I}_{v=v_d}, \\
-&\mathbb{I}_{m_i\in v},\bar d_v(t),\mu_v(t),\xi_v(t),\ell_v(t)].
-\end{aligned}
+C_e(t)=
+\left[R_e(t)\left(\Delta_t-\nu_e^{\text{pr}}(t)-\nu_e^{\text{qe}}(t)-\nu^{\text{sw}}\right)\right]^+,
 \end{equation}
-where the entries denote normalized CPU frequency, compute queue delay, hosted-service count, orbital-plane index, intra-plane position, current-node indicator, destination indicator, current-service replica indicator, node degree, compute utilization, CPU discount factor, and compute-load state, respectively.
-The request-stage context is encoded as
+where $\Delta_t$ is the remaining time until the next topology update
+%$\nu_e^{\text{pr}}(t)$ is the propagation delay of link $e$, $\nu_e^{\text{qe}}(t)$ is the queueing delay caused by link congestion, 
+and $\nu^{\text{sw}}$ is the fixed topology switching overhead.
+The unit flow cost on edge $m$ is defined as:
 \begin{equation}
-\mathbf{c}_{r,i}=[\bar L_r,\bar i,\overline{L_r-i},\bar w_{m_i},\bar z_{m_i},\bar B_r],
+c_e(t)=\alpha(\nu_e^{\text{tr}}+\nu_e^{\text{pr}}+\nu_e^{\text{qe}}+\nu^{\text{sw}})
++\beta \widetilde{E}_e^{\text{tr}}+\rho\Gamma_e(t),
 \end{equation}
-which captures the request length, stage index, remaining stages, workload of $m_i$, service image size, and total data volume.
+where $\Gamma_e(t)$ is the link unavailability risk, estimated by checking the link's availability in subsequent topology slots.
 
-ELARA applies message passing over $\mathcal{G}(t)$ to obtain node embeddings $\mathbf{h}_v$.
-For each candidate $v\in\mathcal{C}_{r,i}$, the policy further appends an auxiliary feature vector $\mathbf{e}_v$ containing normalized route delay, future route-failure risk, bottleneck/egress shortage, and estimated computing cost.
-The candidate score is produced by
-\begin{equation}
-g_\theta(v)=
-{\rm MLP}_{\theta}\big([\mathbf{h}_v,\mathbf{h}_u,\mathbf{h}_{v_d},
-\mathbf{z}_{r,i},\mathbf{e}_v]\big),
-\end{equation}
-where $\mathbf{z}_{r,i}$ is the embedded request-stage vector.
-A masked softmax is then applied only over legal candidates:
-\begin{equation}
-\pi_\theta(v|s_{r,i})=
-\frac{\exp(g_\theta(v))}
-{\sum_{v'\in\mathcal{C}_{r,i}}\exp(g_\theta(v'))}.
-\end{equation}
-During training, ELARA samples from $\pi_\theta$; during inference, it selects the candidate with the largest probability.
-The value head uses the current-node, destination-node, and request-stage embeddings to estimate the state value.
-The local reward of stage $i$ is
-\begin{equation}
-r_{r,i}^{\rm loc}=
--\big(\alpha T_{r,i}^{\rm step}+\beta E_{r,i}^{\rm step}
-+\lambda N_{r,i}^{\rm cross}\big),
-\end{equation}
-where $T_{r,i}^{\rm step}$ and $E_{r,i}^{\rm step}$ include routing and computing costs, and $N_{r,i}^{\rm cross}$ is the number of crossed slots.
-After a request terminates, ELARA distributes a discounted terminal signal to its stage transitions and updates the policy using clipped PPO with generalized advantage estimation.
+ELARA repeatedly finds the minimum-cost augmenting path in the residual graph and augments the maximum feasible flow along that path, subject to edge and path capacities.
+This process continues until the data is fully delivered or the maximum number of augmentations $K_{\text{max}}$ if reached.
+The resulting positive flows are then decomposed into at most $K_{\text{max}}$ paths per slot.
+For each slot, the routing delay is determined by the slowest path, while the energy consumption is the sum over all used paths, which are calcuated by \eqref{eq:cross_slot_routing_cost_model} in Sec.~\ref{sec:sys_model}.
 
-\subsection{Time-Slot-Aware Multi-Path Routing}
+%ELARA repeatedly finds the minimum-cost augmenting path in the residual graph, sends the largest feasible amount limited by edge capacities and path capacity, updates residual capacities, and stops when the data is delivered or the augmentation limit $K_{\text{max}}$ is reached.
+%The positive flows are then decomposed into at most $K_{\text{max}}$ paths in each slot.
+%For one slot, the delay is determined by the slowest parallel path, while energy is summed over all used paths:
+%\begin{equation}
+%T_t^{\text{ru}}=\max_{p\in\mathcal{P}(t)}T_{p,t}^{\text{ru}},\quad
+%E_t^{\text{ru}}=\sum_{p\in\mathcal{P}(t)}E_{p,t}^{\text{ru}}.
+%\end{equation}
+%The same procedure is applied to node pairs in the same orbital plane and in different orbital planes.
+If multiple feasible paths exist, ELARA splits traffic among them; otherwise, it naturally reduces to a single path.
+Importantly, ELARA does not assume that each data transfer completes within a single topology slot.
+If only part of the data is delivered in slot $t$, the residual data is carried to slot $t+1$ and re-routed on the new topology snapshot.
+This residual update mechanism enables ELARA to handle partial deliveries, topology changes, and route adaption across multiple slots.
+The routing module also records  key information for each transfer, including delay components, bottleneck capacity, delivered data volume, communication energy, and predicted link unavailability. These records are subsequently used as candidate feature components by the node selection agent.
 
-Given source $u$, target $v$, data size $D$, and start time $\tau$, ELARA routes data across a finite horizon of future topology slots.
-In each slot, it builds a residual graph using the current ISL set.
-For each edge $e=(a,b)$, the residual capacity is computed from the remaining slot time and the effective rate $R_e(t)$ after discounting background traffic.
-The unit cost of sending one data unit over $e$ is
+\subsection{Bandit-Based Service Deployment}
+
+The replica redeployment module periodically updates the service replicas every $I_{\text{dep}}$ time slots.
+It first summarizes recent request executions and computes a service pressure score for each microservice $m$:
 \begin{equation}
-c_e(t)=\alpha(\nu_e^{\rm tr}+\nu_e^{\rm pr}+\nu_e^{\rm q}+\nu^{\rm sw})
-+\beta E_e^{\rm tr}+\rho \Gamma_e(t),
+\psi_m=n_m+\omega_1\bar T_m^{\text{route}}+\omega_2\bar T_m^{\text{wait}}
++\omega_3F_m+\omega_4 U_m,
 \end{equation}
-where $\Gamma_e(t)$ is the future link-failure risk estimated over a short look-ahead horizon.
-ELARA repeatedly augments flow along the minimum-cost residual path until either the data is delivered, no feasible path remains, or the augmentation limit is reached.
-The positive flows are decomposed into multiple paths and transmitted in parallel within the slot.
-If only part of the data is delivered before the slot boundary, the remaining data is carried into the next topology snapshot and re-routed.
-In implementation, each route record stores the delivered data volume, slot index, path-level delay components, communication energy, bottleneck capacity, and future failure risk, which are reused by the serving-satellite selector and the training feedback.
+where $n_m$ is the invocation count, $\bar T_m^{\text{route}}$ is average routing delay to service $m$, $\bar T_m^{\text{wait}}$ is average compute waiting time, $F_m$ is the number of routing failures associated with $m$, and $U_m$ is replica-utilization imbalance.
+In each deployment round, ELARA first selects the top-$K_{\text{ms}}$ microservices with the highest pressure scores and generates legal actions for them.
+%The bandit controller then ranks these arms and applies at most $A_{\max}$ actions whose estimated rewards exceed a safety margin.
 
-\subsection{Bandit-Based Replica Redeployment}
-
-The slow layer adapts replica deployment every several slots.
-ELARA first aggregates recent execution feedback and computes a pressure score for each microservice:
-\begin{equation}
-\psi_m=n_m+\omega_1\bar T_m^{\rm route}+\omega_2\bar T_m^{\rm wait}
-+\omega_3F_m+\omega_4T_m^{95}+\omega_5U_m,
-\end{equation}
-where $n_m$ is the request count, $\bar T_m^{\rm route}$ is average routing delay, $\bar T_m^{\rm wait}$ is average compute waiting time, $F_m$ is the failure count, $T_m^{95}$ is the 95-th percentile stage delay, and $U_m$ is replica-utilization imbalance.
-Only the top pressured services are considered in each redeployment round.
-Instead of treating each service-satellite pair as an arm, ELARA defines an arm as an orbital-level action
+To avoid a large action space at the individual satellite level, ELARA defines actions at the orbital-plane level using a multi-armed bandit framework:
 \begin{equation}
 a=(\text{type},m,p_s,p_t),\quad
 \text{type}\in\{\text{add},\text{remove},\text{move},\text{no-op}\}.
 \end{equation}
-This design greatly reduces the decision space.
-After an arm is selected, ELARA resolves it to concrete source and target satellites by considering replica failure observations, storage capacity, satellite service load, and neighboring link quality.
-For add and move actions, the service image is transferred through the same routing module, and the migration cost includes routing latency, communication energy, slot crossings, link-failure risk, image size, and startup overhead.
-An action is applied only if its estimated reward exceeds a safety margin.
-The bandit selection follows UCB:
+After selecting an arm, ELARA maps it to specific satellites. 
+For removal or migration operations, it prioritizes replicas that have experienced repeated failures or are connected by poor links. 
+For addition or movement, target satellites are chosen from orbital planes that have sufficient storage capacity and relatively low service load, while avoiding nodes with low-rate neighboring links in the current topology.
+The migration cost is calculated using the routing module constructed in Sec.~\ref{sec:sys_model}, since service images must be transferred over ISLs:
+\begin{equation}
+C_a=\alpha T_a^{\text{mg}}+\beta\widetilde{E}_a^{\text{mg}}
++\lambda N_a^{\text{cross}}+\rho\Gamma_a+\omega_z z_m+\omega_sT_m^{\text{start}}.
+\end{equation}
+The estimated reward for each arm is:
+\begin{equation}
+R_a=\mathrm{Saving}(a)+\mathrm{Relief}(a)-C_a-\mathrm{Penalty}(a),
+\end{equation}
+where $  \mathrm{Saving}(a)  $ is derived from the reduction in service pressure, $  \mathrm{Relief}(a)  $ rewards the removal or relocation of problematic replicas, and $  \mathrm{Penalty}(a)  $ discourages placements near low-rate links.
+ELARA applies an action only if its estimated reward $  R_a  $ exceeds a predefined safety threshold and all replica count and storage constraints are satisfied. Arms are ranked using the Upper Confidence Bound (UCB) score:
 \begin{equation}
 \mathrm{UCB}(a)=\bar R_a+c\sqrt{\frac{\ln N}{N_a}},
 \end{equation}
-where $\bar R_a$ is the empirical reward, $N_a$ is the number of pulls of arm $a$, and $N$ is the total number of pulls.
-Overall, the per-stage serving decision costs $\mathcal{O}(L_g(|\mathcal{V}|+|\mathcal{E}|)d_h+Kd_h)$, the cross-slot routing costs $\mathcal{O}(HA|\mathcal{E}|\log|\mathcal{V}|)$ for horizon $H$ and augmentations $A$, and the orbital-level redeployment evaluates only $\mathcal{O}(K_sK_p|\mathcal{P}|)$ arms per round.
+where $\bar R_a$ is the empirical reward, $  N_a  $ is the number of times arm $  a  $ has been selected, and $  N  $ is the total number of arm selections. Execution feedback is subsequently used to update the statistics of the corresponding arm.
+
+Algorithm~\ref{algo:elara_deploy} summarizes this deployment procedure.
+
+\begin{algorithm}[t]
+\SetAlFnt{times}
+\SetAlgoLined
+\caption{ELARA Bandit-Based Service Deployment}
+\label{algo:elara_deploy}
+\SetKwInOut{Input}{Input}
+\SetKwInOut{Output}{Output}
+\Input{Recent requests and execution results, deployment $\mathbf{X}(t)$, arm statistics}
+\Output{Updated deployment $\mathbf{X}(t+1)$}
+Compute pressure scores $\{\psi_m\}$ from recent execution feedback\;
+Select services with the highest pressure scores and generate orbital-level arms\;
+\For{each arm ranked by failure priority, pressure, and UCB}{
+Resolve the arm to concrete source and target satellites\;
+\If{replica-count or storage constraint is violated}{continue\;}
+Estimate migration route, migration delay, and energy cost\;
+Compute estimated reward $R_a$\;
+\If{$R_a$ exceeds safety margin}{
+Apply add/remove/move operation to $\mathbf{X}(t)$\;
+Update deployment-by-node records and arm statistics\;
+}
+}
+Use subsequent execution feedback to update empirical arm rewards\;
+\end{algorithm}
+
+%The per-stage node selection complexity is $\mathcal{O}(L_g(|\mathcal{V}|+|\mathcal{E}|)d_h+|\mathcal{A}(s_{r,i})|d_h)$, where $L_g$ is the number of GNN layers and $d_h$ is the hidden dimension.
+%For routing horizon $H$ and at most $A$ augmentations per slot, the routing complexity is $\mathcal{O}(HA|\mathcal{E}|\log|\mathcal{V}|)$.
+%For deployment, considering $K_s$ high-pressure services and $K_p$ target planes yields only $\mathcal{O}(K_sK_p|\mathcal{P}|)$ arms per round, avoiding exhaustive satellite-level service placement.
 
 
 \begin{comment}
@@ -978,7 +1081,7 @@ $\mathcal{O}(|\mathcal{V}^{*}|( |\mathcal{E}| + |\mathcal{V}|\log|\mathcal{V}| )
 
 
 \textbf{Complexity of Algorithm \ref{algo:DST}.} The time complexity of merging these distinct sets into one set is $\mathcal{O}(\text{n})$, where $\text{n}$ is the total number of elements across all sets. Therefore, the time complexity of obtaining the minimum DST is inferred as $\mathcal{O}(|\mathcal{V}^{*}|( |\mathcal{E}| + |\mathcal{V}|\log|\mathcal{V}| ) + \text{2*n} + (|\mathcal{V}_{z}|+|\mathcal{E}_{z}|))$, where $\mathcal{O}(\text{2*n})$ represents the time complexity of merging the generated vertex and edge sets, and $\mathcal{O}(|\mathcal{V}_{z}|+|\mathcal{E}_{z}|)$ is the time complexity of constructing the directed Steiner tree.
-\end{comment}
+
 
 
 
@@ -1040,7 +1143,7 @@ For each topology, energy cost data was collected from 100 samples. The final re
 
 \subsection{Experimental Results}
 \label{sec:exp_result}
-\subsubsection{Effectiveness}
+\paragraph{Effectiveness}
 As illustrated in Fig. \ref{fig:constellation72}, our proposed Steiner consistently outperforms all baseline methods across various microservices topology scenarios, and its advantages become more pronounced in more complex topologies.
 This enhanced performance is charged to our comprehensive approach that simultaneously considers both computation and communication costs when determining the most efficient routing paths.
 The comp-greedy method outperforms the random method by prioritizing minimizing computation costs. The comm-greedy method surpasses both comp-greedy and random methods by focusing on minimizing communication costs.
@@ -1099,14 +1202,14 @@ These findings emphasize the necessity of accounting for both computation and co
 \end{figure*}
 
 
-\subsubsection{Impact of constellation scales}
+\paragraph{Impact of constellation scales}
 To evaluate the scalability of our algorithm, we systematically varied the number of satellites in the constellation by adjusting the number of orbits while maintaining consistent microservice deployment strategies.
 Experiments were conducted in two constellation settings separately, as illustrated in Fig. \ref{fig:constellation48} and Fig. \ref{fig:constellation108}.
 % Showing that, our approach consistently outperforms others across various constellation scales in all topology cases. Its effectiveness becomes even more evident as the complexity of the network and service topologies increases, demonstrating its robustness and adaptability to complex environments.
 These configurations allowed us to assess the algorithm's performance under varying levels of network complexity and service topology. Our results demonstrate that the proposed approach consistently outperforms alternative methods across all tested constellation scales and topological scenarios. Notably, its effectiveness becomes increasingly pronounced as the network complexity escalates, highlighting its robustness and adaptability to intricate environments.
 
 
-\subsubsection{Impact of transmitter power}
+\paragraph{Impact of transmitter power}
 Given the dominant role of communication costs in the total energy consumption of satellite systems, we conducted a series of experiments to explore how varying channel conditions influence the performance of our Steiner scheme.
 Specifically, we experimented with four different transmitter power levels on satellites across diverse microservice request schemes to examine their effect on energy efficiency.
 % We experimented with four different values of power of the transmitter on satellites across various microservice topologies.
@@ -1117,7 +1220,7 @@ Despite this increase in energy cost, our Steiner algorithm consistently outperf
 By optimizing service routing paths, our approach minimizes unnecessary energy use under varying channel conditions. These findings underscore the importance of intelligent service routing mechanisms in the SCPN, particularly in environments with variable communication links.
 
 
-\subsubsection{Impact of faulty satellites}
+\paragraph{Impact of faulty satellites}
 Given the constraints of limited power supply and the effects of solar eclipses, some satellites may need to enter a low-power mode, functioning solely as relay nodes for message forwarding \cite{energy_efficient_routing_tsinghua}.
 To evaluate the robustness of our proposed method under such conditions, we conducted experiments by randomly disabling a subset of satellites in a constellation of 72 satellites. Specifically, we tested scenarios with 10, 20, and 25 faulty satellites by eliminating their microservices, as shown in Figs \ref{fig:robust_chain}, \ref{fig:robust_tree}, \ref{fig:robust_stree}.
 The results reveal that energy cost generally increases with an increasing number of faulty satellites for all methods. This trend can be attributed to the reduced availability of active nodes, which forces longer transmission paths and higher energy consumption for maintaining connectivity (much more relay satellites are required for message forwarding). Despite this challenge, Steiner invariably outperforms other methods in all scenarios. Its superior performance is attributed to its robust design, which can effectively adapt to changes in network topology and operational conditions. By optimizing power allocation and service routing decisions, the algorithm minimizes disruptions caused by satellite failures.
@@ -1173,7 +1276,7 @@ The results reveal that energy cost generally increases with an increasing numbe
 \end{figure*}
 
 
-\subsubsection{Impact of microservice deployment schemes}
+\paragraph{Impact of microservice deployment schemes}
 To investigate the influence of microservice deployment and scaling strategies on energy consumption with in the SCPN, we conducted experiments by varying the number of replicas allocated for each microservice. Specifically, we tested three replica ranges: $[2, 6]$, $[4, 6]$, and $[6, 10]$.
 % We explored how different microservice deployment strategies impact energy consumption in the SCPN by varying the number of replicas allocated for each microservice.
 % We conducted comparison tests with replica ranges of $[2, 6]$, $[4, 6]$, and $[6, 10]$.
@@ -1195,17 +1298,17 @@ By contrast, the energy costs associated with routing paths generated by random 
 \vspace{-0.4cm}
 \end{figure}
 
-\subsubsection{Adaptability and stability}
+\paragraph{Adaptability and stability}
 % Figure \ref{fig:systhentic} illustrates how the Steiner policy's energy costs vary across different service topologies and constellation scales. The energy cost increment ranges from 14\% to 22\% across different topologies. The shift from chained to treed topologies leads to a higher energy cost increase than the transition from treed to sophisticated treed topologies, occasioned by the higher complexity and stricter service demands of the former. Despite these challenges, the Steiner policy demonstrates remarkable adaptability to diverse treed topologies without significant overhead.
 % Figure \ref{fig:StreeDist}, showing energy distribution from 300 independent experiments, further illustrates that the Steiner policy's performance is more stable compared to other benchmarks, especially with sophisticated treed topology.
 Furthermore, as depicted in Fig \ref{fig:StreeDist}, which presents the energy distribution derived from 300 independent experiments, underscores the superior stability of the Steiner policy compared to other benchmark strategies. The results reveal that, even under sophisticated treed topologies with heightened complexity, the Steiner policy exhibits less variance in energy costs. This stability highlights its robustness and adaptability in managing diverse network conditions and service requirements.
 
 
-
+\end{comment}
 
 \section{Conclusion}
 \label{sec:conclusion}
-In this paper, we proposed a DST-based solution to provide an energy-efficient service routing scheme for tasks from terrestrial clients. We systematically developed the SCPN models, including communication and computation, covering various aspects of the LEO satellite network. We also mathematically formulated the energy optimization problem for satellite-microservice routing and transformed it into finding a feasible DST solution within an augmented directed satellite-microservice colocated graph. To approximate the optimal solution, we designed a series of heuristic algorithms. Experimental results show that our algorithm significantly outperforms other benchmarks in energy efficiency, robustness, and adaptability across different network and microservice configurations in the context of SCPN.
+%In this paper, we proposed a DST-based solution to provide an energy-efficient service routing scheme for tasks from terrestrial clients. We systematically developed the SCPN models, including communication and computation, covering various aspects of the LEO satellite network. We also mathematically formulated the energy optimization problem for satellite-microservice routing and transformed it into finding a feasible DST solution within an augmented directed satellite-microservice colocated graph. To approximate the optimal solution, we designed a series of heuristic algorithms. Experimental results show that our algorithm significantly outperforms other benchmarks in energy efficiency, robustness, and adaptability across different network and microservice configurations in the context of SCPN.
 
 
 
