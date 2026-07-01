@@ -783,59 +783,95 @@ The routing module also records  key information for each transfer, including de
 	\label{algo:elara_deploy}
 	\SetKwInOut{Input}{Input}
 	\SetKwInOut{Output}{Output}
-	\Input{Recent requests and execution results, deployment $\mathbf{X}(t)$, arm statistics}
+	\Input{Recent requests and execution traces, deployment $\mathbf{X}(t)$, pending redeployment actions, arm statistics}
 	\Output{Updated deployment $\mathbf{X}(t+1)$}
-	Compute pressure scores $\{\psi_m\}$ from recent execution feedback\;
-	Select services with the highest pressure scores and generate orbital-level arms\;
-	\For{each arm ranked by failure priority, pressure, and UCB}{
+	\If{pending actions from the previous deployment round exist}{
+		Update their arm rewards using the execution quality in the current window\;
+	}
+	Compute service-pressure scores $\{\psi_m\}$ from recent routing, computing, and failure feedback\;
+	Select high-pressure services and generate legal orbital-plane arms\;
+	\For{each arm ranked by failure priority, service pressure, and UCB}{
 		Resolve the arm to concrete source and target satellites\;
 		\If{replica-count or storage constraint is violated}{continue\;}
-		Estimate migration route, migration delay, and energy cost\;
-		Compute estimated reward $R_a$\;
-		\If{$R_a$ exceeds safety margin}{
+		Estimate service-image migration route, delay, energy, and risk cost\;
+		Compute estimated reward $\widehat R_a$\;
+		\If{$\widehat R_a$ exceeds safety margin}{
 			Apply add/remove/move operation to $\mathbf{X}(t)$\;
-			Update deployment-by-node records and arm statistics\;
+			Update deployment records and estimated arm statistics\;
 		}
 	}
-	Use subsequent execution feedback to update empirical arm rewards\;
+	Store applied actions for feedback in the next deployment window\;
 \end{algorithm}
 
 
 \subsection{Bandit-Based Service Deployment}
 
-The replica redeployment module periodically updates the service replicas every $I_{\text{dep}}$ time slots.
-It first summarizes recent request executions and computes a service pressure score for each called microservice $m$ in the past $I_{\text{dep}}$ slots:
+The replica redeployment module operates at a slower timescale than per-request service routing.
+Every $I_{\text{dep}}$ time slots, ELARA observes the execution traces accumulated in the latest deployment window and decides whether the current replica layout should be adjusted.
+This design avoids reacting to transient request fluctuations while still allowing the deployment to follow persistent changes in service popularity, onboard queueing, and ISL connectivity.
+For each microservice $m$ invoked during the recent window, ELARA computes a service-pressure score
 \begin{equation}
-\psi_m=n_m+\omega_1\bar T_m^{\text{route}}+\omega_2\bar T_m^{\text{wait}}
-+\omega_3F_m+\omega_4 U_m,
+\psi_m =
+n_m
++\omega_1\frac{\bar T_m^{\text{route}}}{T_0}
++\omega_2\frac{\bar T_m^{\text{wait}}}{T_0}
++\omega_3F_m
++\omega_4\frac{T_{m,95}^{\text{stage}}}{T_0}
++\omega_5U_m,
 \end{equation}
-where $n_m$ is the invocation count, $\bar T_m^{\text{route}}$ is average routing delay to service $m$, $\bar T_m^{\text{wait}}$ is average compute waiting time, $F_m$ is the number of routing failures associated with $m$, and $U_m$ is replica-utilization imbalance.
-In each deployment round, ELARA first selects the top-$K_{\text{ms}}$ microservices with the highest pressure scores and generates legal actions for them.
-%The bandit controller then ranks these arms and applies at most $A_{\max}$ actions whose estimated rewards exceed a safety margin.
+where $n_m$ is the invocation count, $\bar T_m^{\text{route}}$ is the average communication delay before executing $m$, $\bar T_m^{\text{wait}}$ is the average computing waiting time, $F_m$ is the number of failures associated with $m$, $T_{m,95}^{\text{stage}}$ is the 95-th percentile stage latency, and $U_m$ measures the utilization imbalance among replicas of $m$.
+The normalization constant $T_0$ prevents delay-related terms from dominating the count-based terms.
+Only the top-$K_{\text{ms}}$ services with the largest pressure scores are considered in one deployment round, which concentrates the redeployment budget on services that are most likely to affect end-to-end performance.
 
-To avoid a large action space at the individual satellite level, ELARA defines actions at the orbital-plane level using a multi-armed bandit framework:
+Directly treating every satellite-level migration as an independent arm would create a prohibitively large and unstable action space.
+ELARA therefore defines bandit arms at the orbital-plane level:
 \begin{equation}
-	a=(\{\text{add},\text{remove},\text{move},\text{no-op}\},m,p_s,p_t).
+	a=(o,m,p_s,p_t), \quad
+	o\in\{\text{add},\text{remove},\text{move},\text{no-op}\},
 \end{equation}
-where $p_s$ is the plane of satellite hosting $m$ and $p_t$ is the target plane to which $m$ is added or migrated.
-After selecting an arm, ELARA maps it to specific satellites in plane $p_t$. 
-For removal or migration operations, it prioritizes replicas that have experienced repeated failures or are connected by poor links. 
-For addition or movement, target satellites are chosen from orbital planes that have sufficient storage capacity and relatively low service load, while avoiding nodes with low-rate neighboring links in the current topology.
-The migration cost is calculated using the routing module constructed in Sec.~\ref{sec:sys_model}, since service images must be transferred over ISLs:
+where $o$ is the redeployment operation, $p_s$ is the source orbital plane for removal or migration, and $p_t$ is the target orbital plane for addition or migration.
+The arm abstraction captures the coarse-grained direction of redeployment, while the final satellite-level source and target are resolved only after the arm is selected.
+For removal or migration, ELARA preferentially selects source replicas that have been repeatedly involved in failed executions or are located in poorly connected neighborhoods.
+For addition or migration, the target satellite is chosen from feasible nodes in $p_t$ with sufficient storage capacity, light service load, and relatively favorable local link rates.
+This two-level construction preserves the expressiveness needed for adaptive placement, but avoids learning a separate arm for every service-satellite pair.
+
+Each candidate arm is evaluated by its estimated net benefit before being applied.
+The migration cost is computed by routing the service image over the time-varying ISL topology, using the same latency- and energy-aware routing model as ordinary service data transfers:
 \begin{equation}
 C_a=\alpha T_a^{\text{mg}}+\beta\widetilde{E}_a^{\text{mg}}
 +\lambda N_a^{\text{cross}}+\rho\Gamma_a+\omega_z z_m+\omega_sT_m^{\text{start}}.
 \end{equation}
-The estimated reward for each arm is:
+Here $T_a^{\text{mg}}$, $\widetilde{E}_a^{\text{mg}}$, $N_a^{\text{cross}}$, and $\Gamma_a$ denote the migration delay, normalized migration energy, slot-crossing count, and route-failure risk, respectively, while $z_m$ and $T_m^{\text{start}}$ represent the image size and startup delay of microservice $m$.
+The estimated arm reward is then defined as
 \begin{equation}
-R_a=\mathrm{Saving}(a)+\mathrm{Relief}(a)-C_a-\mathrm{Penalty}(a),
+\widehat R_a
+=\mathrm{Saving}(a)+\mathrm{Relief}(a)-C_a-\mathrm{Penalty}(a),
 \end{equation}
-where $  \mathrm{Saving}(a)  $ is derived from the reduction in service pressure, $  \mathrm{Relief}(a)  $ rewards the removal or relocation of problematic replicas, and $  \mathrm{Penalty}(a)  $ discourages placements near low-rate links.
-ELARA applies an action only if its estimated reward $  R_a  $ exceeds a predefined safety threshold and all replica count and storage constraints are satisfied. Arms are ranked using the Upper Confidence Bound (UCB) score:
+where $\mathrm{Saving}(a)$ is derived from the pressure score of the affected service, $\mathrm{Relief}(a)$ rewards the removal or relocation of replicas that have caused failures, and $\mathrm{Penalty}(a)$ discourages placing replicas near satellites with low-rate neighboring links.
+An action is applied only if $\widehat R_a$ exceeds a safety margin and the resulting deployment satisfies the replica-count and storage constraints.
+
+The remaining question is how to balance profitable historical redeployment patterns with unexplored alternatives.
+ELARA maintains empirical statistics for every arm and ranks candidate arms using the Upper Confidence Bound (UCB) score
 \begin{equation}
 \mathrm{UCB}(a)=\bar R_a+c\sqrt{\frac{\ln N}{N_a}},
 \end{equation}
-where $\bar R_a$ is the empirical reward, $  N_a  $ is the number of times arm $  a  $ has been selected, and $  N  $ is the total number of arm selections. Execution feedback is subsequently used to update the statistics of the corresponding arm.
+where $\bar R_a$ is the empirical reward of arm $a$, $N_a$ is the number of times arm $a$ has been evaluated, $N$ is the total number of arm evaluations, and $c$ controls exploration.
+Unvisited arms are assigned the largest priority, encouraging initial exploration.
+Among visited arms, the first term exploits historically beneficial redeployment patterns, whereas the second term preserves exploration for uncertain actions.
+
+ELARA updates arm statistics in two complementary ways.
+First, when an arm is evaluated in the current deployment round, its estimated reward $\widehat R_a$ is recorded as immediate placement feedback.
+Second, after the subsequent deployment window has been executed, ELARA assigns an execution-feedback reward to the actions applied in the previous round:
+\begin{equation}
+R_a^{\text{exec}}
+=
+\eta_{\text{succ}}
+-\alpha'\frac{\bar T^{\text{e2e}}}{T_{\text{ref}}}
+-\beta'\frac{\bar E}{E_{\text{ref}}}
+-\kappa C_a,
+\end{equation}
+where $\eta_{\text{succ}}$ is the request success ratio in the following window, $\bar T^{\text{e2e}}$ and $\bar E$ are the average end-to-end latency and energy consumption of successfully processed requests, and $\kappa C_a$ penalizes costly redeployments.
+This delayed feedback closes the loop between redeployment and subsequent request execution: arms that consistently improve success ratio, latency, and energy receive higher empirical rewards, while expensive or ineffective migrations are gradually suppressed.
 
 Algorithm~\ref{algo:elara_deploy} summarizes this deployment procedure.
 

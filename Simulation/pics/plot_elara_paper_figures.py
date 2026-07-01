@@ -31,21 +31,23 @@ COMPARISON_ABLATIONS = ("ELARA", "SECO", "SC-NFV", "SP-Routing")
 ABLATION_ABLATIONS = ("ELARA", "ELARA-NB", "ELARA-NR", "ELARA-SH")
 
 FONT_FAMILY = "Times New Roman"
-BASE_FONT_SIZE = 11
-AXIS_LABEL_FONT_SIZE = 12
-TICK_LABEL_FONT_SIZE = 10
-LEGEND_FONT_SIZE = 10
+BASE_FONT_SIZE = 18
+AXIS_LABEL_FONT_SIZE = 18
+TICK_LABEL_FONT_SIZE = 18
+LEGEND_FONT_SIZE = 18
 TITLE_FONT_SIZE = 13
 AXIS_LINE_WIDTH = 1.1
 BAR_EDGE_LINE_WIDTH = 0.8
 LINE_WIDTH = 2.2
 SHADE_ALPHA = 0.18
-BAR_VALUE_FONT_SIZE = 9
+BAR_VALUE_FONT_SIZE = 14
 
 REWARD_COLOR = "#1f77b4"
 LOSS_COLOR = "#d95f02"
 LATENCY_COLOR = "#4c78a8"
 ENERGY_COLOR = "#f58518"
+ENERGY_SCALE = 1000.0
+SCALED_ENERGY_AXIS_LABEL = "Mean execution energy (x1000J)"
 
 
 @dataclass
@@ -263,11 +265,20 @@ def annotate_bars(ax, bars, fmt: str, color: str) -> None:
         )
 
 
+def save_png_and_pdf(fig, output_path: Path) -> tuple[Path, Path]:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    png_path = output_path.with_suffix(".png")
+    pdf_path = output_path.with_suffix(".pdf")
+    fig.savefig(png_path, bbox_inches="tight")
+    fig.savefig(pdf_path, bbox_inches="tight")
+    return png_path, pdf_path
+
+
 def plot_training_figure(
     output_path: Path,
     runs: list[RunData],
     window: int,
-) -> None:
+) -> tuple[Path, Path]:
     reward_epochs, reward_mean, reward_std = aggregate_series(
         runs, TRAIN_REWARD_COLUMN, window
     )
@@ -317,10 +328,10 @@ def plot_training_figure(
     )
 
     ax_reward.set_xlabel("Training epoch")
-    ax_reward.set_ylabel("Average reward per request", color=REWARD_COLOR)
-    ax_loss.set_ylabel("PPO training loss", color=LOSS_COLOR)
-    ax_reward.tick_params(axis="y", labelcolor=REWARD_COLOR)
-    ax_loss.tick_params(axis="y", labelcolor=LOSS_COLOR)
+    ax_reward.set_ylabel("Average reward per request")
+    ax_loss.set_ylabel("PPO training loss")
+    ax_reward.tick_params(axis="y")
+    ax_loss.tick_params(axis="y")
     ax_reward.grid(axis="both", linestyle="--", linewidth=0.6, alpha=0.35)
     set_axis_spines(ax_reward)
     set_axis_spines(ax_loss)
@@ -335,15 +346,15 @@ def plot_training_figure(
         handles=handles,
         loc="center right",
         bbox_to_anchor=(0.98, 0.50),
-        ncol=2,
+        ncol=1,
         frameon=False,
         columnspacing=1.6,
         handlelength=2.6,
         borderaxespad=0.2,
     )
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output_path, bbox_inches="tight")
+    output_paths = save_png_and_pdf(fig, output_path)
     plt.close(fig)
+    return output_paths
 
 
 def plot_dual_axis_bars(
@@ -351,9 +362,10 @@ def plot_dual_axis_bars(
     labels: list[str],
     delays: list[float],
     energies: list[float],
-) -> None:
+) -> tuple[Path, Path]:
     x = np.arange(len(labels))
     width = 0.34
+    scaled_energies = [energy / ENERGY_SCALE for energy in energies]
     fig, ax_delay = plt.subplots(figsize=(8.2, 4.8), constrained_layout=True)
     ax_energy = ax_delay.twinx()
 
@@ -361,45 +373,53 @@ def plot_dual_axis_bars(
         x - width / 2,
         delays,
         width=width,
-        color="#000000",
+        color=LATENCY_COLOR,
         edgecolor="#1f2937",
         linewidth=BAR_EDGE_LINE_WIDTH,
-        label="Mean end-to-end latency",
+        label="Mean execution latency",
         zorder=3,
     )
     energy_bars = ax_energy.bar(
         x + width / 2,
-        energies,
+        scaled_energies,
         width=width,
-        color="#000000",
+        color=ENERGY_COLOR,
         edgecolor="#1f2937",
         linewidth=BAR_EDGE_LINE_WIDTH,
-        label="Mean end-to-end energy",
+        label="Mean execution energy",
         zorder=3,
     )
 
     ax_delay.set_xticks(x)
     ax_delay.set_xticklabels(labels)
-    ax_delay.set_ylabel("Mean end-to-end latency (s)", color=LATENCY_COLOR)
-    ax_energy.set_ylabel("Mean end-to-end energy (J)", color=ENERGY_COLOR)
-    ax_delay.tick_params(axis="y", labelcolor=LATENCY_COLOR)
-    ax_energy.tick_params(axis="y", labelcolor=ENERGY_COLOR)
+    ax_delay.set_ylabel("Mean end-to-end latency (s)")
+    ax_energy.set_ylabel(SCALED_ENERGY_AXIS_LABEL)
+    ax_delay.tick_params(axis="y")
+    ax_energy.tick_params(axis="y")
     ax_delay.grid(axis="y", linestyle="--", linewidth=0.6, alpha=0.35, zorder=0)
     ax_delay.set_ylim(0, max(delays) * 1.18)
-    ax_energy.set_ylim(0, max(energies) * 1.18)
+    ax_energy.set_ylim(0, max(scaled_energies) * 1.18)
 
     annotate_bars(ax_delay, delay_bars, "{:.2f}", LATENCY_COLOR)
-    annotate_bars(ax_energy, energy_bars, "{:.1f}", ENERGY_COLOR)
+    annotate_bars(ax_energy, energy_bars, "{:.2f}", ENERGY_COLOR)
     set_axis_spines(ax_delay)
     set_axis_spines(ax_energy)
 
     handles = [delay_bars[0], energy_bars[0]]
-    labels_for_legend = ["Mean end-to-end latency", "Mean end-to-end energy"]
-    ax_delay.legend(handles, labels_for_legend, loc="upper left", frameon=False)
+    labels_for_legend = ["Mean end-to-end latency", "Mean execution energy"]
+    ax_delay.legend(
+        handles,
+        labels_for_legend,
+        loc="upper left",
+        # bbox_to_anchor=(0.5, 1.01),
+        ncol=1,
+        frameon=False,
+        borderaxespad=0.0,
+    )
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output_path, bbox_inches="tight")
+    output_paths = save_png_and_pdf(fig, output_path)
     plt.close(fig)
+    return output_paths
 
 
 def write_metric_snapshot(
@@ -447,27 +467,27 @@ def main() -> None:
     comparison_metrics = metrics_for_ablations(summary_rows, COMPARISON_ABLATIONS)
     ablation_metrics = metrics_for_ablations(summary_rows, ABLATION_ABLATIONS)
 
-    train_path = args.output_dir / f"elara_train.{args.format}"
-    comparison_path = args.output_dir / f"elara_comparison.{args.format}"
-    ablation_path = args.output_dir / f"elara_alation.{args.format}"
+    train_path = args.output_dir / "elara_train.png"
+    comparison_path = args.output_dir / "elara_comparison.png"
+    ablation_path = args.output_dir / "elara_ablation.png"
 
-    plot_training_figure(train_path, runs, args.window)
-    plot_dual_axis_bars(comparison_path, *comparison_metrics)
-    plot_dual_axis_bars(ablation_path, *ablation_metrics)
+    generated_paths = []
+    generated_paths.extend(plot_training_figure(train_path, runs, args.window))
+    generated_paths.extend(plot_dual_axis_bars(comparison_path, *comparison_metrics))
+    generated_paths.extend(plot_dual_axis_bars(ablation_path, *ablation_metrics))
     write_metric_snapshot(args.output_dir, comparison_metrics, ablation_metrics)
 
     manifest = args.output_dir / "plot_manifest.txt"
     manifest.write_text(
         "\n".join(
             str(path.resolve())
-            for path in (train_path, comparison_path, ablation_path)
+            for path in generated_paths
         )
         + "\n",
         encoding="utf-8",
     )
-    print(train_path)
-    print(comparison_path)
-    print(ablation_path)
+    for path in generated_paths:
+        print(path)
 
 
 if __name__ == "__main__":
