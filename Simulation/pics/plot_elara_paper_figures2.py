@@ -29,11 +29,11 @@ COMPARISON_ABLATIONS = ("ELARA", "SECO", "SC-NFV", "SP-Routing")
 ABLATION_ABLATIONS = ("ELARA", "ELARA-NB", "ELARA-NR", "ELARA-SH")
 
 FONT_FAMILY = "Times New Roman"
-BASE_FONT_SIZE = 10
-AXIS_LABEL_FONT_SIZE = 11
-TICK_LABEL_FONT_SIZE = 9
-LEGEND_FONT_SIZE = 9
-TITLE_FONT_SIZE = 12
+BASE_FONT_SIZE = 20
+AXIS_LABEL_FONT_SIZE = 20
+TICK_LABEL_FONT_SIZE = 20
+LEGEND_FONT_SIZE = 20
+TITLE_FONT_SIZE = 20
 AXIS_LINE_WIDTH = 1.0
 LINE_WIDTH = 1.8
 MARKER_SIZE = 2.8
@@ -407,45 +407,96 @@ def save_chain_scalability_plot(
     ablations: list[str],
     group_name: str,
 ) -> None:
-    fig, axes = plt.subplots(1, 3, figsize=(14.4, 4.6), constrained_layout=True)
-    plot_chain_metric_on_axis(
-        axes[0],
+    chain_lengths, latency_series = chain_metric_series(
         rows,
         ablations,
         "mean_average_end_to_end_delay_s",
-        "Mean latency (s)",
-        f"({group_name}-a) Average latency",
-        show_legend=False,
     )
-    plot_chain_metric_on_axis(
-        axes[1],
-        rows,
-        ablations,
-        "mean_p95_end_to_end_delay_s",
-        "P95 latency (s)",
-        f"({group_name}-b) Tail latency",
-        show_legend=False,
-    )
-    plot_chain_metric_on_axis(
-        axes[2],
+    _, energy_series = chain_metric_series(
         rows,
         ablations,
         "mean_average_energy_j",
-        "Mean energy (J)",
-        f"({group_name}-c) Energy",
-        show_legend=False,
     )
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(
+
+    fig, (ax_latency, ax_energy) = plt.subplots(
+        2,
+        1,
+        figsize=(7.6, 5.4),
+    )
+    fig.subplots_adjust(left=0.10, right=0.98, top=0.86, bottom=0.11, hspace=0.38)
+
+    x_positions = np.arange(len(chain_lengths), dtype=float)
+    group_width = 0.72
+    bar_width = group_width / max(1, len(ablations))
+
+    for ablation_index, ablation in enumerate(ablations):
+        color = COLORS.get(ablation, "#4b5563")
+        label = ABLATION_LABELS.get(ablation, ablation)
+        in_group_offset = (ablation_index - (len(ablations) - 1) / 2.0) * bar_width
+        latency_values = np.asarray(latency_series[ablation], dtype=float)
+        energy_values = np.asarray(
+            [
+                value / 1000.0 if math.isfinite(value) else math.nan
+                for value in energy_series[ablation]
+            ],
+            dtype=float,
+        )
+        ax_latency.bar(
+            x_positions + in_group_offset,
+            latency_values,
+            width=bar_width,
+            color=color,
+            edgecolor="white",
+            linewidth=0.45,
+            label=label,
+        )
+        ax_energy.bar(
+            x_positions + in_group_offset,
+            energy_values,
+            width=bar_width,
+            color=color,
+            edgecolor="white",
+            linewidth=0.45,
+            label=label,
+        )
+
+    ax_latency.set_ylabel("Mean latency (s)")
+    ax_energy.set_ylabel(r"Mean energy (x1kJ)")
+    for axis in (ax_latency, ax_energy):
+        axis.set_xticks(x_positions)
+        axis.set_xticklabels([str(length) for length in chain_lengths])
+        axis.set_xlim(-0.55, len(chain_lengths) - 0.45)
+        axis.grid(axis="y", linestyle="--", linewidth=GRID_LINE_WIDTH, alpha=0.42)
+        for spine in axis.spines.values():
+            spine.set_linewidth(AXIS_LINE_WIDTH)
+    ax_energy.set_xlabel("Microservice chain length")
+
+    handles, labels = ax_latency.get_legend_handles_labels()
+    legend_bbox = (0.0, 0.905, 1.0, 0.06) if group_name == "Ablation" else (0.10, 0.905, 0.88, 0.06)
+    legend = fig.legend(
         handles,
         labels,
-        loc="lower center",
-        bbox_to_anchor=(0.5, -0.08),
-        ncol=len(ablations),
-        frameon=False,
+        loc="upper center",
+        bbox_to_anchor=legend_bbox,
+        mode="expand",
+        ncol=min(4, len(labels)),
+        frameon=True,
+        framealpha=0.10,
+        facecolor="white",
+        edgecolor="#111827",
+        fontsize=LEGEND_FONT_SIZE - 1,
+        columnspacing=0.55,
+        handletextpad=0.35,
+        borderaxespad=0.0,
+        borderpad=0.25,
+        labelspacing=0.25,
     )
+    legend.get_frame().set_linewidth(0.6)
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, bbox_inches="tight")
+    if output_path.suffix.lower() != ".pdf":
+        fig.savefig(output_path.with_suffix(".pdf"), bbox_inches="tight")
     plt.close(fig)
 
 
@@ -494,36 +545,36 @@ def main() -> None:
             "(b) Ablation energy",
         ),
     ]
-    for output_path, rows, ablations, metric, ylabel, panel_label in outputs:
-        save_single_plot(
-            output_path,
-            rows,
-            ablations,
-            metric,
-            ylabel,
-            panel_label,
-            args.slot_window,
-            max_slot,
-        )
+    # for output_path, rows, ablations, metric, ylabel, panel_label in outputs:
+    #     save_single_plot(
+    #         output_path,
+    #         rows,
+    #         ablations,
+    #         metric,
+    #         ylabel,
+    #         panel_label,
+    #         args.slot_window,
+    #         max_slot,
+    #     )
 
     comparison_insight = args.output_dir / f"elara_cs_comparison_insight.{args.format}"
     ablation_insight = args.output_dir / f"elara_cs_ablation_insight.{args.format}"
-    save_combined_plot(
-        comparison_insight,
-        comparison_rows,
-        comparison_ablations,
-        "Comparison",
-        args.slot_window,
-        max_slot,
-    )
-    save_combined_plot(
-        ablation_insight,
-        ablation_rows,
-        ablation_ablations,
-        "Ablation",
-        args.slot_window,
-        max_slot,
-    )
+    # save_combined_plot(
+    #     comparison_insight,
+    #     comparison_rows,
+    #     comparison_ablations,
+    #     "Comparison",
+    #     args.slot_window,
+    #     max_slot,
+    # )
+    # save_combined_plot(
+    #     ablation_insight,
+    #     ablation_rows,
+    #     ablation_ablations,
+    #     "Ablation",
+    #     args.slot_window,
+    #     max_slot,
+    # )
 
     manifest_paths = [item[0] for item in outputs] + [comparison_insight, ablation_insight]
     chain_rows = load_chain_summary_rows(args.chain_input_dir)

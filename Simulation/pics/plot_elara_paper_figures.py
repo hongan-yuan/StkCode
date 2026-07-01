@@ -47,7 +47,7 @@ LOSS_COLOR = "#d95f02"
 LATENCY_COLOR = "#4c78a8"
 ENERGY_COLOR = "#f58518"
 ENERGY_SCALE = 1000.0
-SCALED_ENERGY_AXIS_LABEL = "Mean execution energy (x1000J)"
+SCALED_ENERGY_AXIS_LABEL = "Mean execution energy (x1kJ)"
 
 
 @dataclass
