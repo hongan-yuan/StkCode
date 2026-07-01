@@ -848,6 +848,144 @@ Algorithm~\ref{algo:elara_deploy} summarizes this deployment procedure.
 \section{Simulations}
 \label{sec:eval}
 
+This section evaluates ELARA under dynamic LEO constellation topologies and microservice workloads.
+We aim to answer the following questions: whether ELARA reduces end-to-end latency and energy compared with representative satellite service-routing baselines; whether its three major components are all necessary; how the routing module behaves under cross-slot topology changes; and whether adaptive replica redeployment provides sustained benefits over time.
+
+\subsection{Experimental Setup}
+We implement ELARA and all baselines in a Python-based event-driven simulator.
+The simulator replays time-varying LEO topology snapshots, maintains dynamic onboard computing queues and ISL queues, and records request-level and hop-level execution traces.
+Unless otherwise specified, each reported result is averaged over four random seeds.
+
+\begin{table}[!t]
+\centering
+\caption{Default Simulation Parameters}
+\label{tab:sim_params}
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{l|l}
+\toprule
+\textbf{Parameter} & \textbf{Default setting} \\
+\midrule
+Constellation size & 10 orbital planes, 18 satellites per plane \\
+Topology slot duration & 10 s \\
+Topology slots per cycle & 606 \\
+Number of microservices & 30 \\
+Replicas per microservice & 5--10 \\
+Maximum services per satellite & 3 \\
+CPU frequency & 1, 2, 3, or 4 GHz \\
+Compute load states & Idle, Light, Medium, Heavy \\
+Request chain length & 5, 10, or 15 \\
+Request arrivals & Poisson process \\
+Routing horizon & 3 topology slots \\
+Max augmenting paths per slot & 5 \\
+Redeployment period & 10 topology slots \\
+PPO hidden dimension & 128 \\
+PPO learning rate & $3\times 10^{-4}$ \\
+PPO discount factor & 0.99 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The constellation contains 180 satellites and follows the time-slotted topology model in Sec.~\ref{sec:sys_model}.
+Each microservice is associated with a CPU-cycle demand, an image size, and a storage requirement.
+Satellite CPUs are sampled from heterogeneous frequency levels, and their effective computing capacities are degraded by background tasks according to the load state.
+For communication, ISL capacities and propagation delays are obtained from the time-varying topology snapshots, while queueing delay and rate degradation are generated from background traffic.
+Requests arrive according to a Poisson process and invoke sequential microservice stages.
+The request source and destination satellites are sampled under route feasibility checks, and the input data volume follows the workload distribution configured in the simulator.
+
+\subsection{Baselines and Metrics}
+We compare ELARA with three representative baselines.
+\textbf{SECO} is adapted from satellite edge computing studies and performs queue-aware processing and routing decisions for each request.
+\textbf{SC-NFV} adapts service chaining in NFV-enabled satellite edge networks to the considered microservice execution setting.
+\textbf{SP-Routing} uses a service-pressure and backpressure-inspired routing rule that favors nodes and paths with smaller virtual backlog.
+For ablation study, we further consider three ELARA variants.
+\textbf{ELARA-NB} disables bandit-based replica redeployment.
+\textbf{ELARA-NR} replaces GNN-PPO serving satellite selection with nearest-replica selection.
+\textbf{ELARA-SH} replaces the min-cost max-flow routing module with shortest-hop routing.
+
+We evaluate all methods using average end-to-end latency, 95th-percentile end-to-end latency, average energy consumption, success rate, deadline acceptance rate, average communication delay, and average slot crossings.
+End-to-end latency includes both data routing and onboard computation, and energy includes communication energy and computation energy.
+Slot crossings measure how often service-stage data transmission spans multiple topology slots, thereby reflecting the ability of a method to cope with dynamic ISL changes.
+
+\subsection{Overall Performance}
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.98\linewidth]{elara_exp/elara_comparison.png}
+\caption{Overall performance comparison of ELARA and representative baselines.}
+\label{fig:overall_comparison}
+\vspace{-0.2cm}
+\end{figure}
+
+Fig.~\ref{fig:overall_comparison} compares ELARA with the representative baselines.
+ELARA achieves the lowest average end-to-end latency, i.e., 35.37 s, while SECO, SC-NFV, and SP-Routing incur 36.98 s, 42.72 s, and 49.34 s, respectively.
+This corresponds to latency reductions of 4.4\%, 17.2\%, and 28.3\% compared with SECO, SC-NFV, and SP-Routing, respectively.
+The improvement is more evident when compared with routing-centric and service-chaining baselines, because ELARA jointly considers serving satellite selection, cross-slot ISL routing, and onboard computation states.
+
+ELARA also reduces energy consumption.
+Its average energy consumption is 1493.4 J, which is comparable to SECO but substantially lower than SC-NFV and SP-Routing.
+Specifically, ELARA reduces energy consumption by 16.6\% over SC-NFV and 20.7\% over SP-Routing.
+This confirms that optimizing only routing pressure or service-chain feasibility is insufficient in SCPNs, where the selected serving satellite determines both the subsequent communication path and the computation cost.
+
+\subsection{Ablation Study}
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.98\linewidth]{elara_exp/elara_ablation.png}
+\caption{Ablation study of ELARA components.}
+\label{fig:ablation_study}
+\vspace{-0.2cm}
+\end{figure}
+
+Fig.~\ref{fig:ablation_study} studies the contribution of each ELARA component.
+Removing adaptive redeployment increases the average latency from 35.37 s to 37.50 s.
+This shows that replica placement must be adjusted as request patterns and topology states evolve, although the energy difference between ELARA and ELARA-NB is modest because redeployment primarily improves service proximity and queueing conditions.
+
+Replacing the GNN-PPO node selector with nearest-replica selection causes the largest degradation.
+ELARA-NR increases average latency by 54.9\% and average energy by 72.6\%.
+The reason is that nearest-replica selection ignores computation queues, future routing difficulty, bottleneck link capacity, and energy cost.
+Thus, a geographically close replica can still lead to long execution delay or expensive communication if the selected satellite is overloaded or poorly connected.
+
+Replacing min-cost max-flow routing with shortest-hop routing also degrades performance.
+ELARA-SH increases average latency by 34.7\% and reduces the deadline acceptance rate from 99.98\% to 98.10\%.
+This result demonstrates that hop count alone is a weak routing objective in dynamic LEO networks, where link availability, effective rate, queueing delay, and residual cross-slot delivery jointly determine routing quality.
+
+\subsection{Cross-slot Routing Behavior}
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.96\textwidth]{elara_exp/cross_slot_routing_behavior.png}
+\caption{Cross-slot routing behavior. Panel (a) shows average communication delay over topology windows; panel (b) shows average slot crossings; panel (c) shows the distribution of slot crossings for representative hop-level traces.}
+\label{fig:cross_slot_behavior}
+\vspace{-0.2cm}
+\end{figure*}
+
+Fig.~\ref{fig:cross_slot_behavior} further examines routing behavior under time-varying topology.
+The first two panels report 10-slot moving-window statistics over one constellation cycle.
+ELARA maintains consistently low communication delay and slot crossings across the cycle, while ELARA-SH suffers from both higher communication delay and more frequent slot crossings.
+This is because shortest-hop routing tends to choose paths with fewer hops even when such paths have lower effective rate or higher congestion, leading to longer residual transmissions after slot changes.
+
+SP-Routing also exhibits higher communication delay than ELARA.
+Although pressure-based routing can avoid congested regions in some cases, it does not explicitly optimize cross-slot residual delivery under future link availability.
+By contrast, ELARA evaluates slot-level residual capacity and link risk, then splits traffic over multiple feasible paths when beneficial.
+Panel (c) shows that most service-stage transmissions finish within the current slot, but a non-negligible fraction crosses one topology slot.
+These cross-slot cases are precisely where residual-aware route recomputation is important, since a path that is feasible in the current slot may become inefficient or unavailable in subsequent slots.
+
+\subsection{Adaptivity of Replica Redeployment}
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.98\linewidth]{elara_exp/redeployment_adaptivity.png}
+\caption{Adaptivity of replica redeployment. Panel (a) reports the latency and energy reduction of ELARA over ELARA-NB across deployment windows; panel (b) shows the distribution of applied redeployment actions.}
+\label{fig:redeployment_adaptivity}
+\vspace{-0.2cm}
+\end{figure}
+
+Fig.~\ref{fig:redeployment_adaptivity} evaluates the slow-timescale replica redeployment module.
+Panel (a) compares ELARA with ELARA-NB over deployment windows.
+ELARA achieves positive latency reduction in most windows, with an average reduction of 9.6\%, while also reducing energy by 4.3\% on average.
+This confirms that monitoring recent service pressure, routing failures, and computation waiting time helps the system move replicas toward more beneficial orbital regions.
+
+Panel (b) shows the distribution of applied redeployment actions.
+Most actions are replica movements rather than pure additions, indicating that the bandit controller primarily reallocates existing service capacity instead of blindly increasing the number of replicas.
+This behavior is desirable in SCPNs because service image transfer consumes ISL bandwidth and onboard storage is limited.
+The results demonstrate that replica redeployment complements online routing: fast decisions handle per-request execution under the current topology, while periodic redeployment reshapes the service layout according to accumulated workload and network feedback.
+
 
 \begin{comment}
 \section{Energy-aware Service Routing Algorithm for Microservices in the SCPN}

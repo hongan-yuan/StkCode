@@ -1,0 +1,305 @@
+{
+  "ablation": "SECO",
+  "seeds": [
+    42,
+    43,
+    44,
+    45
+  ],
+  "output_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO",
+  "slot_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/slot_metrics_by_seed.csv",
+  "cycle_request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/cycle_request_metrics_by_seed.csv",
+  "request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/request_metrics_by_seed.csv",
+  "request_hop_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/request_hop_metrics_by_seed.csv",
+  "cycle_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/cycle_metrics_by_seed.csv",
+  "seed_summaries": [
+    {
+      "ablation": "SECO",
+      "seed": 42,
+      "run_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_42",
+      "slot_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_42/slot_metrics.csv",
+      "request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_42/request_metrics.csv",
+      "request_hop_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_42/request_hop_metrics.csv",
+      "cycle_request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_42/cycle_request_metrics.csv",
+      "request_hop_metric_row_count": 30030,
+      "slot_count": 606,
+      "slot_duration_s": 10.0,
+      "request_template_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_42/request_templates.csv",
+      "request_templates_loaded": true,
+      "request_template_count": 4,
+      "original_request_template_count": 14,
+      "chain_length_filter": 10,
+      "arrival_mode": "total_per_slot",
+      "arrival_lambda_total_per_slot": 4.9,
+      "checkpoint": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_42/ppo_gnn_latest.pth",
+      "checkpoint_loaded": false,
+      "checkpoint_load_error": "",
+      "execution_agent": "SECOGreedyExecutionAgent",
+      "service_routing_strategy": "shortest_hop_per_slot",
+      "bandit_redeployment_enabled": false,
+      "bandit_arm_stats": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_42/bandit_arm_stats.csv",
+      "bandit_loaded_arm_count": 0,
+      "arrival_lambda_per_pattern_per_slot": 0.35,
+      "overall_summary": {
+        "request_count": 3003,
+        "feasible_count": 3003,
+        "success_rate": 1.0,
+        "average_end_to_end_delay_s": 49.08437874622592,
+        "p95_end_to_end_delay_s": 61.87717123429047,
+        "average_energy_j": 2004.4394728991124,
+        "average_communication_delay_s": 1.8062390692866959,
+        "average_slot_crossings": 0.1723125359488996,
+        "route_mode_counts": {
+          "shortest_hop_per_slot": 32741,
+          "local": 292
+        }
+      },
+      "delay_margin_summary": {
+        "deadline_accepted_count": 3003,
+        "deadline_acceptance_rate": 1.0,
+        "delay_margin_mean": 0.49084378746225926,
+        "delay_margin_max": 0.7314532595104766,
+        "delay_margin_jain_fairness": 0.980675931228497
+      },
+      "bandit_summary": {
+        "total_pulls": 0,
+        "known_arm_count": 0,
+        "positive_arm_count": 0,
+        "average_arm_reward": 0.0,
+        "total_applied_actions": 0,
+        "total_execution_feedback_updates": 0,
+        "total_failed_replica_observations": 0,
+        "known_failed_replica_count": 0,
+        "known_service_pressure_metric_count": 0
+      },
+      "routing_cache_summary": {
+        "route_result_hits": 22592,
+        "route_result_misses": 1500347,
+        "shortest_path_hits": 0,
+        "shortest_path_misses": 0,
+        "precomputed_slots": 606,
+        "precomputed_nodes": 180
+      },
+      "route_estimate_cache_summary": {
+        "hits": 2288257,
+        "misses": 1489906
+      }
+    },
+    {
+      "ablation": "SECO",
+      "seed": 43,
+      "run_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_43",
+      "slot_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_43/slot_metrics.csv",
+      "request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_43/request_metrics.csv",
+      "request_hop_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_43/request_hop_metrics.csv",
+      "cycle_request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_43/cycle_request_metrics.csv",
+      "request_hop_metric_row_count": 29700,
+      "slot_count": 606,
+      "slot_duration_s": 10.0,
+      "request_template_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_43/request_templates.csv",
+      "request_templates_loaded": true,
+      "request_template_count": 4,
+      "original_request_template_count": 14,
+      "chain_length_filter": 10,
+      "arrival_mode": "total_per_slot",
+      "arrival_lambda_total_per_slot": 4.9,
+      "checkpoint": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_43/ppo_gnn_latest.pth",
+      "checkpoint_loaded": false,
+      "checkpoint_load_error": "",
+      "execution_agent": "SECOGreedyExecutionAgent",
+      "service_routing_strategy": "shortest_hop_per_slot",
+      "bandit_redeployment_enabled": false,
+      "bandit_arm_stats": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_43/bandit_arm_stats.csv",
+      "bandit_loaded_arm_count": 0,
+      "arrival_lambda_per_pattern_per_slot": 0.35,
+      "overall_summary": {
+        "request_count": 2970,
+        "feasible_count": 2970,
+        "success_rate": 1.0,
+        "average_end_to_end_delay_s": 52.617902861118566,
+        "p95_end_to_end_delay_s": 69.67734179058789,
+        "average_energy_j": 2231.004113335785,
+        "average_communication_delay_s": 1.8495983027237517,
+        "average_slot_crossings": 0.17897153351698805,
+        "route_mode_counts": {
+          "shortest_hop_per_slot": 31673,
+          "local": 997
+        }
+      },
+      "delay_margin_summary": {
+        "deadline_accepted_count": 2970,
+        "deadline_acceptance_rate": 1.0,
+        "delay_margin_mean": 0.5261790286111856,
+        "delay_margin_max": 0.9100034308671491,
+        "delay_margin_jain_fairness": 0.9727973662827119
+      },
+      "bandit_summary": {
+        "total_pulls": 0,
+        "known_arm_count": 0,
+        "positive_arm_count": 0,
+        "average_arm_reward": 0.0,
+        "total_applied_actions": 0,
+        "total_execution_feedback_updates": 0,
+        "total_failed_replica_observations": 0,
+        "known_failed_replica_count": 0,
+        "known_service_pressure_metric_count": 0
+      },
+      "routing_cache_summary": {
+        "route_result_hits": 22547,
+        "route_result_misses": 1235803,
+        "shortest_path_hits": 0,
+        "shortest_path_misses": 0,
+        "precomputed_slots": 606,
+        "precomputed_nodes": 180
+      },
+      "route_estimate_cache_summary": {
+        "hits": 2040551,
+        "misses": 1225680
+      }
+    },
+    {
+      "ablation": "SECO",
+      "seed": 44,
+      "run_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_44",
+      "slot_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_44/slot_metrics.csv",
+      "request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_44/request_metrics.csv",
+      "request_hop_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_44/request_hop_metrics.csv",
+      "cycle_request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_44/cycle_request_metrics.csv",
+      "request_hop_metric_row_count": 30320,
+      "slot_count": 606,
+      "slot_duration_s": 10.0,
+      "request_template_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_44/request_templates.csv",
+      "request_templates_loaded": true,
+      "request_template_count": 4,
+      "original_request_template_count": 14,
+      "chain_length_filter": 10,
+      "arrival_mode": "total_per_slot",
+      "arrival_lambda_total_per_slot": 4.9,
+      "checkpoint": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_44/ppo_gnn_latest.pth",
+      "checkpoint_loaded": false,
+      "checkpoint_load_error": "",
+      "execution_agent": "SECOGreedyExecutionAgent",
+      "service_routing_strategy": "shortest_hop_per_slot",
+      "bandit_redeployment_enabled": false,
+      "bandit_arm_stats": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_44/bandit_arm_stats.csv",
+      "bandit_loaded_arm_count": 0,
+      "arrival_lambda_per_pattern_per_slot": 0.35,
+      "overall_summary": {
+        "request_count": 3032,
+        "feasible_count": 3032,
+        "success_rate": 1.0,
+        "average_end_to_end_delay_s": 46.34789196544362,
+        "p95_end_to_end_delay_s": 59.96454943871413,
+        "average_energy_j": 1889.8759597614844,
+        "average_communication_delay_s": 1.7953039363864045,
+        "average_slot_crossings": 0.17375269848884625,
+        "route_mode_counts": {
+          "shortest_hop_per_slot": 32208,
+          "local": 1144
+        }
+      },
+      "delay_margin_summary": {
+        "deadline_accepted_count": 3032,
+        "deadline_acceptance_rate": 1.0,
+        "delay_margin_mean": 0.4634789196544362,
+        "delay_margin_max": 0.8231622435855707,
+        "delay_margin_jain_fairness": 0.9733234151472386
+      },
+      "bandit_summary": {
+        "total_pulls": 0,
+        "known_arm_count": 0,
+        "positive_arm_count": 0,
+        "average_arm_reward": 0.0,
+        "total_applied_actions": 0,
+        "total_execution_feedback_updates": 0,
+        "total_failed_replica_observations": 0,
+        "known_failed_replica_count": 0,
+        "known_service_pressure_metric_count": 0
+      },
+      "routing_cache_summary": {
+        "route_result_hits": 22904,
+        "route_result_misses": 1392903,
+        "shortest_path_hits": 0,
+        "shortest_path_misses": 0,
+        "precomputed_slots": 606,
+        "precomputed_nodes": 180
+      },
+      "route_estimate_cache_summary": {
+        "hits": 2326216,
+        "misses": 1382455
+      }
+    },
+    {
+      "ablation": "SECO",
+      "seed": 45,
+      "run_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_45",
+      "slot_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_45/slot_metrics.csv",
+      "request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_45/request_metrics.csv",
+      "request_hop_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_45/request_hop_metrics.csv",
+      "cycle_request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_45/cycle_request_metrics.csv",
+      "request_hop_metric_row_count": 29530,
+      "slot_count": 606,
+      "slot_duration_s": 10.0,
+      "request_template_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_45/request_templates.csv",
+      "request_templates_loaded": true,
+      "request_template_count": 4,
+      "original_request_template_count": 14,
+      "chain_length_filter": 10,
+      "arrival_mode": "total_per_slot",
+      "arrival_lambda_total_per_slot": 4.9,
+      "checkpoint": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_45/ppo_gnn_latest.pth",
+      "checkpoint_loaded": false,
+      "checkpoint_load_error": "",
+      "execution_agent": "SECOGreedyExecutionAgent",
+      "service_routing_strategy": "shortest_hop_per_slot",
+      "bandit_redeployment_enabled": false,
+      "bandit_arm_stats": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_45/bandit_arm_stats.csv",
+      "bandit_loaded_arm_count": 0,
+      "arrival_lambda_per_pattern_per_slot": 0.35,
+      "overall_summary": {
+        "request_count": 2953,
+        "feasible_count": 2953,
+        "success_rate": 1.0,
+        "average_end_to_end_delay_s": 47.9232241138968,
+        "p95_end_to_end_delay_s": 61.19445692214026,
+        "average_energy_j": 2036.1156404970727,
+        "average_communication_delay_s": 1.7583297987320587,
+        "average_slot_crossings": 0.16710279222978172,
+        "route_mode_counts": {
+          "shortest_hop_per_slot": 31869,
+          "local": 614
+        }
+      },
+      "delay_margin_summary": {
+        "deadline_accepted_count": 2953,
+        "deadline_acceptance_rate": 1.0,
+        "delay_margin_mean": 0.479232241138968,
+        "delay_margin_max": 0.8184301650362477,
+        "delay_margin_jain_fairness": 0.9781459848822823
+      },
+      "bandit_summary": {
+        "total_pulls": 0,
+        "known_arm_count": 0,
+        "positive_arm_count": 0,
+        "average_arm_reward": 0.0,
+        "total_applied_actions": 0,
+        "total_execution_feedback_updates": 0,
+        "total_failed_replica_observations": 0,
+        "known_failed_replica_count": 0,
+        "known_service_pressure_metric_count": 0
+      },
+      "routing_cache_summary": {
+        "route_result_hits": 21837,
+        "route_result_misses": 1463470,
+        "shortest_path_hits": 0,
+        "shortest_path_misses": 0,
+        "precomputed_slots": 606,
+        "precomputed_nodes": 180
+      },
+      "route_estimate_cache_summary": {
+        "hits": 2193502,
+        "misses": 1452824
+      }
+    }
+  ]
+}

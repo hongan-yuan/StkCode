@@ -1,0 +1,2 @@
+/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/pics/elara_paper/cross_slot_routing_behavior.png
+/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/pics/elara_paper/redeployment_adaptivity.png
