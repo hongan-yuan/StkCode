@@ -8,6 +8,7 @@ PYTHON_BIN="${PYTHON_BIN:-python}"
 CHAIN_LENGTHS="${CHAIN_LENGTHS:-5 10 15}"
 SEEDS="${SEEDS:-42 43 44 45}"
 RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-ELARA ELARA-NB ELARA-NR ELARA-SH Fair-NFV SECO SP-Routing SC-NFV}}"
+MERGE_ABLATIONS="${MERGE_ABLATIONS:-ELARA ELARA-NB ELARA-NR ELARA-SH Fair-NFV SECO SP-Routing SC-NFV}"
 GPUS="${GPUS:-0 1 2 3}"
 MODEL_ROOT="${MODEL_ROOT:-${SCRIPT_DIR}/multi_seed_runs}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-${SCRIPT_DIR}/test_outputs/chain_length_ablation_experiments}"
@@ -52,6 +53,7 @@ fi
 read -r -a CHAIN_LENGTH_ARRAY <<< "${CHAIN_LENGTHS}"
 read -r -a SEED_ARRAY <<< "${SEEDS}"
 read -r -a RUN_ABLATION_ARRAY <<< "${RUN_ABLATIONS}"
+read -r -a MERGE_ABLATION_ARRAY <<< "${MERGE_ABLATIONS}"
 read -r -a GPU_ARRAY <<< "${GPUS}"
 
 if [[ "${#CHAIN_LENGTH_ARRAY[@]}" -eq 0 ]]; then
@@ -69,6 +71,11 @@ if [[ "${#RUN_ABLATION_ARRAY[@]}" -eq 0 ]]; then
   exit 1
 fi
 
+if [[ "${#MERGE_ABLATION_ARRAY[@]}" -eq 0 ]]; then
+  echo "Expected at least one ablation variant to merge, got: ${MERGE_ABLATIONS}" >&2
+  exit 1
+fi
+
 if [[ "${DEVICE}" != "cpu" && "${#GPU_ARRAY[@]}" -eq 0 ]]; then
   echo "Expected at least one GPU id, got: ${GPUS}" >&2
   exit 1
@@ -79,6 +86,7 @@ mkdir -p "${OUTPUT_ROOT}"
 echo "Running chain-length ablation experiments"
 echo "  chain_lengths: ${CHAIN_LENGTHS}"
 echo "  ablations: ${RUN_ABLATIONS}"
+echo "  merge_ablations: ${MERGE_ABLATIONS}"
 echo "  seeds: ${SEEDS}"
 echo "  total_arrival_lambda_per_slot: ${TOTAL_ARRIVAL_LAMBDA}"
 echo "  model_root: ${MODEL_ROOT}"
@@ -243,7 +251,7 @@ fi
 echo "All chain-length ablation tasks finished. Merging outputs."
 for chain_length in "${CHAIN_LENGTH_ARRAY[@]}"; do
   length_dir="${OUTPUT_ROOT}/chain_length_${chain_length}"
-  for ablation in "${RUN_ABLATION_ARRAY[@]}"; do
+  for ablation in "${MERGE_ABLATION_ARRAY[@]}"; do
     variant_dir="${length_dir}/${ablation}"
     variant_seeds="$(existing_seed_list "${variant_dir}" || true)"
     if [[ -z "${variant_seeds}" ]]; then
@@ -263,7 +271,7 @@ for chain_length in "${CHAIN_LENGTH_ARRAY[@]}"; do
 done
 
 echo "Building merged chain-length metric tables."
-"${PYTHON_BIN}" - "${OUTPUT_ROOT}" "${CHAIN_LENGTHS}" "${RUN_ABLATIONS}" <<'PY'
+"${PYTHON_BIN}" - "${OUTPUT_ROOT}" "${CHAIN_LENGTHS}" "${MERGE_ABLATIONS}" <<'PY'
 import csv
 import sys
 from pathlib import Path

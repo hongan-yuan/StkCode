@@ -1,0 +1,72 @@
+{
+  "ablation": "SECO",
+  "seed": 42,
+  "run_dir": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_42",
+  "slot_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_42/slot_metrics.csv",
+  "request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_42/request_metrics.csv",
+  "request_hop_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_42/request_hop_metrics.csv",
+  "cycle_request_metrics_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/test_outputs/chain_length_ablation_experiments/chain_length_10/SECO/seed_42/cycle_request_metrics.csv",
+  "request_hop_metric_row_count": 30030,
+  "slot_count": 606,
+  "slot_duration_s": 10.0,
+  "request_template_csv": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_42/request_templates.csv",
+  "request_templates_loaded": true,
+  "request_template_count": 4,
+  "original_request_template_count": 14,
+  "chain_length_filter": 10,
+  "arrival_mode": "total_per_slot",
+  "arrival_lambda_total_per_slot": 4.9,
+  "checkpoint": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_42/ppo_gnn_latest.pth",
+  "checkpoint_loaded": false,
+  "checkpoint_load_error": "",
+  "execution_agent": "SECOGreedyExecutionAgent",
+  "service_routing_strategy": "shortest_hop_per_slot",
+  "bandit_redeployment_enabled": false,
+  "bandit_arm_stats": "/Users/yuan/Projects/PycharmProjects/StkCode/Simulation/multi_seed_runs/seed_42/bandit_arm_stats.csv",
+  "bandit_loaded_arm_count": 0,
+  "arrival_lambda_per_pattern_per_slot": 0.35,
+  "overall_summary": {
+    "request_count": 3003,
+    "feasible_count": 3003,
+    "success_rate": 1.0,
+    "average_end_to_end_delay_s": 49.08437874622592,
+    "p95_end_to_end_delay_s": 61.87717123429047,
+    "average_energy_j": 2004.4394728991124,
+    "average_communication_delay_s": 1.8062390692866959,
+    "average_slot_crossings": 0.1723125359488996,
+    "route_mode_counts": {
+      "shortest_hop_per_slot": 32741,
+      "local": 292
+    }
+  },
+  "delay_margin_summary": {
+    "deadline_accepted_count": 3003,
+    "deadline_acceptance_rate": 1.0,
+    "delay_margin_mean": 0.49084378746225926,
+    "delay_margin_max": 0.7314532595104766,
+    "delay_margin_jain_fairness": 0.980675931228497
+  },
+  "bandit_summary": {
+    "total_pulls": 0,
+    "known_arm_count": 0,
+    "positive_arm_count": 0,
+    "average_arm_reward": 0.0,
+    "total_applied_actions": 0,
+    "total_execution_feedback_updates": 0,
+    "total_failed_replica_observations": 0,
+    "known_failed_replica_count": 0,
+    "known_service_pressure_metric_count": 0
+  },
+  "routing_cache_summary": {
+    "route_result_hits": 22592,
+    "route_result_misses": 1500347,
+    "shortest_path_hits": 0,
+    "shortest_path_misses": 0,
+    "precomputed_slots": 606,
+    "precomputed_nodes": 180
+  },
+  "route_estimate_cache_summary": {
+    "hits": 2288257,
+    "misses": 1489906
+  }
+}

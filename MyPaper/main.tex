@@ -776,6 +776,31 @@ If only part of the data is delivered in slot $t$, the residual data is carried 
 This residual update mechanism enables ELARA to handle partial deliveries, topology changes, and route adaption across multiple slots.
 The routing module also records  key information for each transfer, including delay components, bottleneck capacity, delivered data volume, communication energy, and predicted link unavailability. These records are subsequently used as candidate feature components by the node selection agent.
 
+\begin{algorithm}[t]
+	\SetAlFnt{times}
+	\SetAlgoLined
+	\caption{ELARA Bandit-Based Service Deployment}
+	\label{algo:elara_deploy}
+	\SetKwInOut{Input}{Input}
+	\SetKwInOut{Output}{Output}
+	\Input{Recent requests and execution results, deployment $\mathbf{X}(t)$, arm statistics}
+	\Output{Updated deployment $\mathbf{X}(t+1)$}
+	Compute pressure scores $\{\psi_m\}$ from recent execution feedback\;
+	Select services with the highest pressure scores and generate orbital-level arms\;
+	\For{each arm ranked by failure priority, pressure, and UCB}{
+		Resolve the arm to concrete source and target satellites\;
+		\If{replica-count or storage constraint is violated}{continue\;}
+		Estimate migration route, migration delay, and energy cost\;
+		Compute estimated reward $R_a$\;
+		\If{$R_a$ exceeds safety margin}{
+			Apply add/remove/move operation to $\mathbf{X}(t)$\;
+			Update deployment-by-node records and arm statistics\;
+		}
+	}
+	Use subsequent execution feedback to update empirical arm rewards\;
+\end{algorithm}
+
+
 \subsection{Bandit-Based Service Deployment}
 
 The replica redeployment module periodically updates the service replicas every $I_{\text{dep}}$ time slots.
@@ -814,29 +839,7 @@ where $\bar R_a$ is the empirical reward, $  N_a  $ is the number of times arm $
 
 Algorithm~\ref{algo:elara_deploy} summarizes this deployment procedure.
 
-\begin{algorithm}[t]
-\SetAlFnt{times}
-\SetAlgoLined
-\caption{ELARA Bandit-Based Service Deployment}
-\label{algo:elara_deploy}
-\SetKwInOut{Input}{Input}
-\SetKwInOut{Output}{Output}
-\Input{Recent requests and execution results, deployment $\mathbf{X}(t)$, arm statistics}
-\Output{Updated deployment $\mathbf{X}(t+1)$}
-Compute pressure scores $\{\psi_m\}$ from recent execution feedback\;
-Select services with the highest pressure scores and generate orbital-level arms\;
-\For{each arm ranked by failure priority, pressure, and UCB}{
-Resolve the arm to concrete source and target satellites\;
-\If{replica-count or storage constraint is violated}{continue\;}
-Estimate migration route, migration delay, and energy cost\;
-Compute estimated reward $R_a$\;
-\If{$R_a$ exceeds safety margin}{
-Apply add/remove/move operation to $\mathbf{X}(t)$\;
-Update deployment-by-node records and arm statistics\;
-}
-}
-Use subsequent execution feedback to update empirical arm rewards\;
-\end{algorithm}
+
 
 %The per-stage node selection complexity is $\mathcal{O}(L_g(|\mathcal{V}|+|\mathcal{E}|)d_h+|\mathcal{A}(s_{r,i})|d_h)$, where $L_g$ is the number of GNN layers and $d_h$ is the hidden dimension.
 %For routing horizon $H$ and at most $A$ augmentations per slot, the routing complexity is $\mathcal{O}(HA|\mathcal{E}|\log|\mathcal{V}|)$.
