@@ -804,7 +804,7 @@ The routing module also records  key information for each transfer, including de
 \subsection{Bandit-Based Service Deployment}
 
 The replica redeployment module periodically updates the service replicas every $I_{\text{dep}}$ time slots.
-It first summarizes recent request executions and computes a service pressure score for each microservice $m$:
+It first summarizes recent request executions and computes a service pressure score for each called microservice $m$ in the past $I_{\text{dep}}$ slots:
 \begin{equation}
 \psi_m=n_m+\omega_1\bar T_m^{\text{route}}+\omega_2\bar T_m^{\text{wait}}
 +\omega_3F_m+\omega_4 U_m,
@@ -815,10 +815,10 @@ In each deployment round, ELARA first selects the top-$K_{\text{ms}}$ microservi
 
 To avoid a large action space at the individual satellite level, ELARA defines actions at the orbital-plane level using a multi-armed bandit framework:
 \begin{equation}
-a=(\text{type},m,p_s,p_t),\quad
-\text{type}\in\{\text{add},\text{remove},\text{move},\text{no-op}\}.
+	a=(\{\text{add},\text{remove},\text{move},\text{no-op}\},m,p_s,p_t).
 \end{equation}
-After selecting an arm, ELARA maps it to specific satellites. 
+where $p_s$ is the plane of satellite hosting $m$ and $p_t$ is the target plane to which $m$ is added or migrated.
+After selecting an arm, ELARA maps it to specific satellites in plane $p_t$. 
 For removal or migration operations, it prioritizes replicas that have experienced repeated failures or are connected by poor links. 
 For addition or movement, target satellites are chosen from orbital planes that have sufficient storage capacity and relatively low service load, while avoiding nodes with low-rate neighboring links in the current topology.
 The migration cost is calculated using the routing module constructed in Sec.~\ref{sec:sys_model}, since service images must be transferred over ISLs:
