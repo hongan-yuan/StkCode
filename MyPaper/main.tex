@@ -715,7 +715,7 @@ Algorithm~\ref{algo:elara_request} summarizes the online procedure of node selec
 \begin{algorithm}[t]
 \SetAlFnt{times}
 \SetAlgoLined
-\caption{ELARA Node Selection and Data Routing}
+\caption{Node Selection and Data Routing}
 \label{algo:elara_request}
 \SetKwInOut{Input}{Input}
 \SetKwInOut{Output}{Output}
@@ -779,11 +779,11 @@ The routing module also records  key information for each transfer, including de
 \begin{algorithm}[t]
 	\SetAlFnt{times}
 	\SetAlgoLined
-	\caption{ELARA Bandit-Based Service Deployment}
+	\caption{Bandit-Based Service Deployment}
 	\label{algo:elara_deploy}
 	\SetKwInOut{Input}{Input}
 	\SetKwInOut{Output}{Output}
-	\Input{Recent requests and execution traces, deployment $\mathbf{X}(t)$, pending redeployment actions, arm statistics}
+	\Input{Recent execution traces, deployment $\mathbf{X}(t)$, pending actions, arm statistics}
 	\Output{Updated deployment $\mathbf{X}(t+1)$}
 	\If{pending actions from the previous deployment round exist}{
 		Update their arm rewards using the execution quality in the current window\;
@@ -793,7 +793,7 @@ The routing module also records  key information for each transfer, including de
 	\For{each arm ranked by failure priority, service pressure, and UCB}{
 		Resolve the arm to concrete source and target satellites\;
 		\If{replica-count or storage constraint is violated}{continue\;}
-		Estimate service-image migration route, delay, energy, and risk cost\;
+		Estimate service-image migration cost\;
 		Compute estimated reward $\widehat R_a$\;
 		\If{$\widehat R_a$ exceeds safety margin}{
 			Apply add/remove/move operation to $\mathbf{X}(t)$\;
@@ -807,9 +807,8 @@ The routing module also records  key information for each transfer, including de
 \subsection{Bandit-Based Service Deployment}
 
 The replica redeployment module operates at a slower timescale than per-request service routing.
-Every $I_{\text{dep}}$ time slots, ELARA observes the execution traces accumulated in the latest deployment window and decides whether the current replica layout should be adjusted.
-This design avoids reacting to transient request fluctuations while still allowing the deployment to follow persistent changes in service popularity, onboard queueing, and ISL connectivity.
-For each microservice $m$ invoked during the recent window, ELARA computes a service-pressure score
+Every $I_{\text{dep}}$ time slots, ELARA summarizes recent execution traces and updates the replica layout only when the expected benefit justifies the migration overhead.
+For each invoked microservice $m$, it computes a service-pressure score
 \begin{equation}
 \psi_m =
 n_m
@@ -820,29 +819,25 @@ n_m
 +\omega_5U_m,
 \end{equation}
 where $n_m$ is the invocation count, $\bar T_m^{\text{route}}$ is the average communication delay before executing $m$, $\bar T_m^{\text{wait}}$ is the average computing waiting time, $F_m$ is the number of failures associated with $m$, $T_{m,95}^{\text{stage}}$ is the 95-th percentile stage latency, and $U_m$ measures the utilization imbalance among replicas of $m$.
-The normalization constant $T_0$ prevents delay-related terms from dominating the count-based terms.
-Only the top-$K_{\text{ms}}$ services with the largest pressure scores are considered in one deployment round, which concentrates the redeployment budget on services that are most likely to affect end-to-end performance.
+The top-$K_{\text{ms}}$ services are then considered for redeployment, which restricts the decision space to the most influential service bottlenecks.
 
-Directly treating every satellite-level migration as an independent arm would create a prohibitively large and unstable action space.
-ELARA therefore defines bandit arms at the orbital-plane level:
+To avoid learning over all satellite-level placements, ELARA defines bandit arms at the orbital-plane level:
 \begin{equation}
 	a=(o,m,p_s,p_t), \quad
 	o\in\{\text{add},\text{remove},\text{move},\text{no-op}\},
 \end{equation}
 where $o$ is the redeployment operation, $p_s$ is the source orbital plane for removal or migration, and $p_t$ is the target orbital plane for addition or migration.
-The arm abstraction captures the coarse-grained direction of redeployment, while the final satellite-level source and target are resolved only after the arm is selected.
-For removal or migration, ELARA preferentially selects source replicas that have been repeatedly involved in failed executions or are located in poorly connected neighborhoods.
-For addition or migration, the target satellite is chosen from feasible nodes in $p_t$ with sufficient storage capacity, light service load, and relatively favorable local link rates.
-This two-level construction preserves the expressiveness needed for adaptive placement, but avoids learning a separate arm for every service-satellite pair.
+After an arm is selected, ELARA resolves it to concrete source and target satellites by favoring problematic source replicas and feasible target nodes with sufficient storage, light service load, and favorable local connectivity.
+Thus, the bandit learns coarse redeployment directions while the final placement remains topology- and resource-aware.
 
-Each candidate arm is evaluated by its estimated net benefit before being applied.
-The migration cost is computed by routing the service image over the time-varying ISL topology, using the same latency- and energy-aware routing model as ordinary service data transfers:
+Each candidate arm is evaluated by its estimated net benefit.
+Since service images must be transferred over ISLs, the migration cost is computed using the same latency- and energy-aware routing model:
 \begin{equation}
 C_a=\alpha T_a^{\text{mg}}+\beta\widetilde{E}_a^{\text{mg}}
 +\lambda N_a^{\text{cross}}+\rho\Gamma_a+\omega_z z_m+\omega_sT_m^{\text{start}}.
 \end{equation}
 Here $T_a^{\text{mg}}$, $\widetilde{E}_a^{\text{mg}}$, $N_a^{\text{cross}}$, and $\Gamma_a$ denote the migration delay, normalized migration energy, slot-crossing count, and route-failure risk, respectively, while $z_m$ and $T_m^{\text{start}}$ represent the image size and startup delay of microservice $m$.
-The estimated arm reward is then defined as
+The estimated reward is
 \begin{equation}
 \widehat R_a
 =\mathrm{Saving}(a)+\mathrm{Relief}(a)-C_a-\mathrm{Penalty}(a),
@@ -850,18 +845,15 @@ The estimated arm reward is then defined as
 where $\mathrm{Saving}(a)$ is derived from the pressure score of the affected service, $\mathrm{Relief}(a)$ rewards the removal or relocation of replicas that have caused failures, and $\mathrm{Penalty}(a)$ discourages placing replicas near satellites with low-rate neighboring links.
 An action is applied only if $\widehat R_a$ exceeds a safety margin and the resulting deployment satisfies the replica-count and storage constraints.
 
-The remaining question is how to balance profitable historical redeployment patterns with unexplored alternatives.
-ELARA maintains empirical statistics for every arm and ranks candidate arms using the Upper Confidence Bound (UCB) score
+ELARA balances exploitation and exploration by ranking arms with the Upper Confidence Bound (UCB) score
 \begin{equation}
 \mathrm{UCB}(a)=\bar R_a+c\sqrt{\frac{\ln N}{N_a}},
 \end{equation}
 where $\bar R_a$ is the empirical reward of arm $a$, $N_a$ is the number of times arm $a$ has been evaluated, $N$ is the total number of arm evaluations, and $c$ controls exploration.
-Unvisited arms are assigned the largest priority, encouraging initial exploration.
-Among visited arms, the first term exploits historically beneficial redeployment patterns, whereas the second term preserves exploration for uncertain actions.
+Unvisited arms are explored first, while visited arms are selected according to both empirical benefit and uncertainty.
 
-ELARA updates arm statistics in two complementary ways.
-First, when an arm is evaluated in the current deployment round, its estimated reward $\widehat R_a$ is recorded as immediate placement feedback.
-Second, after the subsequent deployment window has been executed, ELARA assigns an execution-feedback reward to the actions applied in the previous round:
+Arm statistics are updated using both immediate and delayed feedback.
+The estimated reward $\widehat R_a$ is recorded when an arm is evaluated, and the actions actually applied in one deployment round receive an execution-feedback reward after the next window:
 \begin{equation}
 R_a^{\text{exec}}
 =
@@ -871,7 +863,7 @@ R_a^{\text{exec}}
 -\kappa C_a,
 \end{equation}
 where $\eta_{\text{succ}}$ is the request success ratio in the following window, $\bar T^{\text{e2e}}$ and $\bar E$ are the average end-to-end latency and energy consumption of successfully processed requests, and $\kappa C_a$ penalizes costly redeployments.
-This delayed feedback closes the loop between redeployment and subsequent request execution: arms that consistently improve success ratio, latency, and energy receive higher empirical rewards, while expensive or ineffective migrations are gradually suppressed.
+This delayed update suppresses costly or ineffective migrations and reinforces redeployment patterns that improve subsequent service execution.
 
 Algorithm~\ref{algo:elara_deploy} summarizes this deployment procedure.
 
@@ -943,13 +935,30 @@ End-to-end latency includes both data routing and onboard computation, and energ
 Slot crossings measure how often service-stage data transmission spans multiple topology slots, thereby reflecting the ability of a method to cope with dynamic ISL changes.
 
 \subsection{Overall Performance}
-\begin{figure}[!t]
-\centering
-\includegraphics[width=0.98\linewidth]{elara_exp/elara_comparison.png}
-\caption{Overall performance comparison of ELARA and representative baselines.}
-\label{fig:overall_comparison}
-\vspace{-0.2cm}
-\end{figure}
+
+\begin{figure*}[!ht]
+	\centering
+	\begin{minipage}[!b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=0.98\linewidth]{elara_exp/elara_train.pdf}
+		\caption{Training loss and reward curves.}
+		\label{fig:elara_train}
+	\end{minipage}
+	\begin{minipage}[!b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=0.98\linewidth]{elara_exp/elara_comparison.pdf}
+		\caption{Performance over all baselines.}
+		\label{fig:elara_comparison}
+	\end{minipage}
+	\begin{minipage}[!b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=0.98\linewidth]{elara_exp/elara_ablation.pdf}
+		\caption{Ablation study of ELARA.}
+		\label{fig:elara_ablation}
+	\end{minipage}
+	\vspace{-0.4cm}
+\end{figure*}
+
 
 Fig.~\ref{fig:overall_comparison} compares ELARA with the representative baselines.
 ELARA achieves the lowest average end-to-end latency, i.e., 35.37 s, while SECO, SC-NFV, and SP-Routing incur 36.98 s, 42.72 s, and 49.34 s, respectively.
@@ -961,14 +970,7 @@ Its average energy consumption is 1493.4 J, which is comparable to SECO but subs
 Specifically, ELARA reduces energy consumption by 16.6\% over SC-NFV and 20.7\% over SP-Routing.
 This confirms that optimizing only routing pressure or service-chain feasibility is insufficient in SCPNs, where the selected serving satellite determines both the subsequent communication path and the computation cost.
 
-\subsection{Ablation Study}
-\begin{figure}[!t]
-\centering
-\includegraphics[width=0.98\linewidth]{elara_exp/elara_ablation.png}
-\caption{Ablation study of ELARA components.}
-\label{fig:ablation_study}
-\vspace{-0.2cm}
-\end{figure}
+
 
 Fig.~\ref{fig:ablation_study} studies the contribution of each ELARA component.
 Removing adaptive redeployment increases the average latency from 35.37 s to 37.50 s.
