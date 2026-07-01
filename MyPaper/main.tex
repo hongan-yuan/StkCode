@@ -71,11 +71,11 @@ Energy, Microservice, Routing, Space Network
 % Meanwhile, advancements in remote sensing and chip technology have enabled modern LEO satellites to be equipped with high-performance imaging and intelligent computing payloads \cite{mi2019intelligent, shen2023survey}, thus supporting ubiquitous intelligent services such as weather forecasting, environmental monitoring, and national security \cite{satellite_sys_survey, progress_challenge_RS_satellite}.
 % Hundreds to thousands of satellite computing nodes collectively form the SCPN, where the strategic allocation of sensing, communication, and computing resources to efficiently fulfill diverse intelligent service requests has emerged as a critical challenge in the context of 6G integrated space-air-ground networks \cite{SAG_survey_6g}.
 
-Recent advances in low Earth orbit (LEO) mega-constellations are transforming satellites from bent-pipe communication relays into distributed computing nodes in space.
-These large-scale constellations, comprising hundreds to thousands of satellites connected by inter-satellite links (ISLs) and equipped with onboard processors and storage resources, enable global connectivity and near-data processing for time-sensitive applications \cite{net_char_StarLink_LEO,satellite_sys_survey}.
-This evolution is particularly critical for Earth observation, weather forecasting, environmental monitoring, and remote sensing analytics, where massive volumes of images and multi-modal data are continuously generated in orbit \cite{progress_challenge_RS_satellite,seco_infocom2024}.
-Directly downloading such raw data to terrestrial data centers for analysis will consume scarce satellite-to-ground bandwidth and exacerbate link congestion, especially under limited contact windows and unfavorable channel conditions \cite{leyva2023satellite,joint_orbit_comp_comm4data_Download}.
-As a result, space computing power networks (SCPNs), which pool sensing, communication, and computing resources across LEO satellites, have emerged as a promising infrastructure for onboard intelligent services \cite{survey_on_nextg_comp_tech_SAGIN}.
+
+Recent advances in low Earth orbit (LEO) mega-constellations are transforming satellites from traditional bent-pipe communication relays into distributed computing nodes in space. 
+These large-scale constellations, consisting of hundreds to thousands of satellites interconnected by inter-satellite links (ISLs) and equipped with onboard processors and storage, enable global connectivity and near-data processing for time-sensitive applications~\cite{net_char_StarLink_LEO,satellite_sys_survey}.
+This evolution is particularly critical for Earth observation, weather forecasting, environmental monitoring, and remote sensing analytics, where massive volumes of images and multi-modal data are continuously generated in orbit~\cite{progress_challenge_RS_satellite,seco_infocom2024}. 
+Directly downloading such raw data to terrestrial data centers consumes scarce satellite-to-ground bandwidth and worsens link congestion, especially under limited contact windows and unfavorable channel conditions~\cite{leyva2023satellite,joint_orbit_comp_comm4data_Download}. Consequently, space computing power networks (SCPNs), which integrate sensing, communication, and computing resources across LEO satellites, have emerged as a promising infrastructure for onboard intelligent services~\cite{survey_on_nextg_comp_tech_SAGIN}.
 
 Promising but challenging, running these complex monolithic applications on a single LEO satellite remains infeasible due to stringent resource constraints, e.g., limited computing, storage, energy provisions, and thermal dissipation~\cite{leyva2023satellite,joint_orbit_comp_comm4data_Download}.
 Microservice architecture provides an effective solution by decomposing these remote sensing and AI applications into fine-grained, loosely coupled, and reusable microservices, each encapsulating a distinct functional module~\cite{3D_assets_microservice}.
@@ -97,33 +97,45 @@ In particular, many satellite-oriented service and function execution models rel
 While this abstraction simplifies modeling and algorithm design, it deviates from practical in-orbit service execution, where data routing, computation, and scheduling could frequently span multiple time slots~\cite{cross_slot_optim_infocom2025}.
 Although terrestrial microservice routing studies have explored the joint optimization of service deployment and request routing~\cite{optim_svc_dep_req_reouting_in_MEC}, their assumptions of stable networks, abundant power supply, and fixed edge infrastructure are not directly applicable to the SCPNs.
 
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.98\linewidth]{figs/time-varying-isl.pdf}
+\vspace{-0.1cm}
+\caption{Space and terrestrial network topology.}
+\label{fig:time_varying_isl}
+\vspace{-0.3cm}
+\end{figure}
+
 \subsection{Contributions}
-To address the aforementioned challenges, we propose ELARA, an energy-efficient and latency-aware microservice orchestration framework for SCPNs. ELARA jointly optimizes routing and deployment decisions for distributed microservice-based applications in spatio-temporally dynamic SCPN environments.
-Specifically, upon a request arrives at an arbitrary continuous time, ELARA partitions the entire execution process into multiple sequential stages. For each stage, after completing the current service, ELARA first selects the next computing node from satellites hosting replicas of the subsequent microservice, while considering the volume of intermediate data, real-time onboard computing capacities, and current ISL states.
-ELARA then runs a service routing algorithm based on the source and destination satellites, available bandwidths, and ISL congestion levels, generating a set of parallel paths to accelerate data transmission and improve robustness against link disruptions.
-Finally, ELARA periodically adjusts microservice deployments according to historical service invocation patterns and real-time computing and communication conditions of the SCPN.
-Built upon this design, ELARA introduces a continuous-time cross-slot service provisioning mechanism along with an adaptive routing-and-redeployment strategy, enabling joint optimization of end-to-end latency and energy consumption under dynamic constellation topologies and stringent onboard resource constraints.
+To address the aforementioned challenges, we propose ELARA, an energy-efficient and latency-aware microservice orchestration framework for SCPNs. ELARA jointly optimizes the service routing and replica deployment for distributed applications operating under highly dynamic SCPN environments.
+Specifically, when a request arrives at an arbitrary time, ELARA partitions the execution process into sequential stages.
+% For each stage, after completing the current service, ELARA first selects the next computing node from satellites hosting replicas of the subsequent microservice, while considering the volume of intermediate data, real-time onboard computing capacities, and current ISL states.
+For each stage, ELARA evaluates the intermediate data volume, real-time onboard processing capacities, and current link states to select the optimal computing node among satellites hosting the required service replicas.
+% To deliver intermediate data, it employs a min-cost max-flow approach to establish parallel paths for accelerated transfer within the current slot. Furthermore, it introduces a residual update mechanism to re-route incomplete transmissions across subsequent slots, rigorously accounting for the communication delay and energy overhead induced by topological handovers.
+To deliver intermediate data, it couples a min-cost max-flow approach for accelerated parallel transmission over ISLs with a residual update mechanism for cross-slot data re-routing, rigorously accounting for the communication delay and energy overhead induced by topological handovers.
+Finally, ELARA periodically adapts the replica placement according to the historical service invocation patterns and real-time network conditions.
+Built upon this design, ELARA achieves joint optimization of end-to-end latency and energy consumption for efficient service provisioning under dynamic constellation topologies and stringent onboard resource constraints.
 
 In summary, the main contributions are as follows:
 \begin{enumerate}
 \item
-We identify and formulate the microservice-based in-orbit service provisioning problem in SCPNs from an application-layer perspective.
-In particular, we characterize the intertwined challenges of service routing and replica deployment under time-varying constellation topology, heterogeneous onboard computing capacities, and stringent resource constraints.
-To address these challenges, we propose ELARA, an energy-efficient and latency-aware orchestration framework for microservice execution and deployment across multiple satellites.
+% We identify and formulate the microservice-based in-orbit service provisioning problem in SCPNs from an application-layer perspective. In particular, we characterize the intertwined challenges of service routing and replica deployment under time-varying constellation topology, heterogeneous onboard computing capacities, and stringent resource constraints. To address these challenges, we propose ELARA, an energy-efficient and latency-aware orchestration framework for microservice execution and deployment  across multiple satellites.
+We identify and formulate the service provisioning problem in SCPNs, characterizing the interwined challenges of service routing and replica deployment under time-varying and heterogeneous SCPNs. To address these challenges, we propose ELARA, an energy-efficient and latency-aware orchestration framework for distributed microservice execution across LEO satellites.
 
 \item
-We design a learning-based service orchestration algorithm that integrates GNN-enhanced Proximal Policy Optimization (PPO) with time-slot-aware adaptive routing.
-ELARA employs a graph neural network (GNN) to jointly encode satellite computing states, replica deployment, ISL capacity, and service calling information, enabling the PPO agent to learn effective next-hop serving satellite selection policies that adapt to computation heterogeneity and topology dynamics.
-For data transfer, it further adopts a time-slot-aware min-cost max-flow algorithm to generate parallel and robust routing paths across dynamic LEO snapshots.
-% After the serving satellite is selected, ELARA further employs a time-slot-aware and self-adaptive min-cost max-flow routing algorithm to support parallel and robust inter-satellite data transfer across dynamic LEO snapshots.
+% We design a learning-based service orchestration algorithm that integrates GNN-enhanced Proximal Policy Optimization (PPO) with time-slot-aware adaptive routing.
+% ELARA employs a graph neural network (GNN) to jointly encode satellite computing states, replica deployment, ISL capacity, and service calling information, enabling the PPO agent to learn effective next-hop serving satellite selection policies that adapt to computation heterogeneity and topology dynamics.
+% For data transfer, it further adopts a time-slot-aware min-cost max-flow algorithm to generate parallel and robust routing paths across dynamic LEO snapshots.
+We develop a learning-based service orchestration algorithm that integrates a GNN-enhanced Proximal Policy Optimization (PPO) agent with a time-slot-aware adaptive routing module. The agent adaptively derives the next-hop serving satellite selection, while a min-cost max-flow approach with a residual update mechanism handles cross-slot data routing, jointly optimizing the end-to-end execution latency and energy consumption.
 
 \item
-We propose a multi-armed bandit-based algorithm for adaptive replica placement.
-By collecting request patterns over a few past time slots along with current onboard computing and ISL conditions, ELARA dynamically adjusts the number of replicas and deployments of hotspot microservices, whose decisions are made at the orbital level rather than by each individual satellite for reducing learning overhead and decision complexity.
+% We propose a multi-armed bandit-based algorithm for adaptive replica placement. By collecting request patterns over a few past time slots along with current onboard computing and ISL conditions, ELARA dynamically adjusts the number of replicas and deployments of hotspot microservices, whose decisions are made at the orbital level rather than by each individual satellite for reducing learning overhead and decision complexity.
+We design a multi-armed bandit algorithm for dynamic replica placement. By collecting historical service tracing data and real-time network states, it can dynamically adjust the hotspot microservice deployments at the orbital-plane level, instead of per-satellite approaches, significantly reducing the decision complexity.
 
 \item
-We conduct extensive simulations under dynamic LEO constellations and diverse microservice workloads to evaluate ELARA's performance.
-The results demonstrate that ELARA can effectively reduces end-to-end latency, energy consumption, and deadline violations compared with representative baselines, while validating the benefits of joint service orchestration, adaptive routing, and replica deployment.
+% We conduct extensive simulations under dynamic LEO constellations and diverse microservice workloads to evaluate ELARA's performance. The results demonstrate that ELARA can effectively reduces end-to-end latency, energy consumption, and deadline violations compared with representative baselines, while validating the benefits of joint service orchestration, adaptive routing, and replica deployment.
+Extensive simulations under dynamic LEO constellations demonstrate that ELARA significantly reduces end-to-end latency, total energy consumption, and deadline violations against representative baselines, validating the effectiveness of our joint orchestration and cross-slot routing strategies.
+
 \end{enumerate}
 
 
@@ -822,6 +834,9 @@ Use subsequent execution feedback to update empirical arm rewards\;
 %The per-stage node selection complexity is $\mathcal{O}(L_g(|\mathcal{V}|+|\mathcal{E}|)d_h+|\mathcal{A}(s_{r,i})|d_h)$, where $L_g$ is the number of GNN layers and $d_h$ is the hidden dimension.
 %For routing horizon $H$ and at most $A$ augmentations per slot, the routing complexity is $\mathcal{O}(HA|\mathcal{E}|\log|\mathcal{V}|)$.
 %For deployment, considering $K_s$ high-pressure services and $K_p$ target planes yields only $\mathcal{O}(K_sK_p|\mathcal{P}|)$ arms per round, avoiding exhaustive satellite-level service placement.
+
+\section{Simulations}
+\label{sec:eval}
 
 
 \begin{comment}
