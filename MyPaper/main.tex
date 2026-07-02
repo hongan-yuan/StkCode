@@ -913,6 +913,33 @@ PPO discount factor & 0.99 \\
 \end{tabular}
 \end{table}
 
+
+\begin{figure*}[!ht]
+	\centering
+	\begin{minipage}[!b]{0.33\textwidth}
+		\centering
+		\includegraphics[width=1\linewidth]{elara_exp/elara_train.pdf}
+		\vspace{-0.58cm}
+		\caption{Training loss and reward curves.}
+		\label{fig:elara_train}
+	\end{minipage}
+	\begin{minipage}[!b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=0.98\linewidth]{elara_exp/elara_comparison.pdf}
+		\vspace{-0.3cm}
+		\caption{Performance over all baselines.}
+		\label{fig:elara_comparison}
+	\end{minipage}
+	\begin{minipage}[!b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=0.98\linewidth]{elara_exp/elara_ablation.pdf}
+		\vspace{-0.3cm}
+		\caption{Ablation study of ELARA.}
+		\label{fig:elara_ablation}
+	\end{minipage}
+	\vspace{-0.4cm}
+\end{figure*}
+
 The constellation contains 180 satellites and follows the time-slotted topology model in Sec.~\ref{sec:sys_model}.
 Each microservice is associated with a CPU-cycle demand, an image size, and a storage requirement.
 Satellite CPUs are sampled from heterogeneous frequency levels, and their effective computing capacities are degraded by background tasks according to the load state.
@@ -936,28 +963,7 @@ Slot crossings measure how often service-stage data transmission spans multiple 
 
 \subsection{Overall Performance}
 
-\begin{figure*}[!ht]
-	\centering
-	\begin{minipage}[!b]{0.32\textwidth}
-		\centering
-		\includegraphics[width=0.98\linewidth]{elara_exp/elara_train.pdf}
-		\caption{Training loss and reward curves.}
-		\label{fig:elara_train}
-	\end{minipage}
-	\begin{minipage}[!b]{0.32\textwidth}
-		\centering
-		\includegraphics[width=0.98\linewidth]{elara_exp/elara_comparison.pdf}
-		\caption{Performance over all baselines.}
-		\label{fig:elara_comparison}
-	\end{minipage}
-	\begin{minipage}[!b]{0.32\textwidth}
-		\centering
-		\includegraphics[width=0.98\linewidth]{elara_exp/elara_ablation.pdf}
-		\caption{Ablation study of ELARA.}
-		\label{fig:elara_ablation}
-	\end{minipage}
-	\vspace{-0.4cm}
-\end{figure*}
+
 
 
 Fig.~\ref{fig:overall_comparison} compares ELARA with the representative baselines.
@@ -985,14 +991,8 @@ Replacing min-cost max-flow routing with shortest-hop routing also degrades perf
 ELARA-SH increases average latency by 34.7\% and reduces the deadline acceptance rate from 99.98\% to 98.10\%.
 This result demonstrates that hop count alone is a weak routing objective in dynamic LEO networks, where link availability, effective rate, queueing delay, and residual cross-slot delivery jointly determine routing quality.
 
-\subsection{Cross-slot Routing Behavior}
-\begin{figure*}[!t]
-\centering
-\includegraphics[width=0.96\textwidth]{elara_exp/cross_slot_routing_behavior.png}
-\caption{Cross-slot routing behavior. Panel (a) shows average communication delay over topology windows; panel (b) shows average slot crossings; panel (c) shows the distribution of slot crossings for representative hop-level traces.}
-\label{fig:cross_slot_behavior}
-\vspace{-0.2cm}
-\end{figure*}
+\subsection{Service Routing Analysis}
+
 
 Fig.~\ref{fig:cross_slot_behavior} further examines routing behavior under time-varying topology.
 The first two panels report 10-slot moving-window statistics over one constellation cycle.
@@ -1006,13 +1006,7 @@ Panel (c) shows that most service-stage transmissions finish within the current 
 These cross-slot cases are precisely where residual-aware route recomputation is important, since a path that is feasible in the current slot may become inefficient or unavailable in subsequent slots.
 
 \subsection{Adaptivity of Replica Redeployment}
-\begin{figure}[!t]
-\centering
-\includegraphics[width=0.98\linewidth]{elara_exp/redeployment_adaptivity.png}
-\caption{Adaptivity of replica redeployment. Panel (a) reports the latency and energy reduction of ELARA over ELARA-NB across deployment windows; panel (b) shows the distribution of applied redeployment actions.}
-\label{fig:redeployment_adaptivity}
-\vspace{-0.2cm}
-\end{figure}
+
 
 Fig.~\ref{fig:redeployment_adaptivity} evaluates the slow-timescale replica redeployment module.
 Panel (a) compares ELARA with ELARA-NB over deployment windows.
