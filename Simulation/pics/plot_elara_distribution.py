@@ -17,7 +17,7 @@ from ..ablation_names import canonical_ablation_name
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 DEFAULT_INPUT_DIR = (
-    ROOT_DIR / "Simulation" / "test_outputs" / "bandit_redeployment_replay_experiments"
+    ROOT_DIR / "Simulation" / "test_outputs" / "ablation_experiments"
 )
 DEFAULT_OUTPUT_DIR = ROOT_DIR / "Simulation" / "pics" / "elara_paper"
 DEFAULT_PAPER_OUTPUT_DIR = ROOT_DIR / "MyPaper" / "elara_exp"
@@ -135,23 +135,38 @@ def request_key(row: dict) -> tuple[str, str, str, str, str]:
 
 def load_request_rows(input_dir: Path, methods: list[str], chain_lengths: set[int]) -> dict[str, dict]:
     rows_by_method: dict[str, dict] = {method: {} for method in methods}
-    for method in methods:
-        path = input_dir / method / "window_request_metrics_by_seed.csv"
-        rows = read_rows(path)
-        if not rows:
-            raise SystemExit(f"No request rows found for {method}: {path}")
-        for row in rows:
-            chain_length = number(row, "chain_length")
-            delay = number(row, "total_delay_s")
-            energy = number(row, "total_energy_j")
-            if chain_length is None or int(chain_length) not in chain_lengths:
-                continue
-            if delay is None or energy is None:
-                continue
-            rows_by_method[method][request_key(row)] = {
-                "latency": delay,
-                "energy_1e3": energy / 1000.0,
-            }
+    aggregate_path = input_dir / "all_ablation_request_metrics.csv"
+    aggregate_rows = read_rows(aggregate_path)
+    if aggregate_rows:
+        source_rows = [row for row in aggregate_rows if row.get("ablation") in methods]
+    else:
+        source_rows = []
+        for method in methods:
+            for filename in ("request_metrics_by_seed.csv", "window_request_metrics_by_seed.csv"):
+                path = input_dir / method / filename
+                rows = read_rows(path)
+                if rows:
+                    source_rows.extend(rows)
+                    break
+            else:
+                raise SystemExit(f"No request rows found for {method} under {input_dir / method}.")
+
+    for row in source_rows:
+        method = row.get("ablation")
+        chain_length = number(row, "chain_length")
+        delay = number(row, "total_delay_s")
+        energy = number(row, "total_energy_j")
+        if method not in methods or chain_length is None or int(chain_length) not in chain_lengths:
+            continue
+        if delay is None or energy is None:
+            continue
+        rows_by_method[method][request_key(row)] = {
+            "latency": delay,
+            "energy_1e3": energy / 1000.0,
+        }
+    missing_methods = [method for method in methods if not rows_by_method[method]]
+    if missing_methods:
+        raise SystemExit(f"No usable request rows found for methods: {missing_methods}")
     return rows_by_method
 
 
