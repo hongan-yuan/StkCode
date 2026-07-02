@@ -4,97 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1c9e062a-4b7b-438f-a78d-a5c39eefaaa7" name="Changes" comment="del large files">
+    <list default="true" id="1c9e062a-4b7b-438f-a78d-a5c39eefaaa7" name="Changes" comment="paper">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/redeployment_summary_by_seed.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/redeployment_summary_by_seed.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/redeployment_window_metrics_by_seed.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/redeployment_window_metrics_by_seed.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/request_trace_by_seed.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/request_trace_by_seed.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41.log" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41/redeployment_summary_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41/redeployment_summary_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41/redeployment_window_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41/redeployment_window_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41/request_trace.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41/request_trace.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41/summary.json" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41/summary.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41/window_request_hop_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41/window_request_hop_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41/window_request_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41/window_request_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41/window_slot_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_41/window_slot_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42.log" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42/redeployment_summary_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42/redeployment_summary_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42/redeployment_window_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42/redeployment_window_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42/request_trace.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42/request_trace.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42/summary.json" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42/summary.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42/window_request_hop_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42/window_request_hop_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42/window_request_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42/window_request_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42/window_slot_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_42/window_slot_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43.log" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43/redeployment_summary_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43/redeployment_summary_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43/redeployment_window_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43/redeployment_window_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43/request_trace.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43/request_trace.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43/summary.json" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43/summary.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43/window_request_hop_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43/window_request_hop_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43/window_request_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43/window_request_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43/window_slot_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_43/window_slot_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44.log" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44/redeployment_summary_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44/redeployment_summary_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44/redeployment_window_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44/redeployment_window_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44/request_trace.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44/request_trace.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44/summary.json" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44/summary.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44/window_request_hop_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44/window_request_hop_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44/window_request_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44/window_request_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44/window_slot_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/seed_44/window_slot_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/summary.json" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/summary.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/window_request_hop_metrics_by_seed.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/window_request_hop_metrics_by_seed.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/window_request_metrics_by_seed.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/window_request_metrics_by_seed.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/window_slot_metrics_by_seed.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA-NB/window_slot_metrics_by_seed.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/redeployment_summary_by_seed.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/redeployment_summary_by_seed.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/redeployment_window_metrics_by_seed.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/redeployment_window_metrics_by_seed.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/request_trace_by_seed.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/request_trace_by_seed.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41.log" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/migration_actions.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/migration_actions.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/redeployment_summary_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/redeployment_summary_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/redeployment_window_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/redeployment_window_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/request_trace.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/request_trace.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/summary.json" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/summary.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/window_request_hop_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/window_request_hop_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/window_request_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/window_request_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/window_slot_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_41/window_slot_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42.log" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/migration_actions.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/migration_actions.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/redeployment_summary_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/redeployment_summary_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/redeployment_window_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/redeployment_window_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/request_trace.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/request_trace.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/summary.json" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/summary.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/window_request_hop_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/window_request_hop_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/window_request_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/window_request_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/window_slot_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_42/window_slot_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43.log" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/migration_actions.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/migration_actions.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/redeployment_summary_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/redeployment_summary_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/redeployment_window_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/redeployment_window_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/request_trace.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/request_trace.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/summary.json" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/summary.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/window_request_hop_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/window_request_hop_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/window_request_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/window_request_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/window_slot_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_43/window_slot_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44.log" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/migration_actions.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/migration_actions.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/redeployment_summary_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/redeployment_summary_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/redeployment_window_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/redeployment_window_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/request_trace.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/request_trace.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/summary.json" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/summary.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/window_request_hop_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/window_request_hop_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/window_request_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/window_request_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/window_slot_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/seed_44/window_slot_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/summary.json" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/summary.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/window_request_hop_metrics_by_seed.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/window_request_hop_metrics_by_seed.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/window_request_metrics_by_seed.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/window_request_metrics_by_seed.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/window_slot_metrics_by_seed.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/ELARA/window_slot_metrics_by_seed.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/all_redeployment_request_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/all_redeployment_request_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/all_redeployment_slot_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/all_redeployment_slot_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/all_redeployment_summary_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/all_redeployment_summary_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/all_redeployment_window_metrics.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/all_redeployment_window_metrics.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/plots/redeployment_action_counts.png" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/plots/redeployment_action_counts.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/plots/redeployment_plot_summary.csv" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/plots/redeployment_plot_summary.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/plots/redeployment_window_metrics.png" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/test_outputs/bandit_redeployment_replay_experiments/plots/redeployment_window_metrics.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MyPaper/elara_exp/service_routing_analysis.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/MyPaper/elara_exp/service_routing_analysis.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MyPaper/elara_exp/service_routing_analysis_comparison.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/MyPaper/elara_exp/service_routing_analysis_comparison.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Simulation/pics/plot_elara_service_routing.py" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/pics/plot_elara_service_routing.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -112,7 +26,7 @@
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/hongan-yuan/StkCode.git&quot;,
+    &quot;url&quot;: &quot;git@github.com:hongan-yuan/StkCode.git&quot;,
     &quot;accountId&quot;: &quot;d0f1b38b-cddf-46fa-9b9e-8581ccfb1fcb&quot;
   }
 }</component>
@@ -125,30 +39,138 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHELLCHECK.PATH&quot;: &quot;/Users/yuan/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/yuan/Projects/PycharmProjects/StkCode/Simulation&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.plot_chain_length_cross_slot_hop_stats.executor": "Run",
+    "Python.plot_elara_experiment_section_figures.executor": "Run",
+    "Python.plot_elara_paper_figures2.executor": "Run",
+    "Python.plot_elara_redeployment.executor": "Run",
+    "Python.plot_elara_service_routing2.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHELLCHECK.PATH": "/Users/yuan/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/Users/yuan/Projects/PycharmProjects/StkCode/MyPaper/elara_exp",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/MyPaper/elara_exp" />
       <recent name="$PROJECT_DIR$/Simulation" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/MyPaper" />
     </key>
+  </component>
+  <component name="RunManager" selected="Python.plot_elara_service_routing2">
+    <configuration name="plot_chain_length_cross_slot_hop_stats" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="StkCode" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Simulation/pics" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Simulation/pics/plot_chain_length_cross_slot_hop_stats.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="plot_elara_paper_figures2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="StkCode" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Simulation/pics" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Simulation/pics/plot_elara_paper_figures2.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="plot_elara_redeployment" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="StkCode" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Simulation/pics" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Simulation/pics/plot_elara_redeployment.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="plot_elara_service_routing2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="StkCode" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Simulation/pics" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Simulation/pics/plot_elara_service_routing2.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.plot_elara_service_routing2" />
+        <item itemvalue="Python.plot_elara_redeployment" />
+        <item itemvalue="Python.plot_chain_length_cross_slot_hop_stats" />
+        <item itemvalue="Python.plot_elara_paper_figures2" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -168,79 +190,10 @@
       <workItem from="1780759371309" duration="5242000" />
       <workItem from="1780986712949" duration="357000" />
       <workItem from="1780987091032" duration="9216000" />
-      <workItem from="1781100528009" duration="69415000" />
-    </task>
-    <task id="LOCAL-00001" summary="train codes updates">
-      <option name="closed" value="true" />
-      <created>1780793951016</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1780793951016</updated>
-    </task>
-    <task id="LOCAL-00002" summary="train codes updates">
-      <option name="closed" value="true" />
-      <created>1780987438084</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1780987438084</updated>
-    </task>
-    <task id="LOCAL-00003" summary="training files">
-      <option name="closed" value="true" />
-      <created>1780987483576</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1780987483576</updated>
-    </task>
-    <task id="LOCAL-00004" summary="training and plotting">
-      <option name="closed" value="true" />
-      <created>1781014519616</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1781014519616</updated>
-    </task>
-    <task id="LOCAL-00005" summary="training and testing">
-      <option name="closed" value="true" />
-      <created>1781017616513</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1781017616513</updated>
-    </task>
-    <task id="LOCAL-00006" summary="training and testing">
-      <option name="closed" value="true" />
-      <created>1781017691415</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1781017691415</updated>
-    </task>
-    <task id="LOCAL-00007" summary="training and testing codes">
-      <option name="closed" value="true" />
-      <created>1781018051459</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1781018051459</updated>
-    </task>
-    <task id="LOCAL-00008" summary="ablation exp">
-      <option name="closed" value="true" />
-      <created>1781101995610</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1781101995610</updated>
-    </task>
-    <task id="LOCAL-00009" summary="ablation exp（service pressure）">
-      <option name="closed" value="true" />
-      <created>1781102099206</created>
-      <option name="number" value="00009" />
-      <option name="presentableId" value="LOCAL-00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1781102099206</updated>
+      <workItem from="1781100528009" duration="73105000" />
+      <workItem from="1781853990715" duration="42814000" />
+      <workItem from="1782821681122" duration="27062000" />
+      <workItem from="1782969998174" duration="15792000" />
     </task>
     <task id="LOCAL-00010" summary="plot codes">
       <option name="closed" value="true" />
@@ -482,7 +435,159 @@
       <option name="project" value="LOCAL" />
       <updated>1781624432435</updated>
     </task>
-    <option name="localTasksCounter" value="40" />
+    <task id="LOCAL-00040" summary="bandit ablation">
+      <option name="closed" value="true" />
+      <created>1781629610793</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1781629610793</updated>
+    </task>
+    <task id="LOCAL-00041" summary="bandit ablation">
+      <option name="closed" value="true" />
+      <created>1781629775269</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1781629775269</updated>
+    </task>
+    <task id="LOCAL-00042" summary="paper">
+      <option name="closed" value="true" />
+      <created>1781884293317</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1781884293317</updated>
+    </task>
+    <task id="LOCAL-00043" summary="paper">
+      <option name="closed" value="true" />
+      <created>1781960965863</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1781960965863</updated>
+    </task>
+    <task id="LOCAL-00044" summary="paper">
+      <option name="closed" value="true" />
+      <created>1782095759290</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1782095759290</updated>
+    </task>
+    <task id="LOCAL-00045" summary="paper">
+      <option name="closed" value="true" />
+      <created>1782224003869</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1782224003869</updated>
+    </task>
+    <task id="LOCAL-00046" summary="paper">
+      <option name="closed" value="true" />
+      <created>1782361163060</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1782361163060</updated>
+    </task>
+    <task id="LOCAL-00047" summary="paper">
+      <option name="closed" value="true" />
+      <created>1782369280169</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1782369280169</updated>
+    </task>
+    <task id="LOCAL-00048" summary="paper">
+      <option name="closed" value="true" />
+      <created>1782657088923</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1782657088923</updated>
+    </task>
+    <task id="LOCAL-00049" summary="paper">
+      <option name="closed" value="true" />
+      <created>1782658256417</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1782658256417</updated>
+    </task>
+    <task id="LOCAL-00050" summary="paper">
+      <option name="closed" value="true" />
+      <created>1782888667053</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1782888667053</updated>
+    </task>
+    <task id="LOCAL-00051" summary="paper">
+      <option name="closed" value="true" />
+      <created>1782903860806</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1782903860806</updated>
+    </task>
+    <task id="LOCAL-00052" summary="paper">
+      <option name="closed" value="true" />
+      <created>1782904812438</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1782904812438</updated>
+    </task>
+    <task id="LOCAL-00053" summary="paper">
+      <option name="closed" value="true" />
+      <created>1782911930449</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1782911930449</updated>
+    </task>
+    <task id="LOCAL-00054" summary="paper">
+      <option name="closed" value="true" />
+      <created>1782914461264</created>
+      <option name="number" value="00054" />
+      <option name="presentableId" value="LOCAL-00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1782914461264</updated>
+    </task>
+    <task id="LOCAL-00055" summary="paper">
+      <option name="closed" value="true" />
+      <created>1782915818450</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1782915818450</updated>
+    </task>
+    <task id="LOCAL-00056" summary="paper">
+      <option name="closed" value="true" />
+      <created>1782919683949</created>
+      <option name="number" value="00056" />
+      <option name="presentableId" value="LOCAL-00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1782919683949</updated>
+    </task>
+    <task id="LOCAL-00057" summary="paper">
+      <option name="closed" value="true" />
+      <created>1782992250846</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1782992250847</updated>
+    </task>
+    <task id="LOCAL-00058" summary="paper">
+      <option name="closed" value="true" />
+      <created>1782994727388</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1782994727388</updated>
+    </task>
+    <option name="localTasksCounter" value="59" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -512,6 +617,15 @@
     <MESSAGE value="arxiv results" />
     <MESSAGE value="new results" />
     <MESSAGE value="del large files" />
-    <option name="LAST_COMMIT_MESSAGE" value="del large files" />
+    <MESSAGE value="bandit ablation" />
+    <MESSAGE value="paper" />
+    <option name="LAST_COMMIT_MESSAGE" value="paper" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/StkCode$plot_elara_experiment_section_figures.coverage" NAME="plot_elara_experiment_section_figures Coverage Results" MODIFIED="1782898729085" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Simulation/pics" />
+    <SUITE FILE_PATH="coverage/StkCode$plot_elara_service_routing2.coverage" NAME="plot_elara_service_routing2 Coverage Results" MODIFIED="1782994585818" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Simulation/pics" />
+    <SUITE FILE_PATH="coverage/StkCode$plot_elara_redeployment.coverage" NAME="plot_elara_redeployment Coverage Results" MODIFIED="1782992118000" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Simulation/pics" />
+    <SUITE FILE_PATH="coverage/StkCode$plot_chain_length_cross_slot_hop_stats.coverage" NAME="plot_chain_length_cross_slot_hop_stats Coverage Results" MODIFIED="1782979148421" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Simulation/pics" />
+    <SUITE FILE_PATH="coverage/StkCode$plot_elara_paper_figures2.coverage" NAME="plot_elara_paper_figures2 Coverage Results" MODIFIED="1782907937816" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Simulation/pics" />
   </component>
 </project>
