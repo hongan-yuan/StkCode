@@ -27,18 +27,16 @@ DEFAULT_REDEPLOY_DIR = (
 DEFAULT_OUTPUT_DIR = ROOT_DIR / "Simulation" / "pics" / "elara_paper"
 DEFAULT_PAPER_FIG_DIR = ROOT_DIR / "MyPaper" / "elara_exp"
 
-CROSS_SLOT_METHODS = ("ELARA", "ELARA-SH", "SP-Routing", "SC-NFV", "SECO")
 REDEPLOY_METHODS = ("ELARA", "ELARA-NB")
 
 FONT_FAMILY = "Times New Roman"
-BASE_FONT_SIZE = 10
-AXIS_LABEL_FONT_SIZE = 11
-TICK_LABEL_FONT_SIZE = 9
-LEGEND_FONT_SIZE = 9
-TITLE_FONT_SIZE = 12
+BASE_FONT_SIZE = 20
+AXIS_LABEL_FONT_SIZE = 20
+TICK_LABEL_FONT_SIZE = 20
+LEGEND_FONT_SIZE = 20
 AXIS_LINE_WIDTH = 1.0
-LINE_WIDTH = 1.9
-MARKER_SIZE = 3.0
+LINE_WIDTH = 2.8
+MARKER_SIZE = 4.0
 GRID_LINE_WIDTH = 0.55
 
 COLORS = {
@@ -66,14 +64,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--paper-fig-dir", type=Path, default=DEFAULT_PAPER_FIG_DIR)
     parser.add_argument(
-        "--cross-slot-methods",
-        default=" ".join(CROSS_SLOT_METHODS),
-        help="Space/comma separated methods for the cross-slot routing behavior figure.",
-    )
-    parser.add_argument("--slot-window", type=int, default=10)
-    parser.add_argument("--max-slot", type=int, default=600)
-    parser.add_argument("--format", choices=("png",), default="png")
-    parser.add_argument(
         "--no-copy-to-paper",
         action="store_true",
         help="Do not copy generated figures into MyPaper/elara_exp.",
@@ -88,7 +78,6 @@ def configure_style() -> None:
             "font.size": BASE_FONT_SIZE,
             "axes.linewidth": AXIS_LINE_WIDTH,
             "axes.labelsize": AXIS_LABEL_FONT_SIZE,
-            "axes.titlesize": TITLE_FONT_SIZE,
             "xtick.labelsize": TICK_LABEL_FONT_SIZE,
             "ytick.labelsize": TICK_LABEL_FONT_SIZE,
             "legend.fontsize": LEGEND_FONT_SIZE,
@@ -396,12 +385,28 @@ def redeployment_reduction_series(
     return windows, series
 
 
+def smooth_nan_series(values: list[float], window: int = 5) -> list[float]:
+    if window <= 1 or len(values) <= 2:
+        return values
+    half_window = window // 2
+    array = np.array(values, dtype=float)
+    smoothed: list[float] = []
+    for index, value in enumerate(array):
+        start = max(0, index - half_window)
+        end = min(len(array), index + half_window + 1)
+        local = array[start:end]
+        finite = local[np.isfinite(local)]
+        smoothed.append(float(np.mean(finite)) if len(finite) else float(value))
+    return smoothed
+
+
 def plot_redeployment_reductions(ax, rows: list[dict]) -> None:
     windows, series = redeployment_reduction_series(rows)
     for label in ("Latency", "Energy"):
+        values = smooth_nan_series(series[label], window=7)
         ax.plot(
             windows,
-            series[label],
+            values,
             color=COLORS[label],
             linewidth=LINE_WIDTH,
             marker="o",
@@ -412,17 +417,8 @@ def plot_redeployment_reductions(ax, rows: list[dict]) -> None:
     ax.axhline(0.0, color="#111827", linewidth=0.8, linestyle=":")
     ax.set_xlabel("Deployment window index")
     ax.set_xlim(1, max(windows) if windows else 1)
-    ax.text(
-        0.015,
-        0.97,
-        "(a) Window-level gain",
-        transform=ax.transAxes,
-        ha="left",
-        va="top",
-        fontsize=TITLE_FONT_SIZE,
-        fontweight="bold",
-    )
     style_axis(ax, "Reduction over ELARA-NB (%)")
+    ax.set_ylim(bottom=0.0)
     ax.legend(frameon=False, loc="best")
 
 
@@ -459,16 +455,6 @@ def plot_redeployment_action_distribution(ax, rows: list[dict]) -> None:
     if values:
         ax.set_ylim(0.0, max(values) * 1.18)
     ax.set_xlabel("Redeployment action")
-    ax.text(
-        0.015,
-        0.97,
-        "(b) Action distribution",
-        transform=ax.transAxes,
-        ha="left",
-        va="top",
-        fontsize=TITLE_FONT_SIZE,
-        fontweight="bold",
-    )
     style_axis(ax, "Number of actions")
 
 
@@ -476,13 +462,16 @@ def save_redeployment_adaptivity_figure(
     output_path: Path,
     window_rows: list[dict],
     action_rows: list[dict],
-) -> None:
+) -> list[Path]:
     fig, axes = plt.subplots(1, 2, figsize=(11.2, 4.7), constrained_layout=True)
     plot_redeployment_reductions(axes[0], window_rows)
     plot_redeployment_action_distribution(axes[1], action_rows)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, bbox_inches="tight")
+    pdf_path = output_path.with_suffix(".pdf")
+    fig.savefig(pdf_path, bbox_inches="tight")
     plt.close(fig)
+    return [output_path, pdf_path]
 
 
 def copy_to_paper(paths: list[Path], paper_fig_dir: Path) -> None:
@@ -494,25 +483,11 @@ def copy_to_paper(paths: list[Path], paper_fig_dir: Path) -> None:
 def main() -> None:
     args = parse_args()
     configure_style()
-    methods = parse_method_list(args.cross_slot_methods)
-    slot_rows = load_slot_rows(args.ablation_dir, methods)
-    hop_rows = load_hop_rows(args.ablation_dir, methods)
     window_rows = load_redeployment_window_rows(args.redeploy_dir)
     action_rows = load_migration_action_rows(args.redeploy_dir)
 
-    cross_slot_path = args.output_dir / f"cross_slot_routing_behavior.{args.format}"
-    redeploy_path = args.output_dir / f"redeployment_adaptivity.{args.format}"
-    save_cross_slot_routing_figure(
-        cross_slot_path,
-        slot_rows,
-        hop_rows,
-        methods,
-        args.slot_window,
-        args.max_slot,
-    )
-    save_redeployment_adaptivity_figure(redeploy_path, window_rows, action_rows)
-
-    outputs = [cross_slot_path, redeploy_path]
+    redeploy_path = args.output_dir / "redeployment_adaptivity.png"
+    outputs = save_redeployment_adaptivity_figure(redeploy_path, window_rows, action_rows)
     if not args.no_copy_to_paper:
         copy_to_paper(outputs, args.paper_fig_dir)
 
