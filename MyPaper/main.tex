@@ -7,36 +7,14 @@
 \usepackage{array}
 \usepackage{amsmath,amsthm,amssymb,amsfonts,autobreak}
 \usepackage{pifont}
-\hyphenation{op-tical net-works semi-conduc-tor}
 \usepackage[ruled,vlined,linesnumbered]{algorithm2e}
 \usepackage[table,xcdraw]{xcolor}
 \usepackage{colortbl}
-\usepackage[marginal]{footmisc}
 \usepackage{bm,epsfig,amsthm,url}
 \usepackage{verbatim}
 \usepackage{cite}
-\usepackage{autobreak}
 \usepackage{tabularx}
-\usepackage{url}
-\usepackage{caption}
-\usepackage{graphicx}
-\usepackage{float} 
-\usepackage{subfigure}
-\usepackage{subcaption}
-\usepackage{booktabs}
-\usepackage{array}
-\usepackage{amsmath,amsthm,amssymb,amsfonts,autobreak}
-\usepackage{pifont}
 \usepackage{mathrsfs}
-\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
-\usepackage[table,xcdraw]{xcolor}
-\usepackage{colortbl}
-\usepackage[marginal]{footmisc}
-\usepackage{bm,epsfig,amsthm,url}
-\usepackage{verbatim}
-\usepackage{cite}
-\usepackage{autobreak}
-\usepackage{indentfirst}
 \graphicspath{{figs/}}
 \hyphenation{op-tical net-works semi-conduc-tor}
 \SetCommentSty{\textit\footnotesize} 
@@ -53,16 +31,9 @@
 
 \begin{abstract}
 
-The rapid advancement of the Space Computing Power Network (SCPN), comprising numerous low Earth orbit (LEO) satellites, has enabled the execution of complex in-orbit observation and computation tasks. To facilitate this, microservice architecture decomposes large, monolithic remote sensing and image processing applications into independent, schedulable, and reusable services deployed in a distributed manner across LEO satellites. However, integrating these capabilities presents significant challenges arising from the limited computing resources, constrained power provisions of individual satellites, and the dynamic nature of space network topology and channel conditions. This paper addresses these challenges by proposing an energy-aware service routing algorithm for microservices within the SCPN. The algorithm aims to minimize the energy consumed by the procedures of processing and transmitting service data in both computation and communication. By modeling the service routing problem as a Directed Steiner Tree (DST) and implementing heuristic-based solutions, our algorithm effectively responds to the diverse service patterns requested by terrestrial clients. Comprehensive experimental results demonstrate that our approach significantly outperforms existing methods in terms of energy efficiency, robustness, stability, and adaptability.
+Space computing power networks (SCPNs) are turning low Earth orbit (LEO) constellations into distributed computing infrastructures for in-orbit sensing, communication, and intelligence. Microservice architecture is a promising way to execute complex remote sensing and AI applications in such environments, because it decomposes monolithic applications into lightweight and reusable services deployed across multiple satellites. However, efficient microservice orchestration in SCPNs is difficult because service execution, inter-satellite routing, and replica placement are tightly coupled under time-varying inter-satellite links, heterogeneous onboard computing resources, and limited satellite energy budgets. This paper presents ELARA, an energy-efficient and latency-aware orchestration framework for microservice execution in dynamic SCPNs. ELARA uses a GNN-enhanced Proximal Policy Optimization agent to select serving satellites, a time-slot-aware min-cost max-flow module with residual updates to route intermediate data across changing topologies, and a bandit-based redeployment module to adapt service replicas at the orbital-plane level. Extensive simulations under dynamic LEO constellation topologies show that ELARA reduces end-to-end latency, energy consumption, and deadline violations compared with representative satellite edge computing, service chaining, and pressure-based routing baselines.
 
 \end{abstract}
-
-% Note that keywords are not normally used for peerreview papers.
-\begin{IEEEkeywords}
-Energy, Microservice, Routing, Space Network
-\end{IEEEkeywords}
-
-
 
 \section{Introduction}
 \label{sec:intro}
@@ -72,30 +43,30 @@ Energy, Microservice, Routing, Space Network
 % Hundreds to thousands of satellite computing nodes collectively form the SCPN, where the strategic allocation of sensing, communication, and computing resources to efficiently fulfill diverse intelligent service requests has emerged as a critical challenge in the context of 6G integrated space-air-ground networks \cite{SAG_survey_6g}.
 
 
-Recent advances in low Earth orbit (LEO) mega-constellations are transforming satellites from traditional bent-pipe communication relays into distributed computing nodes in space. 
-These large-scale constellations, consisting of hundreds to thousands of satellites interconnected by inter-satellite links (ISLs) and equipped with onboard processors and storage, enable global connectivity and near-data processing for time-sensitive applications~\cite{net_char_StarLink_LEO,satellite_sys_survey}.
+Recent advances in low Earth orbit (LEO) mega-constellations are transforming satellites from bent-pipe relays into distributed computing nodes in space.
+These large-scale constellations, consisting of hundreds to thousands of satellites interconnected by inter-satellite links (ISLs) and equipped with onboard processors and storage, enable global connectivity and near-data processing~\cite{net_char_StarLink_LEO,satellite_sys_survey}.
 This evolution is particularly critical for Earth observation, weather forecasting, environmental monitoring, and remote sensing analytics, where massive volumes of images and multi-modal data are continuously generated in orbit~\cite{progress_challenge_RS_satellite,seco_infocom2024}. 
 Directly downloading such raw data to terrestrial data centers consumes scarce satellite-to-ground bandwidth and worsens link congestion, especially under limited contact windows and unfavorable channel conditions~\cite{leyva2023satellite,joint_orbit_comp_comm4data_Download}. Consequently, space computing power networks (SCPNs), which integrate sensing, communication, and computing resources across LEO satellites, have emerged as a promising infrastructure for onboard intelligent services~\cite{survey_on_nextg_comp_tech_SAGIN}.
 
-Promising but challenging, running these complex monolithic applications on a single LEO satellite remains infeasible due to stringent resource constraints, e.g., limited computing, storage, energy provisions, and thermal dissipation~\cite{leyva2023satellite,joint_orbit_comp_comm4data_Download}.
+Despite this promise, running complex monolithic applications on a single LEO satellite remains infeasible because each satellite has limited computing, storage, energy, and thermal dissipation capabilities~\cite{leyva2023satellite,joint_orbit_comp_comm4data_Download}.
 Microservice architecture provides an effective solution by decomposing these remote sensing and AI applications into fine-grained, loosely coupled, and reusable microservices, each encapsulating a distinct functional module~\cite{3D_assets_microservice}.
-By packaging them into lightweight containers and deploying them across interconnected satellites, this architecture alleviates individual satellite resource limitations and enables onboard cooperative execution of complex applications.
-Furthermore, upon detecting hotspot microservices, the system can dynamically scale their replicas and adjust deployment strategies to ensure robust and efficient service provisioning.
+By packaging them into lightweight containers and deploying them across interconnected satellites, this architecture alleviates individual satellite resource limitations and enables onboard cooperative execution.
+Hotspot microservices can also be dynamically scaled or redeployed to support robust service provisioning.
 
-Typically, a single request initiated by a terrestrial user involves a subset of microservices.
-The dynamic and time-varying constellation topology can affect or even interrupt the data transmission process because of unstable inter-plane ISLs.
-Moreover, the harware heterogeneity and limited onboard power supply further complicate the scheduling decisions at each microservice execution stage.
+Typically, a request initiated by a terrestrial user invokes only a subset of microservices.
+The dynamic constellation topology can slow down or even interrupt intermediate data transmission because inter-plane ISLs are intermittently available.
+Moreover, hardware heterogeneity and limited onboard energy further complicate scheduling decisions at each microservice execution stage.
 
-To enable energy-efficient and low-latency service provision in SCPNs, there are several major challenges must be addressed.
+Enabling energy-efficient and low-latency service provisioning in SCPNs requires addressing three major challenges.
 First, the satellite network topology is predictable but highly time-varying. Intra-plane ISLs are relatively stable, whereas inter-plane ISLs are sensitive to satellite motion and change frequently across slots. Consequently, routing intermediate data along a single static path often suffers from link disruptions, congestion, or degraded transmission rates.
-Second, serving satellite selection and ISL routing are tightly coupled. Selecting a nearby replica may reduce transmission delay but lead to long computation queuing time on overloaded satellites, while choosing an idle satellite can incur high multi-hop communication costs. This coupling is further complicated by heterogeneous computing capacities, and energy constraints~\cite{energy_efficient_routing_tsinghua,cao_comp_routing}.
-Third, microservice replica deployment cannot remain static. As request distributions, satellite workloads, and network topology evolve, previously optimal placements quickly become inefficient. However, frequent redeployment is costly due to expensive service image transfers over ISLs and the enormous decision space~\cite{yu_deploy_tmc2025}.
+Second, serving-satellite selection and ISL routing are tightly coupled. A nearby replica may reduce transmission delay but suffer long computation queues, whereas an idle satellite may incur high multi-hop communication cost; this tradeoff is further complicated by heterogeneous computing capacities and energy constraints~\cite{energy_efficient_routing_tsinghua,cao_comp_routing}.
+Third, microservice replica deployment cannot remain static. As requests, workloads, and topology evolve, previously optimal placements quickly become inefficient, yet frequent redeployment incurs costly service image transfers over ISLs and a large decision space~\cite{yu_deploy_tmc2025}.
 
 Existing studies have extensively investigated satellite edge computing, in-orbit computation, service placement, and NFV-enabled service chaining in the context of SCPN~\cite{leyva2023satellite,joint_orbit_comp_comm4data_Download,sc_nfv_tmc2024,service_pressure,yu_deploy_tmc2025}.
-Nevertheless, most of them fail to fully capture the continuous execution of microservice requests and ignore the joint optimization of service routing and replica deployment under time-varying communication conditions and heterogeneous onboard hardware environments.
+Nevertheless, most existing solutions do not fully capture continuous microservice execution and overlook the joint optimization of service routing and replica deployment under time-varying communication conditions and heterogeneous onboard hardware.
 In particular, many satellite-oriented service and function execution models rely on unchanged constellation snapshots, implicitly assuming that each task can be completed within a single period during which link states remain unchanged.
-While this abstraction simplifies modeling and algorithm design, it deviates from practical in-orbit service execution, where data routing, computation, and scheduling could frequently span multiple time slots~\cite{cross_slot_optim_infocom2025}.
-Although terrestrial microservice routing studies have explored the joint optimization of service deployment and request routing~\cite{optim_svc_dep_req_reouting_in_MEC}, their assumptions of stable networks, abundant power supply, and fixed edge infrastructure are not directly applicable to the SCPNs.
+While this abstraction simplifies modeling and algorithm design, it deviates from practical in-orbit service execution, where data routing, computation, and scheduling can frequently span multiple time slots~\cite{cross_slot_optim_infocom2025}.
+Although terrestrial microservice routing studies have explored the joint optimization of service deployment and request routing~\cite{optim_svc_dep_req_reouting_in_MEC}, their assumptions of stable networks, abundant power supply, and fixed edge infrastructure are not directly applicable to SCPNs.
 
 \begin{figure}[!t]
 \centering
@@ -107,30 +78,30 @@ Although terrestrial microservice routing studies have explored the joint optimi
 \end{figure}
 
 \subsection{Contributions}
-To address the aforementioned challenges, we propose ELARA, an energy-efficient and latency-aware microservice orchestration framework for SCPNs. ELARA jointly optimizes the service routing and replica deployment for distributed applications operating under highly dynamic SCPN environments.
+To address these challenges, we propose ELARA, an energy-efficient and latency-aware microservice orchestration framework for SCPNs. ELARA jointly optimizes service routing and replica deployment for distributed applications operating in highly dynamic SCPN environments.
 Specifically, when a request arrives at an arbitrary time, ELARA partitions the execution process into sequential stages.
 % For each stage, after completing the current service, ELARA first selects the next computing node from satellites hosting replicas of the subsequent microservice, while considering the volume of intermediate data, real-time onboard computing capacities, and current ISL states.
-For each stage, ELARA evaluates the intermediate data volume, real-time onboard processing capacities, and current link states to select the optimal computing node among satellites hosting the required service replicas.
+For each stage, ELARA evaluates the intermediate data volume, real-time onboard processing capacity, and current link states to select a suitable computing node among satellites hosting the required service replica.
 % To deliver intermediate data, it employs a min-cost max-flow approach to establish parallel paths for accelerated transfer within the current slot. Furthermore, it introduces a residual update mechanism to re-route incomplete transmissions across subsequent slots, rigorously accounting for the communication delay and energy overhead induced by topological handovers.
-To deliver intermediate data, it couples a min-cost max-flow approach for accelerated parallel transmission over ISLs with a residual update mechanism for cross-slot data re-routing, rigorously accounting for the communication delay and energy overhead induced by topological handovers.
+To deliver intermediate data, ELARA couples a min-cost max-flow approach for accelerated parallel transmission over ISLs with a residual update mechanism for cross-slot data re-routing, thereby accounting for the communication delay and energy overhead induced by topology handovers.
 Finally, ELARA periodically adapts the replica placement according to the historical service invocation patterns and real-time network conditions.
-Built upon this design, ELARA achieves joint optimization of end-to-end latency and energy consumption for efficient service provisioning under dynamic constellation topologies and stringent onboard resource constraints.
+Built upon this design, ELARA jointly optimizes end-to-end latency and energy consumption under dynamic constellation topologies and stringent onboard resource constraints.
 
 In summary, the main contributions are as follows:
 \begin{enumerate}
 \item
 % We identify and formulate the microservice-based in-orbit service provisioning problem in SCPNs from an application-layer perspective. In particular, we characterize the intertwined challenges of service routing and replica deployment under time-varying constellation topology, heterogeneous onboard computing capacities, and stringent resource constraints. To address these challenges, we propose ELARA, an energy-efficient and latency-aware orchestration framework for microservice execution and deployment  across multiple satellites.
-We identify and formulate the service provisioning problem in SCPNs, characterizing the interwined challenges of service routing and replica deployment under time-varying and heterogeneous SCPNs. To address these challenges, we propose ELARA, an energy-efficient and latency-aware orchestration framework for distributed microservice execution across LEO satellites.
+We identify and formulate the service provisioning problem in SCPNs, characterizing the intertwined challenges of service routing and replica deployment in time-varying and heterogeneous LEO satellite networks. To address these challenges, we propose ELARA, an energy-efficient and latency-aware orchestration framework for distributed microservice execution across LEO satellites.
 
 \item
 % We design a learning-based service orchestration algorithm that integrates GNN-enhanced Proximal Policy Optimization (PPO) with time-slot-aware adaptive routing.
 % ELARA employs a graph neural network (GNN) to jointly encode satellite computing states, replica deployment, ISL capacity, and service calling information, enabling the PPO agent to learn effective next-hop serving satellite selection policies that adapt to computation heterogeneity and topology dynamics.
 % For data transfer, it further adopts a time-slot-aware min-cost max-flow algorithm to generate parallel and robust routing paths across dynamic LEO snapshots.
-We develop a learning-based service orchestration algorithm that integrates a GNN-enhanced Proximal Policy Optimization (PPO) agent with a time-slot-aware adaptive routing module. The agent adaptively derives the next-hop serving satellite selection, while a min-cost max-flow approach with a residual update mechanism handles cross-slot data routing, jointly optimizing the end-to-end execution latency and energy consumption.
+We develop a learning-based service orchestration algorithm that integrates a GNN-enhanced Proximal Policy Optimization (PPO) agent with a time-slot-aware adaptive routing module. The agent selects serving satellites for microservice stages, while a min-cost max-flow approach with a residual update mechanism handles cross-slot data routing, jointly optimizing end-to-end execution latency and energy consumption.
 
 \item
 % We propose a multi-armed bandit-based algorithm for adaptive replica placement. By collecting request patterns over a few past time slots along with current onboard computing and ISL conditions, ELARA dynamically adjusts the number of replicas and deployments of hotspot microservices, whose decisions are made at the orbital level rather than by each individual satellite for reducing learning overhead and decision complexity.
-We design a multi-armed bandit algorithm for dynamic replica placement. By collecting historical service tracing data and real-time network states, it can dynamically adjust the hotspot microservice deployments at the orbital-plane level, instead of per-satellite approaches, significantly reducing the decision complexity.
+We design a multi-armed bandit algorithm for dynamic replica placement. By collecting historical service traces and real-time network states, ELARA dynamically adjusts hotspot microservice deployments at the orbital-plane level, substantially reducing decision complexity compared with per-satellite placement.
 
 \item
 % We conduct extensive simulations under dynamic LEO constellations and diverse microservice workloads to evaluate ELARA's performance. The results demonstrate that ELARA can effectively reduces end-to-end latency, energy consumption, and deadline violations compared with representative baselines, while validating the benefits of joint service orchestration, adaptive routing, and replica deployment.
@@ -149,19 +120,13 @@ Extensive simulations under dynamic LEO constellations demonstrate that ELARA si
 % \end{figure}
 
 
-The remainder of this paper is organized as follows.
-Sec.~\ref{sec:related_work} reviews the related works.
-Sec.~\ref{sec:sys_model} presents the system models.
-The problem formulation is introduced in Sec.~\ref{sec:prob_form}.
-Sec.~\ref{sec:algo} details the proposed ELARA framework.
-Sec.~\ref{sec:eval} shows and analyses the Simulation results.
-Sec.~\ref{sec:conclusion} draws the conclusion.
+The remainder of this paper reviews related work, presents the system model and problem formulation, details ELARA, evaluates its performance, and concludes the paper.
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=1\linewidth]{figs/time_varying_isl.pdf}
 \vspace{-0.5cm}
-\caption{Space and terrestrial network topology.}
+\caption{Time-varying inter-satellite links in a LEO constellation.}
 \label{fig:time_varying_isl}
 \vspace{-0.7cm}
 \end{figure}
@@ -175,10 +140,9 @@ Sec.~\ref{sec:conclusion} draws the conclusion.
 % These efforts mainly focus on task-level offloading, mission-specific processing, or computation-communication resource allocation.
 % Microservice-oriented service provision, however, introduces finer-grained execution dependencies across distributed replicas, where intermediate data transmission and onboard computation are tightly coupled under dynamic SCPNs.
 
-Recent advancements in satellite edge computing and SCPNs have supported in-situ data processing over LEO constellations with onboard computation and ISL connectivity~\cite{survey_on_nextg_comp_tech_SAGIN,xie2020stec}.
-Zhang et al.~\cite{zhang2023sec_offloading} investigated energy-efficient peer offloading among satellites, while Leyva-Mayorga et al.~\cite{leyva2023satellite} and Zhai et al.~\cite{seco_infocom2024} explored real-time Earth observation and joint optimization of observation scheduling, routing, and computation node selection, respectively.
-These studies primarily focus on task-level offloading, mission-specific processing, or joint computation-communication resource allocation.
-However, microservice-oriented service provisioning introduces finer-grained execution dependencies across distributed replicas, where intermediate data transmission and onboard computation are tightly coupled under the dynamic SCPN environment.
+Recent advances in satellite edge computing and SCPNs have enabled in-situ data processing over LEO constellations with onboard computation and ISL connectivity~\cite{survey_on_nextg_comp_tech_SAGIN,xie2020stec}.
+Zhang et al.~\cite{zhang2023sec_offloading} investigated energy-efficient peer offloading among satellites, while Leyva-Mayorga et al.~\cite{leyva2023satellite} and Zhai et al.~\cite{seco_infocom2024} explored real-time Earth observation and joint optimization of observation scheduling, routing, and computation node selection.
+These studies focus on task-level offloading, mission-specific processing, or computation-communication resource allocation, whereas microservice provisioning introduces finer-grained execution dependencies across distributed replicas.
 
 % Service routing and task scheduling in satellite networks have also been studied from various of perspectives.
 % In \cite{cao_comp_routing}, the author proposed a computing-aware routing framework that integrates transmission and computation decisions for remote sensing tasks in LEO satellite networks.
@@ -188,16 +152,14 @@ However, microservice-oriented service provisioning introduces finer-grained exe
 % However, most of them either optimize communication paths alone or consider computation-node selection within a given stable topology snapshot or a pre-defined topology sequence.
 % They fails to capture the joint impact of broken inter-plane ISLs, heterogeneous serving node computing capacity, and time-varying SCPNs for microservice requests.
 
-At the same time, service routing and task scheduling in satellite networks have been extensively studied from various of perspectives.
-Cao et al.~\cite{cao_comp_routing} proposed a computing-aware routing framework that jointly optimizes transmission and computation decisions for remote sensing tasks in LEO satellite networks. Xia et al.~\cite{sc_nfv_tmc2024} investigated service chaining in NFV-enabled satellite edge networks. To improve routing efficiency and alleviate link congestion, He et al.~\cite{service_pressure} developed a throughput-oriented routing scheme for microservice flows. Some studies further model dynamic topologies using time-expanded graphs or optimize routing over time-varying LEO constellations~\cite{liu2023time_expanded_graph,routing_optim_in_multi_domain,cross_slot_optim_infocom2025}.
-However, most of these works either focus solely on communication path optimization or consider computation node selection within static topology snapshots or predefined sequences. They fail to capture the joint impact of dynamic inter-plane ISL disruptions, heterogeneous serving-node computing capacities, and time-varying network topology on microservice requests.
+Service routing and task scheduling in satellite networks have also been studied from multiple perspectives.
+Cao et al.~\cite{cao_comp_routing} proposed computing-aware routing for remote sensing tasks, Xia et al.~\cite{sc_nfv_tmc2024} investigated NFV-enabled service chaining, and He et al.~\cite{service_pressure} developed throughput-oriented routing for microservice flows. Other studies model dynamic topologies using time-expanded graphs or optimize routing over time-varying LEO constellations~\cite{liu2023time_expanded_graph,routing_optim_in_multi_domain,cross_slot_optim_infocom2025}.
+However, most of these works either focus on communication paths alone or consider computation-node selection within static topology snapshots or predefined sequences, leaving the joint impact of ISL disruptions, heterogeneous computing capacities, and time-varying topology insufficiently addressed.
 
 
 Microservice deployment and request execution have been extensively studied in terrestrial edge systems.
-Peng et al.~\cite{optim_svc_dep_req_reouting_in_MEC} proposed efficient algorithms for joint service deployment and request routing in mobile edge computing.
-In satellite environments, Gao et al.~\cite{optim4server_svc_place_in_STIECN} investigated joint server and service selection in satellite-terrestrial integrated edge computing networks, and Yu et al.~\cite{yu_deploy_tmc2025} developed a robust reinforcement learning approach for microservice deployment in SCPNs.
-Nevertheless, existing methods are either designed for static terrestrial scenarios and thus unsuitable for time-varying SCPNs, or result in prohibitively large joint decision spaces for satellite-service co-optimization.
-Consequently, effectively coordinating microservice deployment with service routing under dynamic satellite computing conditions and time-varying ISL states remains an open challenge.
+Peng et al.~\cite{optim_svc_dep_req_reouting_in_MEC} studied joint service deployment and request routing in mobile edge computing. In satellite environments, Gao et al.~\cite{optim4server_svc_place_in_STIECN} investigated joint server and service selection, and Yu et al.~\cite{yu_deploy_tmc2025} developed robust reinforcement learning for microservice deployment in SCPNs.
+Nevertheless, existing methods are either designed for static terrestrial scenarios or induce prohibitively large joint decision spaces for satellite-service co-optimization. Coordinating microservice deployment with service routing under dynamic satellite computing conditions and time-varying ISL states therefore remains open.
 
 
 \begin{comment}
@@ -226,8 +188,7 @@ Efficient but shortsighted, these proposed algorithms cannot adapt to diverse ro
 \label{sec:sys_model}
 
 We consider an SCPN built upon a Walker-Delta LEO constellation, where satellites are connected through time-varying laser ISLs and equipped with constrained onboard computing and storage resources.
-Microservice-based applications are deployed as stateless replicas across satellites, allowing each request to be collaboratively executed through successive communication and computation stages.
-This section models the constellation topology, ISL communication, onboard computation, microservice requests, cross-slot execution cost, and replica migration process.
+Microservice applications are deployed as stateless replicas across satellites, allowing each request to be collaboratively executed through successive communication and computation stages.
 
 % We consider a space computing power network (SCPN) composed of a Walker-Delta LEO constellation, where each satellite is equipped with onboard computing resources and laser inter-satellite links (ISLs).
 % User tasks are represented as ordered microservice chains.
@@ -240,10 +201,10 @@ This section models the constellation topology, ISL communication, onboard compu
 A typical Walker-Delta constellation is parameterized by $\mathcal{W}=(A/P/G,H,I)$, where $A$ is the total number of satellites, $P$ is the number of orbital planes, $G$ is the inter-plane phasing factor, $H$ is the orbital altitude, and $I$ is the inclination.
 Consequently, each orbital plane accommodates $N = A/P$ satellites.
 % A satellite node is uniquely identified by its orbital plane index $p$ and its intra-plane position index $n$, denoted by $v_{p,n}$.
-The set of satellite nodes in the constellation is formally defined as $\mathcal{V}=\{v_{p,n}\mid p=1,\ldots,P,\ n=1,\ldots,N\}$, where $p$ denotes the orbital plane index, $n$ denotes the intra-plane position index,
-To capture the high dynamism of the satellite network, we discretize the constellation's orbital period into a set of time slots, as $\mathcal{T} = \{0, 1, \ldots, T-1\}$, with a uniform slot duration $\Delta$.
-For any continuous-time instant $\tau$, the corresponding time slot index is mapped as, $s(\tau) = \left\lfloor \tau/\Delta \right\rfloor \bmod T$.
-Adopting a snapshot-based modeling approach, we assume that the network state, including satellite positions, ISL availability, and capacity, remains unchanged within a single time slot and only evolves while the slot is switching.
+The set of satellite nodes in the constellation is formally defined as $\mathcal{V}=\{v_{p,n}\mid p=1,\ldots,P,\ n=1,\ldots,N\}$, where $p$ denotes the orbital-plane index and $n$ denotes the intra-plane position index.
+To capture the high dynamism of the satellite network, we discretize the constellation period into a set of time slots $\mathcal{T} = \{0, 1, \ldots, T-1\}$ with a uniform slot duration $\Delta$.
+For any continuous-time instant $\tau$, the corresponding slot index is $s(\tau) = \left\lfloor \tau/\Delta \right\rfloor \bmod T$.
+Following a snapshot-based modeling approach, we assume that the network state, including satellite positions, ISL availability, and capacity, remains unchanged within a slot and evolves only at slot boundaries.
 Thus, the time-varying network topology during slot $t \in \mathcal{T}$ is formally defined as a dynamic and time-dependent graph $\mathcal{G}(t) = \big(\mathcal{V}, \mathcal{E}(t)\big)$, where $\mathcal{E}(t)$ represents the set of feasible ISLs at slot $t$.
 % Geometrically, the position of $v_{p,n}$ at slot $t$ is defined in spherical coordinates as $(H+R_E, \mho_p, \nu_{p,n}(t))$, where $R_E$ is the Earth's radius, $\mho_p$ is the $p$-th plane's right ascension of the ascending node (RAAN), and $\nu_{p,n}(t)$ is its orbital phase.
 
@@ -255,7 +216,7 @@ Each satellite $v_{p,n}$ maintains two intra-plane ISLs with its adjacent neighb
 Because satellites in the same plane share identical angular velocities, their relative distances remain time-invariant, yielding highly stable communication links.
 
 Conversely, inter-plane ISLs are dynamic.
-Constrained by the physical limits of onboard laser communication terminals (LCTs), the existence of a inter-plane link $e=(u,v)$ at slot $t$ is jointly affected by line-of-sight (LoS) distance, mechanical tracking thresholds, and polar exclusions, formulated as:
+Constrained by the physical limits of onboard laser communication terminals (LCTs), the existence of an inter-plane link $e=(u,v)$ at slot $t$ is jointly determined by line-of-sight (LoS) distance, mechanical tracking thresholds, and polar exclusions, formulated as:
 \begin{equation}
 e\in \mathcal{E}(t) \iff \left\{
 \begin{array}{l}
@@ -267,7 +228,7 @@ d_{u,v}(t) \le d_{\text{max}}, \\
 \label{eq:cross_link_indicator}
 \end{equation}
 where the LoS distance $d_{u,v}(t)$ and relative tracking angle $\theta_{u,v}(t)$ are bounded by the terrestrial occlusion limit $d_{\text{max}}$ and the hardware threshold $\theta_{\text{max}}$, respectively.
-Furthermore, the third constraint enforces a polar exclusion zone at latitude boundary $\varphi_{\text{max}}$ (e.g., $70^{\circ}$) through proactively tearing down the inter-plane links, which effectively circumvents the severe pointing dynamics and extreme Doppler shifts inherent to polar regions.
+Furthermore, the third constraint enforces a polar exclusion zone at latitude boundary $\varphi_{\text{max}}$ (e.g., $70^{\circ}$) by proactively tearing down inter-plane links, thereby avoiding the severe pointing dynamics and extreme Doppler shifts inherent to polar regions.
 % This mechanism proactively tears down inter-plane links at high latitudes to bypass the severe pointing dynamics and extreme Doppler shifts inherent to polar regions.
 
 
@@ -279,7 +240,7 @@ Based on the Free-Space Optical (FSO) communication model, the received power $P
 P_{e}^{\text{rx}}(t) = P^{\text{tx}} G^{\text{tx}} G^{\text{rx}} \eta_{\text{tx}} \eta_{\text{rx}} \left(\frac{\lambda}{4\pi d_{u,v}(t)}\right)^2,
 \label{eq:received_power}
 \end{equation}
-where $P^{\text{tx}}$ is the laser transmit power, $G^{\text{tx}}$ and $G^{\text{rx}}$ represent the optical gains of the transmitter and receiver apertures respectively, $\lambda$ is the laser wavelength, and $\eta_{\text{tx}}, \eta_{\text{rx}}$ denote the optical efficiency factors.
+where $P^{\text{tx}}$ is the laser transmit power, $G^{\text{tx}}$ and $G^{\text{rx}}$ represent the optical gains of the transmitter and receiver apertures, respectively, $\lambda$ is the laser wavelength, and $\eta_{\text{tx}}, \eta_{\text{rx}}$ denote the optical efficiency factors.
 The real-time Signal-to-Noise Ratio (SNR) of the link $e$ at time slot $t$ is given as:
 \begin{equation}
 \gamma_{e}(t) = \frac{\left({R}_{\text{pd}} \cdot P_{e}^{\text{rx}}(t)\right)^2}{\sigma_{\text{sh}}^2 + \sigma_{\text{th}}^2},
@@ -316,7 +277,7 @@ In practice, the available computational resources are often constrained by back
 To capture these hardware and software limitations, we introduce a computational efficiency factor $\xi_v(t)\in(0,1]$ and define the effective dynamic computing capacity as $F_v(t) = \xi_v(t)F^0_v$.
 
 % Let $\tau^{\text{qe}}_v(t)$ denote the queuing delay experienced before microservice $m$ is scheduled for execution on satellite $v$.
-Let $\nu^{\text{qe}}_v(t)$ denote the queuing delay before scheduling microservice $m$ is executed on satellite $v$, which increases with the pending task queue length at slot $t$.
+Let $\nu^{\text{qe}}_v(t)$ denote the queuing delay before microservice $m$ is scheduled for execution on satellite $v$, which increases with the pending task queue length at slot $t$.
 % We formulate the total computation delay as:
 The total computation delay is modeled as:
 \begin{equation}
@@ -340,7 +301,7 @@ To facilitate flexible application management within the SCPN, complex applicati
 Each microservice $m \in \mathcal{M}$ is characterized by its computational demand $C_m$ (in CPU cycles), container image size $I_m$, and storage requirement $S_m$.
 % For robust load balancing and fault tolerance, multiple replicas of each microservice are distributed across the satellite constellation.
 
-We define a binary indication variable $x_{m,v}(t) \in \{0, 1\}$, which equals to $1$ if $m$ is deployed on $v$ during slot $t$.
+We define a binary indicator $x_{m,v}(t) \in \{0, 1\}$, which equals $1$ if $m$ is deployed on $v$ during slot $t$.
 Accordingly, the subset of satellite nodes hosting a valid replica of microservice $m$ at slot $t$ is denoted as $\mathcal{R}_m(t) = \{v \in \mathcal{V} \mid x_{m,v}(t) = 1\}$.
 To ensure service availability while preventing excessive resource contention, the total number of deployed replicas for any microservice should be bounded within predefined thresholds, $r_m^{\text{min}}$ and $r_m^{\text{max}}$:
 \begin{equation}
@@ -358,20 +319,20 @@ Furthermore, the aggregate storage footprint of all replicas hosted on a single 
 
 Let $r = \langle v_s, m_1, m_2, \ldots, m_L, v_d, \tau_{\text{in}} \rangle$ denote an incoming request with a deadline $Z_r$.
 Here, $v_s$ and $v_d$ are the source and destination satellites, $m_i$ is the $i$-th microservice in the sequential execution chain, and $\tau_{\text{in}}$ is the continuous arrival time.
-Let $B_{r,i}$ be the data volume that should be transmitted before invoking $m_i$, while $B_{r,L+1}$ denotes the final output routed to $v_d$.
+Let $B_{r,i}$ be the data volume that must be transmitted before invoking $m_i$, while $B_{r,L+1}$ denotes the final output routed to $v_d$.
 % Since a request can arrive at any arbitrary instant and its data transmission may span multiple topology slots, ELARA formulates this sequential service execution as a continuous-time online decision process.
 
 
 \paragraph{Cross-slot Service Routing Latency and Energy Model}
 Since requests may arrive at arbitrary instants while ISL topology and rates change at slot boundaries, ELARA tracks each service chain in continuous time.
-Before executing $m_i$, the input data $B_{r,i}$ stored at satellite $u_{r,i}$ should be routed to a satellite hosting a valid replica of $m_i$. We introduce a binary decision variable $y_{r,i,v} \in \{ 0, 1\}$ for node selection, which equals $1$ if $m_i$ is scheduled to satellite $v$.
+Before executing $m_i$, the input data $B_{r,i}$ stored at satellite $u_{r,i}$ must be routed to a satellite hosting a valid replica of $m_i$. We introduce a binary decision variable $y_{r,i,v} \in \{ 0, 1\}$ for node selection, which equals $1$ if $m_i$ is scheduled on satellite $v$.
 Let $v_{r,i}$ be the selected satellite with $y_{r,i,v_{r,i}}=1$.
 For the $i$-th service routing operation, the source and destination satellites are denoted by $u_{r,i}$ and $v_{r,i}$, respectively.
 
 
 Since the endpoints may be non-adjacent and transmission may start near a slot boundary, one routing operation can span $H\geq 1$ phases over time-varying multi-hop routes.
 For phase $h$, let $\tau_{r,i}^{h}$ be its start time, $t_h=s(\tau_{r,i}^{h})$ the active topology slot, $\bar{\Delta}_h$ the remaining slot time, and $B_{r,i}^{h}$ the residual data, with $B_{r,i}^{1}=B_{r,i}$.
-Let $\mathcal{P}_{r,i}^{h}$ be the feasible and active end-to-end path set from $u_{r,i}$ to $v_{r,i}$ in slot $t_h$, where each path $p\in\mathcal{P}_{r,i}^{h}$ is an ordered sequence of one or more ISLs, i.e., $p=(e_1,\ldots,e_{|p|})$, and different path may partially share the same ISLs.
+Let $\mathcal{P}_{r,i}^{h}$ be the feasible and active end-to-end path set from $u_{r,i}$ to $v_{r,i}$ in slot $t_h$, where each path $p\in\mathcal{P}_{r,i}^{h}$ is an ordered sequence of one or more ISLs, i.e., $p=(e_1,\ldots,e_{|p|})$, and different paths may partially share the same ISLs.
 If $D_h$ bits are transmitted, ELARA splits them across multiple such paths, and path $p$ receives fraction $\lambda_p^h\in[0,1]$:
 \begin{equation}
 d_p^h=\lambda_p^h D_h,\qquad
@@ -445,13 +406,13 @@ where $i=L+1$ denotes the final output delivery to $v_d$.
 
 \paragraph{Service Replica Migration Model}
 Let $\mathbf{X}(t)=[x_{m,v}(t)]$ represent the microservice replica deployment matrix at slot $t$.
-ElARA periodically updates the deployment matrix every few time slots by selecting an action $ a_{m_i} \in \{\text{add}, \text{remove}, \text{move}, \text{no-op}\} $ for each $m_i$ in a microservice subset $\mathcal{M'}(t) \subset \mathcal{M}$ at time slot $t$.
+ELARA periodically updates the deployment matrix every few time slots by selecting an action $ a_{m_i} \in \{\text{add}, \text{remove}, \text{move}, \text{no-op}\} $ for each $m_i$ in a microservice subset $\mathcal{M}'(t) \subset \mathcal{M}$ at time slot $t$.
 Then we have:
 \begin{align}
 \mathbf{X}(t+1) = \Phi(\mathbf{X}(t), \mathcal{A}_t),
 \label{eq:deployment_transition}
 \end{align}
-where $\Phi(\cdot)$ denotes the deployment transition induced by the selected action set $\mathcal{A}_t = \{ a_{m_i} | \forall m_i \in \mathcal{M'}(t) \}$.
+where $\Phi(\cdot)$ denotes the deployment transition induced by the selected action set $\mathcal{A}_t = \{ a_{m_i} | \forall m_i \in \mathcal{M}'(t) \}$.
 All redeployment actions should preserve the replica-count and storage constraints in \eqref{eq:replica_count_elara} and \eqref{eq:storage_elara}.
 % The single normalized migration cost is:
 % \begin{align}
@@ -466,7 +427,7 @@ All redeployment actions should preserve the replica-count and storage constrain
 
 We formulate ELARA as an online energy- and latency-aware service routing problem over a dynamic SCPN.
 % For each incoming request, the controller jointly selects the serving satellite for each microservice, routes intermediate data over time-varying multi-hop ISLs, and periodically adapts the replica deployment.
-The objective is to simultaneously minimize the end-to-end execution latency and total energy consumption of service chains, including both communication and computation costs, while accounting for the overhead of replica redeployment.
+The objective is to minimize the end-to-end execution latency and total energy consumption of service chains, including both communication and computation costs, while accounting for replica redeployment overhead.
 
 \subsection{Problem Formulation}
 For each incoming request, ELARA first selects the serving satellite $v$ for each microservice $m_i$, which satisfies:
@@ -475,7 +436,7 @@ For each incoming request, ELARA first selects the serving satellite $v$ for eac
 \label{eq:serving_unique_elara}
 \end{equation}
 Let $v_{r,i}$ denote the selected satellite satisfying $y_{r,i,v_{r,i}}=1$.
-ELARA then makes the cross-slot routing policy for service-routing segment $i$:
+ELARA then constructs the cross-slot routing policy for service-routing segment $i$:
 \begin{equation}
 \Pi^{\text{ru}}_{r,i}
 =
@@ -483,7 +444,7 @@ ELARA then makes the cross-slot routing policy for service-routing segment $i$:
 \label{eq:service_routing_policy}
 \end{equation}
 which follows the multi-hop routing model in Sec.~\ref{subsec:microservice_request_elara}.
-Additionally, ELARA periodically updates the deployment matrix by applying $\mathcal{A}(t), \forall t \in \mathcal{T'}$, where $\mathcal{T'} \subset \mathcal{T}$.
+Additionally, ELARA periodically updates the deployment matrix by applying $\mathcal{A}(t)$ for $t \in \mathcal{T}'$, where $\mathcal{T}' \subset \mathcal{T}$.
 
 Following \eqref{eq:req_e2e_lat} and \eqref{eq:req_tot_eng}, given an online request $r$, the request-level optimization objective is defined as:
 \begin{subequations}
@@ -491,7 +452,7 @@ Following \eqref{eq:req_e2e_lat} and \eqref{eq:req_tot_eng}, given an online req
 \begin{align}
 \nonumber
 \mathscr{P:} \quad
- \underset{{y_{r,v}, \Pi^{\text{ru}}_r, \mathcal{A}}}{\text{minimize}} \quad & J_r = \alpha T_r^{\text{e2e}} + \beta E_r^{\text{tot}} + \rho \mathbb{I}_r^{\text{fail}}   \\ \nonumber
+ \underset{{y_{r,i,v}, \Pi^{\text{ru}}_r, \mathcal{A}}}{\text{minimize}} \quad & J_r = \alpha T_r^{\text{e2e}} + \beta E_r^{\text{tot}} + \rho \mathbb{I}_r^{\text{fail}}   \\ \nonumber
 \text{subject to} \quad  & \eqref{eq:serving_unique_elara},\eqref{eq:service_routing_policy}, & \tag{C1} \\
 &  \eqref{eq:path_split_model},\eqref{eq:link_load_model}, \eqref{eq:parallel_phase_delay_model}, \eqref{eq:cross_slot_update_model}, & \tag{C2} \\
 &  \eqref{eq:replica_count_elara}, \eqref{eq:storage_elara}, \eqref{eq:deployment_transition}, & \tag{C3}
@@ -499,7 +460,7 @@ Following \eqref{eq:req_e2e_lat} and \eqref{eq:req_tot_eng}, given an online req
 \end{align}
 \end{subequations}
 where $\alpha$, $\beta$, and $\rho$ are non-negative weights, and $\mathbb{I}_r^{\text{fail}}$ indicates whether request $r$ violates its deadline.
-Constraint C1 enforces serving satellite selection by assigning each microservice stage to exactly one satellite hosting a valid replica, and defining the corresponding routing policy for each service routing segment.
+Constraint C1 enforces serving-satellite selection by assigning each microservice stage to exactly one satellite hosting a valid replica and defining the corresponding routing policy for each service-routing segment.
 Constraint C2 ensures feasible cross-slot multi-hop routing under time-varying topology by enforcing path splitting, shared ISL capacity, phase duration, and residual data update constraints.
 Constraint C3 restricts adaptive replica redeployment to states that satisfy both replica-count and onboard storage constraints after each migration action.
 
@@ -614,9 +575,9 @@ It further adapts replica placement periodically according to recent execution s
 All decisions share the latency and energy models in Sec.~\ref{sec:sys_model}, enabling coordinated optimization of node selection, data routing, and replica migration.
 
 
-\subsection{GNN-PPO based Node Selection Agent}
+\subsection{GNN-PPO-Based Node Selection Agent}
 
-We formulate the sequential selection of serving satellites as a Markov Decision Process (MDP), wherein a complete episode corresponds to the end-to-end execution of a single service request. To effectively navigate the time-varying constellation topology and heterogeneous computational resources, ELARA employs a Graph Neural Network (GNN) enhanced Proximal Policy Optimization (PPO) agent to learn the optimal node selection policy.
+We formulate the sequential selection of serving satellites as a Markov Decision Process (MDP), where a complete episode corresponds to the end-to-end execution of a single service request. To handle time-varying constellation topology and heterogeneous computational resources, ELARA employs a Graph Neural Network (GNN)-enhanced Proximal Policy Optimization (PPO) agent to learn an adaptive node selection policy.
 
 \paragraph{State Space and GNN Representation}
 For a given request $r = \langle v_{s}, m_{1}, \dots, m_{L}, v_{d}, \tau_{\text{in}} \rangle$, the $i$-th decision epoch is triggered when the required input data for microservice $m_{i}$ is ready on satellite $u_{r,i}$ at continuous time $\tau_{r,i}$. The system state is defined as a tuple:
@@ -639,9 +600,8 @@ To enable the PPO agent to process the complex graph states, ELARA encodes each 
 &\mathbb{I}_{m_i\in v},\bar d_v(t),\mu_v(t),\xi_v(t),\ell_v(t)].
 \end{aligned}
 \end{equation}
-where $\bar f_v$ is the normalized CPU frequency, $\bar q_v(t)$ is the compute queueing delay, $\bar s_v(t)$ is the normalized number of hosted services, $\bar p_v$ is the orbital-plane index, $\bar n_v$ is the intra-plane relative position, $\mathbb{I}_{v=u_{r,i}}$ and $\mathbb{I}_{v=v_d}$ indicate whether $v$ is the current node and the destination node, respectively, $\mathbb{I}_{m_i\in v}$ indicates whether $m_i$ is deployed on $v$, $\bar d_v(t)$ is the node degree, $\mu_v(t)$ is the compute utilization, $\xi_v(t)$ is the computing capacity discount factor, and $\ell_v(t)$ is the compute-load state.
-The bar notation denotes a normalized value obtained using the corresponding numerical range.
-Additionally, we encode the request context as $\mathbf{c}_{r,i} = [\bar{L}_{r}, \bar{i}, \overline{L_{r}-i}, \bar{C}_{m_i}, \bar{B}_{r,i}, \bar{B}_{r}^{\text{rem}}]$, encompassing the chain length, $\bar{L}_{r}$, current stage index, $\bar{i}$, remaining stages, $\overline{L_{r}-i}$, required CPU cycles of $m_i$, $\bar{C}_{m_i}$, current-stage input data volume, $\bar{B}_{r,i}$, and remaining data volume to be routed, $\bar{B}_{r}^{\text{rem}}$.
+where the features capture normalized CPU frequency, compute queuing delay, hosted-service count, orbital-plane and intra-plane positions, source/destination indicators, current-service deployment, node degree, compute utilization, capacity discount, and load state.
+The request context is encoded as $\mathbf{c}_{r,i} = [\bar{L}_{r}, \bar{i}, \overline{L_{r}-i}, \bar{C}_{m_i}, \bar{B}_{r,i}, \bar{B}_{r}^{\text{rem}}]$, covering the chain length, stage index, remaining stages, CPU demand, current input size, and remaining data volume.
 The request context is then projected into a latent embedding $\mathbf{z}_{r,i}=\sigma(\mathbf{W}_{c}\mathbf{c}_{r,i})$.
 %which is used by the policy scorer together with node and candidate features.
 
@@ -658,7 +618,7 @@ where $\mathcal{N}_{v}$ is the set of neighboring satellites of $v$, $\sigma(\cd
 The final embedding for node $v$ is denoted by $\mathbf{h}_{v}$.
 
 \paragraph{Action Space}
-Microservices may possess disparate numbers of replicas, leading to a variable scale of action sets for the serving satellite selection.
+Microservices may have different numbers of replicas, leading to variable-size action sets for serving-satellite selection.
 For execution stage $i$, ELARA defines the legal action set  for state $s_{r,i}$ as the set of satellites currently hosting replicas of the requested microservice $m_i$:
 \begin{equation}
     \mathcal{A}(s_{r,i}) = \mathcal{R}_{m_{i}}(t) = \{v \in \mathcal{V} \mid x_{m_{i},v}(t)=1\}
@@ -677,7 +637,7 @@ Upon episode termination, the terminal signal is discounted and assigned to each
 \begin{align}
     \hat{r}_{r,i} = r_{r,i}^{\text{loc}} + \omega_{r}\frac{\gamma^{L-i} r_{r}^{\text{term}}}{L}
 \end{align}
-where $r_{r}^{\text{term}} = -(\alpha T_{r}^{\text{e2e}} + \beta \tilde{E}_{r}^{\text{tot}})$ for a successfully completed request, $r_{r}^{\text{term}} = -P_{\text{fail}}$ if the request violates its deadline or encounters an routing failure, and $ \omega_{r}$ is the discount factor.
+where $r_{r}^{\text{term}} = -(\alpha T_{r}^{\text{e2e}} + \beta \tilde{E}_{r}^{\text{tot}})$ for a successfully completed request, $r_{r}^{\text{term}} = -P_{\text{fail}}$ if the request violates its deadline or encounters a routing failure, and $ \omega_{r}$ is the discount factor.
 
 \paragraph{PPO Policy and Update Mechanism}
 %For each candidate $v \in \mathcal{A}(s_{r,i})$, ELARA constructs a 4-dimensional candidate feature vector $\mathbf{e}_{v}$, including normalized routing delay, transmission risk, bottleneck capacity shortage, and estimated computing cost.
@@ -685,7 +645,7 @@ where $r_{r}^{\text{term}} = -(\alpha T_{r}^{\text{e2e}} + \beta \tilde{E}_{r}^{
 %Specifically, the routing module estimates the delivery delay from $u_{r,i}$ to $v$, the future link unavailability risk, and the bottleneck capacity gap with respect to the required data volume.
 %It also evaluates the outgoing capacity from $v$ to the next service stage or the destination, and uses the larger ingress or egress capacity shortage as the bottleneck feature.
 %After the data arrival time is obtained, the onboard computing model estimates the queueing delay, execution delay, and computation energy on $v$, which together form the computing cost feature.
-For each candidate $v \in \mathcal{A}(s_{r,i})$, ELARA constructs a 4-dimensional feature vector $\mathbf{e}_{v}$, including the normalized routing delay from the current satellite $u_{r,i}$ to $v$, the risk of future link unavailability, the bottleneck ISL capacity gap, and the estimated computing cost on candidate node $v$. These features are computed using the routing and computing models described in Sec.~\ref{sec:sys_model}.
+For each candidate $v \in \mathcal{A}(s_{r,i})$, ELARA constructs a 4-dimensional feature vector $\mathbf{e}_{v}$, including the normalized routing delay from the current satellite $u_{r,i}$ to $v$, the risk of future link unavailability, the bottleneck ISL capacity gap, and the estimated computing cost at candidate node $v$. These features are computed using the routing and computing models described in Sec.~\ref{sec:sys_model}.
 The policy network uses a multi-layer perceptron (MLP) to score each candidate:
 \begin{align}
 g_\theta(v)=
@@ -745,25 +705,20 @@ Distribute terminal reward and update PPO with \eqref{eq:ppo_loss}\;
 	\label{algo:elara_deploy}
 	\SetKwInOut{Input}{Input}
 	\SetKwInOut{Output}{Output}
-	\Input{Recent execution traces, deployment $\mathbf{X}(t)$, pending actions, arm statistics}
+	\Input{Recent traces $\mathcal{H}_t$, deployment $\mathbf{X}(t)$, pending actions $\mathcal{P}_t$, arm statistics}
 	\Output{Updated deployment $\mathbf{X}(t+1)$}
-	\If{pending actions from the previous deployment round exist}{
-		Update their arm rewards using the execution quality in the current window\;
-	}
-	Compute service-pressure scores $\{\psi_m\}$ and select high-pressure services\;
-	Identify problematic source replicas and feasible target planes/satellites\;
-	Generate legal redeployment arms from the induced source and target planes\;
-	\For{each arm ranked by failure priority, service pressure, and UCB}{
-		Resolve the arm to concrete source and target satellites if needed\;
-		\If{replica-count or storage constraint is violated}{continue\;}
-		Estimate service-image migration cost\;
-		Compute estimated reward $\widehat R_a$\;
-		\If{$\widehat R_a$ exceeds safety margin}{
-			Apply add/remove/move operation to $\mathbf{X}(t)$\;
-			Update deployment records and estimated arm statistics\;
+	$\mathbf{X}(t+1)\gets \mathbf{X}(t)$\;
+	\If{$\mathcal{P}_t \neq \emptyset$}{update arm rewards using current-window feedback\;}
+	Compute service-pressure scores $\{\psi_m\}$ from $\mathcal{H}_t$ and select top-$K_{\text{ms}}$ services\;
+	Generate feasible arms $\mathcal{A}_t$ from high-pressure services, problematic replicas, and target planes\;
+	\For{each $a\in\mathcal{A}_t$ ranked by failure priority, service pressure, and UCB}{
+		\If{$a$ violates replica-count or storage constraints}{continue\;}
+		Estimate migration cost $C_a$ and reward $\widehat R_a$\;
+		\If{$\widehat R_a$ exceeds the safety margin}{
+			Apply $a$ to $\mathbf{X}(t+1)$ and record it for delayed feedback\;
 		}
 	}
-	Store applied actions for feedback in the next deployment window\;
+	\Return{$\mathbf{X}(t+1)$}\;
 \end{algorithm}
 
 \subsection{Min-Cost Max-Flow Data Routing}
@@ -785,10 +740,8 @@ c_e(t)=\alpha(\nu_e^{\text{tr}}+\nu_e^{\text{pr}}+\nu_e^{\text{qe}}+\nu^{\text{s
 \end{equation}
 where $\Gamma_e(t)$ is the link unavailability risk, estimated by checking the link's availability in subsequent topology slots.
 
-ELARA repeatedly finds the minimum-cost augmenting path in the residual graph and augments the maximum feasible flow along that path, subject to edge and path capacities.
-This process continues until the data is fully delivered or the maximum number of augmentations $K_{\text{max}}$ if reached.
-The resulting positive flows are then decomposed into at most $K_{\text{max}}$ paths per slot.
-For each slot, the routing delay is determined by the slowest path, while the energy consumption is the sum over all used paths, which are calcuated by \eqref{eq:cross_slot_routing_cost_model} in Sec.~\ref{sec:sys_model}.
+ELARA repeatedly finds the minimum-cost augmenting path in the residual graph and augments the maximum feasible flow until the data is delivered or $K_{\text{max}}$ augmentations are reached.
+The resulting positive flows are decomposed into at most $K_{\text{max}}$ paths per slot; delay is determined by the slowest path and energy is summed over used paths according to \eqref{eq:cross_slot_routing_cost_model}.
 
 %ELARA repeatedly finds the minimum-cost augmenting path in the residual graph, sends the largest feasible amount limited by edge capacities and path capacity, updates residual capacities, and stops when the data is delivered or the augmentation limit $K_{\text{max}}$ is reached.
 %The positive flows are then decomposed into at most $K_{\text{max}}$ paths in each slot.
@@ -799,10 +752,8 @@ For each slot, the routing delay is determined by the slowest path, while the en
 %\end{equation}
 %The same procedure is applied to node pairs in the same orbital plane and in different orbital planes.
 If multiple feasible paths exist, ELARA splits traffic among them; otherwise, it naturally reduces to a single path.
-Importantly, ELARA does not assume that each data transfer completes within a single topology slot.
-If only part of the data is delivered in slot $t$, the residual data is carried to slot $t+1$ and re-routed on the new topology snapshot.
-This residual update mechanism enables ELARA to handle partial deliveries, topology changes, and route adaption across multiple slots.
-The routing module also records  key information for each transfer, including delay components, bottleneck capacity, delivered data volume, communication energy, and predicted link unavailability. These records are subsequently used as candidate feature components by the node selection agent.
+When only part of the data is delivered in slot $t$, the residual data is carried to slot $t+1$ and re-routed on the new topology snapshot.
+The routing module records delay components, bottleneck capacity, delivered volume, communication energy, and predicted link unavailability as candidate features for node selection.
 
 
 
@@ -824,21 +775,21 @@ a=(o,m,p_s,p_t),\quad
 o \in \{\text{add},\text{remove},\text{move}\}.
 \end{equation}
 where $o$ is the operation, $p_s$ is the orbital plane of satellite hosting $m$ for removal or migration, and $p_t$ is the target plane for replica addition or migration.
-Specifically, after a problem service is identified, for removal or migration operations, ELARA frist prioritizes the replica that have experienced repeated failures or are connected by poor links.
-And for addition or migration operations, target satellites are chosen from orbital planes that have sufficient storage capacity and relatively low computation load, while avoiding nodes with low-rate neighboring links.
+Specifically, after a problematic service is identified, ELARA prioritizes replicas that have experienced repeated failures or are connected through poor links for removal or migration.
+For addition or migration operations, target satellites are chosen from orbital planes with sufficient storage capacity and relatively low computation load, while avoiding nodes with low-rate neighboring links.
 
 After selecting an arm, the estimated reward is given by:
 \begin{equation}
 R_a=\mathrm{Saving}(a)+\mathrm{Relief}(a)-C_a-\mathrm{Penalty}(a),
 \end{equation}
 where $\mathrm{Saving}(a)$ is derived from the reduction in service pressure score, $\mathrm{Relief}(a)$ rewards the removal or relocation of problematic replicas, $C_a$ is the replica migration cost, and $\mathrm{Penalty}(a)$ discourages placements near low-rate links.
-To balance exploritation and exploration, ELARA ranks these arms by using the Upper Confidence Bound (UCB) score:
+To balance exploitation and exploration, ELARA ranks these arms using the Upper Confidence Bound (UCB) score:
 \begin{equation}
 \mathrm{UCB}(a)=\bar R_a+c\sqrt{\frac{\ln N}{N_a}},
 \end{equation}
-where $\bar R_a$ is the empirical reward, $N_a$ is the number of times arm $a$ has been selected, and $N$ is the total number of arm selections, and $c$ controls exploration.
+where $\bar R_a$ is the empirical reward, $N_a$ is the number of times arm $a$ has been selected, $N$ is the total number of arm selections, and $c$ controls exploration.
 
-It is worth noting that arm execution reward are updated using both immediate and delayed feedback. The arm statistics is updated with:
+Arm execution rewards are updated using both immediate and delayed feedback. The arm statistics are updated with:
 \begin{align}
     R_a = \zeta_{\text{succ}} - \omega_1 \bar T^{\text{e2e}} - \omega_2 \bar E^{\text{tot}} - \omega_3 C_a
 \end{align}
@@ -894,7 +845,7 @@ PPO discount factor & 0.99 \\
 The constellation contains 180 satellites and follows the time-slotted topology model in Sec.~\ref{sec:sys_model}.
 Each microservice is associated with a CPU-cycle demand, an image size, and a storage requirement.
 Satellite CPUs are heterogeneous, and their effective computing capacities vary with background load states.
-For communication, ISL capacities and propagation delays are obtained from the time-varying topology snapshots, while queueing delay and effective-rate degradation reflect background traffic.
+For communication, ISL capacities and propagation delays are obtained from the time-varying topology snapshots, while queuing delay and effective-rate degradation reflect background traffic.
 Requests arrive according to a Poisson process and invoke sequential microservice chains.
 The workload traces cover chain lengths of 5, 10, and 15, and are used consistently across the compared methods when request-level analyses are reported.
 
@@ -914,7 +865,7 @@ For the ablation study, we further consider the following ELARA variants:
 \end{itemize}
 
 We evaluate all methods using average end-to-end latency, 95th-percentile end-to-end latency, average energy consumption, success rate, deadline acceptance rate, average communication delay, and average slot crossings.
-End-to-end latency includes both data routing and onboard computation, and energy includes communication energy and computation energy.
+End-to-end latency includes both data routing and onboard computation, while energy includes communication and computation energy.
 Slot crossings measure how often service-stage data transmission spans multiple topology slots, thereby reflecting the ability of a method to handle dynamic ISL changes.
 
 \subsection{Performance Evaluation}
@@ -932,7 +883,7 @@ Slot crossings measure how often service-stage data transmission spans multiple 
 		\centering
 		\includegraphics[width=0.98\linewidth]{elara_exp/elara_comparison.pdf}
 		\vspace{-0.3cm}
-		\caption{Performance over all baselines.}
+		\caption{Performance against all baselines.}
 		\label{fig:elara_comparison}
 	\end{minipage}
 	\begin{minipage}[!b]{0.32\textwidth}
@@ -947,33 +898,25 @@ Slot crossings measure how often service-stage data transmission spans multiple 
 
 \paragraph{Overall Performance.}
 Fig.~\ref{fig:elara_train} reports the training dynamics of the GNN-PPO serving-node selector.
-The average reward per request improves by 41.1\% from the first 100 smoothed epochs to the last 100 smoothed epochs, while the PPO loss decreases by 95.2\%.
-The two curves become stable after sufficient interactions with the dynamic topology traces, indicating that the learned selector can consistently exploit the latency-energy reward signal rather than relying on a fixed nearest-replica rule.
+The average reward improves by 41.1\% from the first 100 smoothed epochs to the last 100 smoothed epochs, while the PPO loss decreases by 95.2\%, indicating that the learned selector can exploit the latency-energy reward signal under dynamic topology traces.
 
 Fig.~\ref{fig:elara_comparison} compares ELARA with the representative baselines.
-ELARA achieves the lowest average end-to-end latency, i.e., 35.37 s, while SECO, SC-NFV, and SP-Routing incur 36.98 s, 42.72 s, and 49.34 s, respectively.
-This corresponds to latency reductions of 4.4\%, 17.2\%, and 28.3\% compared with SECO, SC-NFV, and SP-Routing, respectively.
-ELARA also lowers the 95th-percentile latency by 3.4\%, 18.3\%, and 28.8\%, respectively.
+ELARA achieves the lowest average end-to-end latency, i.e., 35.37 s, reducing latency by 4.4\%, 17.2\%, and 28.3\% compared with SECO, SC-NFV, and SP-Routing, respectively.
+ELARA also lowers the 95th-percentile latency by 3.4\%, 18.3\%, and 28.8\%.
 The improvement is more evident when compared with routing-centric and service-chaining baselines, because ELARA jointly considers serving satellite selection, cross-slot ISL routing, and onboard computation states.
 
-ELARA also reduces energy consumption.
-Its average energy consumption is 1493.4 J, which is comparable to SECO but substantially lower than SC-NFV and SP-Routing.
-Specifically, ELARA reduces energy consumption by 16.6\% over SC-NFV and 20.7\% over SP-Routing.
-This confirms that optimizing only routing pressure or service-chain feasibility is insufficient in SCPNs, where the selected serving satellite determines both the subsequent communication path and the computation cost.
+ELARA also reduces energy consumption: its average energy is 1493.4 J, comparable to SECO but 16.6\% and 20.7\% lower than SC-NFV and SP-Routing, respectively.
+This confirms that optimizing only routing pressure or service-chain feasibility is insufficient when serving-satellite selection determines both communication and computation cost.
 
 Fig.~\ref{fig:elara_ablation} studies the contribution of each ELARA component.
-Removing adaptive redeployment increases the average latency from 35.37 s to 37.50 s and the 95th-percentile latency from 66.79 s to 70.03 s.
-Equivalently, ELARA reduces the average and tail latency by 5.7\% and 4.6\% over ELARA-NB, respectively.
-This shows that replica placement must be adjusted as request patterns and topology states evolve, although the energy difference between ELARA and ELARA-NB is modest because redeployment primarily improves service proximity and queueing conditions.
+Removing adaptive redeployment increases the average latency from 35.37 s to 37.50 s and the 95th-percentile latency from 66.79 s to 70.03 s, showing that replica placement must adapt as request patterns and topology states evolve.
 
-Replacing the GNN-PPO node selector with nearest-replica selection causes the largest degradation.
-ELARA-NR increases average latency by 54.9\%, 95th-percentile latency by 63.1\%, and average energy by 72.6\%.
-The reason is that nearest-replica selection ignores computation queues, future routing difficulty, bottleneck link capacity, and energy cost.
-Thus, a geographically close replica can still lead to long execution delay or expensive communication if the selected satellite is overloaded or poorly connected.
+Replacing the GNN-PPO node selector with nearest-replica selection causes the largest degradation: ELARA-NR increases average latency by 54.9\%, 95th-percentile latency by 63.1\%, and average energy by 72.6\%.
+Nearest-replica selection ignores computation queues, future routing difficulty, bottleneck link capacity, and energy cost; a geographically close replica can still be overloaded or poorly connected.
 
 Replacing min-cost max-flow routing with shortest-hop routing also degrades performance.
 ELARA-SH increases average latency by 34.7\%, increases the average communication delay by 81.7\% from 1.65 s to 2.99 s, and reduces the deadline acceptance rate from 99.98\% to 98.10\%.
-This result demonstrates that hop count alone is a weak routing objective in dynamic LEO networks, where link availability, effective rate, queueing delay, and residual cross-slot delivery jointly determine routing quality.
+This result demonstrates that hop count alone is a weak routing objective in dynamic LEO networks, where link availability, effective rate, queuing delay, and residual cross-slot delivery jointly determine routing quality.
 
 \begin{figure}[!t]
 	\centering
@@ -1011,16 +954,16 @@ These results show that ELARA's serving-node selection is not only beneficial fo
 Fig.~\ref{fig:service_routing_analysis} compares ELARA with its variants using common request traces.
 ELARA reduces the average communication delay per hop by 23.3\% over ELARA-NB and by 41.8\% over ELARA-SH.
 It also reduces average slot crossings by 17.8\% and 41.6\%, respectively.
-The shortest-hop variant suffers from more cross-slot transmissions because it may choose fewer-hop paths with insufficient effective rate or higher queueing delay.
+The shortest-hop variant suffers from more cross-slot transmissions because it may choose fewer-hop paths with insufficient effective rate or higher queuing delay.
 In contrast, ELARA evaluates residual slot capacity and future link risk, allowing it to split traffic over multiple feasible paths when this lowers the overall delivery cost.
 ELARA-NR has shorter communication delay because it selects nearby replicas, but its computation delay is 77.7\% higher than ELARA's and its end-to-end latency is 45.8\% higher.
-This confirms that proximity alone is misleading when onboard computation heterogeneity and queueing states dominate service execution.
+This confirms that proximity alone is misleading when onboard computation heterogeneity and queuing states dominate service execution.
 
 \paragraph{Adaptivity of Replica Redeployment.}
 Fig.~\ref{fig:redeployment_adaptivity} evaluates the slow-timescale replica redeployment module.
 Panel (a) compares ELARA with ELARA-NB over deployment windows.
 ELARA achieves positive latency reduction in all 60 deployment windows, with an average reduction of 9.6\%, while also reducing energy by 4.3\% on average.
-This confirms that monitoring recent service pressure, routing failures, and computation waiting time helps the system move replicas toward more beneficial orbital regions.
+This confirms that monitoring recent service pressure, routing failures, and computation waiting time helps the system move replicas toward more suitable orbital regions.
 
 Panel (b) shows the distribution of applied redeployment actions.
 Among 944 redeployment actions, 896 actions are replica movements and 48 actions are replica additions; thus, 94.9\% of the actions reallocate existing service capacity.
@@ -1513,6 +1456,8 @@ Furthermore, as depicted in Fig \ref{fig:StreeDist}, which presents the energy d
 \section{Conclusion}
 \label{sec:conclusion}
 %In this paper, we proposed a DST-based solution to provide an energy-efficient service routing scheme for tasks from terrestrial clients. We systematically developed the SCPN models, including communication and computation, covering various aspects of the LEO satellite network. We also mathematically formulated the energy optimization problem for satellite-microservice routing and transformed it into finding a feasible DST solution within an augmented directed satellite-microservice colocated graph. To approximate the optimal solution, we designed a series of heuristic algorithms. Experimental results show that our algorithm significantly outperforms other benchmarks in energy efficiency, robustness, and adaptability across different network and microservice configurations in the context of SCPN.
+
+This paper presented ELARA, an energy-efficient and latency-aware microservice orchestration framework for dynamic SCPNs. We formulated microservice execution as an online orchestration problem that jointly accounts for serving-satellite selection, cross-slot data routing, onboard computation, and adaptive replica redeployment. ELARA combines a GNN-enhanced PPO agent for stage-level serving-node selection, a time-slot-aware min-cost max-flow module for parallel and residual-aware ISL routing, and a bandit-based redeployment mechanism for slow-timescale service placement. Simulation results under dynamic LEO constellation topologies demonstrate that ELARA consistently reduces end-to-end latency, energy consumption, and deadline violations compared with representative baselines. These results indicate that jointly coordinating learning-based node selection, adaptive routing, and replica redeployment is essential for efficient microservice provisioning in future space computing power networks.
 
 
 
