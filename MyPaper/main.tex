@@ -738,6 +738,34 @@ Route final output from $u$ to $v_d$ and compute $T_r^{\text{e2e}},E_r^{\text{to
 Distribute terminal reward and update PPO with \eqref{eq:ppo_loss}\;
 \end{algorithm}
 
+\begin{algorithm}[!t]
+	\SetAlFnt{times}
+	\SetAlgoLined
+	\caption{Bandit-Based Service Deployment}
+	\label{algo:elara_deploy}
+	\SetKwInOut{Input}{Input}
+	\SetKwInOut{Output}{Output}
+	\Input{Recent execution traces, deployment $\mathbf{X}(t)$, pending actions, arm statistics}
+	\Output{Updated deployment $\mathbf{X}(t+1)$}
+	\If{pending actions from the previous deployment round exist}{
+		Update their arm rewards using the execution quality in the current window\;
+	}
+	Compute service-pressure scores $\{\psi_m\}$ and select high-pressure services\;
+	Identify problematic source replicas and feasible target planes/satellites\;
+	Generate legal redeployment arms from the induced source and target planes\;
+	\For{each arm ranked by failure priority, service pressure, and UCB}{
+		Resolve the arm to concrete source and target satellites if needed\;
+		\If{replica-count or storage constraint is violated}{continue\;}
+		Estimate service-image migration cost\;
+		Compute estimated reward $\widehat R_a$\;
+		\If{$\widehat R_a$ exceeds safety margin}{
+			Apply add/remove/move operation to $\mathbf{X}(t)$\;
+			Update deployment records and estimated arm statistics\;
+		}
+	}
+	Store applied actions for feedback in the next deployment window\;
+\end{algorithm}
+
 \subsection{Min-Cost Max-Flow Data Routing}
 
 For each selected source-destination pair $(u,v)$, ELARA routes data over a finite horizon of future topology slots.
@@ -776,33 +804,7 @@ If only part of the data is delivered in slot $t$, the residual data is carried 
 This residual update mechanism enables ELARA to handle partial deliveries, topology changes, and route adaption across multiple slots.
 The routing module also records  key information for each transfer, including delay components, bottleneck capacity, delivered data volume, communication energy, and predicted link unavailability. These records are subsequently used as candidate feature components by the node selection agent.
 
-\begin{algorithm}[t]
-	\SetAlFnt{times}
-	\SetAlgoLined
-	\caption{Bandit-Based Service Deployment}
-	\label{algo:elara_deploy}
-	\SetKwInOut{Input}{Input}
-	\SetKwInOut{Output}{Output}
-	\Input{Recent execution traces, deployment $\mathbf{X}(t)$, pending actions, arm statistics}
-	\Output{Updated deployment $\mathbf{X}(t+1)$}
-	\If{pending actions from the previous deployment round exist}{
-		Update their arm rewards using the execution quality in the current window\;
-	}
-	Compute service-pressure scores $\{\psi_m\}$ and select high-pressure services\;
-	Identify problematic source replicas and feasible target planes/satellites\;
-	Generate legal redeployment arms from the induced source and target planes\;
-	\For{each arm ranked by failure priority, service pressure, and UCB}{
-		Resolve the arm to concrete source and target satellites if needed\;
-		\If{replica-count or storage constraint is violated}{continue\;}
-		Estimate service-image migration cost\;
-		Compute estimated reward $\widehat R_a$\;
-		\If{$\widehat R_a$ exceeds safety margin}{
-			Apply add/remove/move operation to $\mathbf{X}(t)$\;
-			Update deployment records and estimated arm statistics\;
-		}
-	}
-	Store applied actions for feedback in the next deployment window\;
-\end{algorithm}
+
 
 
 \subsection{Bandit-Based Service Deployment}
