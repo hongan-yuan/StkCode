@@ -788,10 +788,11 @@ The routing module also records  key information for each transfer, including de
 	\If{pending actions from the previous deployment round exist}{
 		Update their arm rewards using the execution quality in the current window\;
 	}
-	Compute service-pressure scores $\{\psi_m\}$ from recent routing, computing, and failure feedback\;
-	Select high-pressure services and generate legal orbital-plane arms\;
+	Compute service-pressure scores $\{\psi_m\}$ and select high-pressure services\;
+	Identify problematic source replicas and feasible target planes/satellites\;
+	Generate legal redeployment arms from the induced source and target planes\;
 	\For{each arm ranked by failure priority, service pressure, and UCB}{
-		Resolve the arm to concrete source and target satellites\;
+		Resolve the arm to concrete source and target satellites if needed\;
 		\If{replica-count or storage constraint is violated}{continue\;}
 		Estimate service-image migration cost\;
 		Compute estimated reward $\widehat R_a$\;
@@ -808,7 +809,8 @@ The routing module also records  key information for each transfer, including de
 
 The replica redeployment module operates at a slower timescale than per-request service routing.
 Every $I_{\text{dep}}$ time slots, ELARA summarizes recent execution traces and updates the replica layout only when the expected benefit justifies the migration overhead.
-For each invoked microservice $m$, it computes a service-pressure score
+The first step is to identify the microservices that are responsible for persistent performance degradation.
+For each invoked microservice $m$, ELARA computes a service-pressure score
 \begin{equation}
 \psi_m =
 n_m
@@ -821,31 +823,51 @@ n_m
 where $n_m$ is the invocation count, $\bar T_m^{\text{route}}$ is the average communication delay before executing $m$, $\bar T_m^{\text{wait}}$ is the average computing waiting time, $F_m$ is the number of failures associated with $m$, $T_{m,95}^{\text{stage}}$ is the 95-th percentile stage latency, and $U_m$ measures the utilization imbalance among replicas of $m$.
 The top-$K_{\text{ms}}$ services are then considered for redeployment, which restricts the decision space to the most influential service bottlenecks.
 
-To avoid learning over all satellite-level placements, ELARA defines bandit arms at the orbital-plane level:
+After a problem service is identified, ELARA determines which of its replicas should be removed or migrated.
+Let $\mathcal{R}_m(t)$ denote the current replica set of service $m$, $B_{m,v}$ be the number of recent failures attributed to replica $(m,v)$, and $\ell_v$ be the average normalized shortage of the incident ISL rates of satellite $v$ with respect to the low-rate threshold.
+For each candidate source plane, the problematic source replica is selected by the lexicographic rule
+\begin{equation}
+v_s^\star(m,p_s)=
+\arg\max_{v\in \mathcal{R}_m(t):\,p(v)=p_s}
+\left(B_{m,v},\,\ell_v,\,-v\right).
+\end{equation}
+Thus, replicas that have repeatedly caused failed executions are preferentially redeployed, and ties are broken by selecting replicas located in poorer local connectivity regions.
+Once $v_s^\star$ is selected, both the source satellite and the source orbital plane $p_s=p(v_s^\star)$ are determined.
+
+ELARA then searches for feasible target locations.
+Let $\mathcal{T}_m(p)$ be the set of satellites in orbital plane $p$ that do not already host service $m$ and still have sufficient storage capacity.
+Candidate target planes are ranked according to
+\begin{equation}
+\begin{aligned}
+\Phi_m(p)=&
+\mathbf{1}\{\mathcal{R}_m(t)\cap \mathcal{V}_p\neq\emptyset\}
++\min_{v\in\mathcal{T}_m(p)} d_v\\
+&+0.01\frac{1}{|\mathcal{T}_m(p)|}\sum_{v\in\mathcal{T}_m(p)}d_v,
+\end{aligned}
+\end{equation}
+where $\mathcal{V}_p$ is the satellite set of plane $p$, and $d_v$ is the number of services currently deployed on satellite $v$.
+This ranking favors planes that do not already contain a replica of $m$ and have lightly loaded feasible satellites.
+For each retained target plane, the concrete target satellite is chosen as
+\begin{equation}
+v_t^\star(m,p_t)=
+\arg\min_{v\in \mathcal{T}_m(p_t)}
+\left(\ell_v,\,d_v,\,v\right),
+\end{equation}
+which favors better local connectivity and lower service load.
+If the operation adds a new replica, the service image is copied from the existing replica
+\begin{equation}
+u^\star=\arg\min_{u\in\mathcal{R}_m(t)} C^{\text{mg}}(u,v_t^\star),
+\end{equation}
+where $C^{\text{mg}}(u,v_t^\star)$ is the migration routing cost from replica $u$ to the target satellite.
+
+Based on the identified problem services, source replicas, and feasible targets, ELARA constructs a compact redeployment policy space.
+To avoid learning over all satellite-level placements, each policy is encoded as an orbital-plane-level bandit arm
 \begin{equation}
 	a=(o,m,p_s,p_t), \quad
 	o\in\{\text{add},\text{remove},\text{move},\text{no-op}\},
 \end{equation}
-where $o$ is the redeployment operation, $p_s$ is the source orbital plane for removal or migration, and $p_t$ is the target orbital plane for addition or migration.
-After an arm is selected, ELARA resolves it to concrete source and target satellites through a topology-aware replica mapping rule.
-Let $\mathcal{R}_m$ denote the current replica set of service $m$, and let $\ell_v$ be the average normalized shortage of the incident ISL rates of satellite $v$ with respect to the low-rate threshold.
-For a removal or migration arm, the source replica is selected from the replicas of $m$ located in the source plane:
-\begin{equation}
-v_s^\star =
-\arg\max_{v\in \mathcal{R}_m:\,p(v)=p_s}
-\left(B_{m,v},\,\ell_v,\,-v\right),
-\end{equation}
-where $B_{m,v}$ is the number of recent failures attributed to replica $(m,v)$.
-This rule preferentially removes or relocates replicas that repeatedly cause failed executions, and then favors replicas located in poorer local connectivity regions.
-For an addition or migration arm, the target satellite is chosen as
-\begin{equation}
-v_t^\star =
-\arg\min_{v\in \mathcal{T}_m(p_t)}
-\left(\ell_v,\,d_v,\,v\right),
-\end{equation}
-where $\mathcal{T}_m(p_t)$ contains satellites in plane $p_t$ that do not already host service $m$ and still satisfy the storage constraint, and $d_v$ is the number of services currently deployed on $v$.
-If the operation is an addition, the service image is copied from the existing replica that yields the lowest migration routing cost to $v_t^\star$.
-Thus, the bandit learns coarse redeployment directions, while the concrete replica-level operation remains failure-, load-, and topology-aware.
+where $o$ is the redeployment operation, $p_s$ is the source plane induced by the selected source replica for removal or migration, and $p_t$ is a retained target plane for addition or migration.
+The concrete satellites associated with an arm are then resolved by the above replica and target mapping rules.
 
 Each candidate arm is evaluated by its estimated net benefit.
 Since service images must be transferred over ISLs, the migration cost is computed using the same latency- and energy-aware routing model:
