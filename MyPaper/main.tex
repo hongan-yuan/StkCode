@@ -46,7 +46,7 @@ Space computing power networks (SCPNs) are turning low Earth orbit (LEO) constel
 Recent advances in low Earth orbit (LEO) mega-constellations are transforming satellites from bent-pipe relays into distributed computing nodes in space.
 These large-scale constellations, consisting of hundreds to thousands of satellites interconnected by inter-satellite links (ISLs) and equipped with onboard processors and storage, enable global connectivity and near-data processing~\cite{net_char_StarLink_LEO,satellite_sys_survey}.
 This evolution is particularly critical for Earth observation, weather forecasting, environmental monitoring, and remote sensing analytics, where massive volumes of images and multi-modal data are continuously generated in orbit~\cite{progress_challenge_RS_satellite,seco_infocom2024}. 
-Directly downloading such raw data to terrestrial data centers consumes scarce satellite-to-ground bandwidth and worsens link congestion, especially under limited contact windows and unfavorable channel conditions~\cite{leyva2023satellite,joint_orbit_comp_comm4data_Download}. Consequently, space computing power networks (SCPNs), which integrate sensing, communication, and computing resources across LEO satellites, have emerged as a promising infrastructure for onboard intelligent services~\cite{survey_on_nextg_comp_tech_SAGIN}.
+Directly downloading such raw data to terrestrial data centers consumes scarce satellite-to-ground bandwidth and worsens link congestion, especially under limited contact windows and unfavorable channel conditions~\cite{leyva2023satellite,joint_orbit_comp_comm4data_Download}. Consequently, space computing power networks (SCPNs), illustrated in Fig.~\ref{fig:sys_scenario}, integrate sensing, communication, and computing resources across LEO satellites as a promising infrastructure for onboard intelligent services~\cite{survey_on_nextg_comp_tech_SAGIN}.
 
 Despite this promise, running complex monolithic applications on a single LEO satellite remains infeasible because each satellite has limited computing, storage, energy, and thermal dissipation capabilities~\cite{leyva2023satellite,joint_orbit_comp_comm4data_Download}.
 Microservice architecture provides an effective solution by decomposing these remote sensing and AI applications into fine-grained, loosely coupled, and reusable microservices, each encapsulating a distinct functional module~\cite{3D_assets_microservice}.
@@ -72,7 +72,7 @@ Although terrestrial microservice routing studies have explored the joint optimi
 \centering
 \includegraphics[width=1\linewidth]{figs/sys_scenario.pdf}
 \vspace{-0.5cm}
-\caption{Space and terrestrial network topology.}
+\caption{SCPN scenario for microservice-based in-orbit service provisioning.}
 \label{fig:sys_scenario}
 \vspace{-0.7cm}
 \end{figure}
@@ -125,8 +125,8 @@ The remainder of this paper reviews related work, presents the system model and 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=1\linewidth]{figs/time_varying_isl.pdf}
-\vspace{-0.5cm}
-\caption{Time-varying inter-satellite links in a LEO constellation.}
+\vspace{-0.6cm}
+\caption{Time-slotted LEO topology with dynamic inter-plane ISLs.}
 \label{fig:time_varying_isl}
 \vspace{-0.7cm}
 \end{figure}
@@ -204,7 +204,7 @@ Consequently, each orbital plane accommodates $N = A/P$ satellites.
 The set of satellite nodes in the constellation is formally defined as $\mathcal{V}=\{v_{p,n}\mid p=1,\ldots,P,\ n=1,\ldots,N\}$, where $p$ denotes the orbital-plane index and $n$ denotes the intra-plane position index.
 To capture the high dynamism of the satellite network, we discretize the constellation period into a set of time slots $\mathcal{T} = \{0, 1, \ldots, T-1\}$ with a uniform slot duration $\Delta$.
 For any continuous-time instant $\tau$, the corresponding slot index is $s(\tau) = \left\lfloor \tau/\Delta \right\rfloor \bmod T$.
-Following a snapshot-based modeling approach, we assume that the network state, including satellite positions, ISL availability, and capacity, remains unchanged within a slot and evolves only at slot boundaries.
+Following a snapshot-based modeling approach, we assume that the network state, including satellite positions, ISL availability, and capacity, remains unchanged within a slot and evolves only at slot boundaries, as shown in Fig.~\ref{fig:time_varying_isl}.
 Thus, the time-varying network topology during slot $t \in \mathcal{T}$ is formally defined as a dynamic and time-dependent graph $\mathcal{G}(t) = \big(\mathcal{V}, \mathcal{E}(t)\big)$, where $\mathcal{E}(t)$ represents the set of feasible ISLs at slot $t$.
 % Geometrically, the position of $v_{p,n}$ at slot $t$ is defined in spherical coordinates as $(H+R_E, \mho_p, \nu_{p,n}(t))$, where $R_E$ is the Earth's radius, $\mho_p$ is the $p$-th plane's right ascension of the ascending node (RAAN), and $\nu_{p,n}(t)$ is its orbital phase.
 
