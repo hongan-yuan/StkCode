@@ -827,8 +827,25 @@ To avoid learning over all satellite-level placements, ELARA defines bandit arms
 	o\in\{\text{add},\text{remove},\text{move},\text{no-op}\},
 \end{equation}
 where $o$ is the redeployment operation, $p_s$ is the source orbital plane for removal or migration, and $p_t$ is the target orbital plane for addition or migration.
-After an arm is selected, ELARA resolves it to concrete source and target satellites by favoring problematic source replicas and feasible target nodes with sufficient storage, light service load, and favorable local connectivity.
-Thus, the bandit learns coarse redeployment directions while the final placement remains topology- and resource-aware.
+After an arm is selected, ELARA resolves it to concrete source and target satellites through a topology-aware replica mapping rule.
+Let $\mathcal{R}_m$ denote the current replica set of service $m$, and let $\ell_v$ be the average normalized shortage of the incident ISL rates of satellite $v$ with respect to the low-rate threshold.
+For a removal or migration arm, the source replica is selected from the replicas of $m$ located in the source plane:
+\begin{equation}
+v_s^\star =
+\arg\max_{v\in \mathcal{R}_m:\,p(v)=p_s}
+\left(B_{m,v},\,\ell_v,\,-v\right),
+\end{equation}
+where $B_{m,v}$ is the number of recent failures attributed to replica $(m,v)$.
+This rule preferentially removes or relocates replicas that repeatedly cause failed executions, and then favors replicas located in poorer local connectivity regions.
+For an addition or migration arm, the target satellite is chosen as
+\begin{equation}
+v_t^\star =
+\arg\min_{v\in \mathcal{T}_m(p_t)}
+\left(\ell_v,\,d_v,\,v\right),
+\end{equation}
+where $\mathcal{T}_m(p_t)$ contains satellites in plane $p_t$ that do not already host service $m$ and still satisfy the storage constraint, and $d_v$ is the number of services currently deployed on $v$.
+If the operation is an addition, the service image is copied from the existing replica that yields the lowest migration routing cost to $v_t^\star$.
+Thus, the bandit learns coarse redeployment directions, while the concrete replica-level operation remains failure-, load-, and topology-aware.
 
 Each candidate arm is evaluated by its estimated net benefit.
 Since service images must be transferred over ISLs, the migration cost is computed using the same latency- and energy-aware routing model:
