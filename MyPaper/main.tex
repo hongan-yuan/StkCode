@@ -402,7 +402,7 @@ where $i=L+1$ denotes the final output delivery to $v_d$.
 
 \paragraph{Service Replica Migration Model}
 Let $\mathbf{X}(t)=[x_{m,v}(t)]$ represent the microservice replica deployment matrix at slot $t$.
-ELARA periodically updates the deployment matrix every few time slots by selecting an action from $ \{\text{add}, \text{remove}, \text{move}, \text{no-op}\} $ for each $m_i$ in a microservice subset $\mathcal{M}'(t) \subset \mathcal{M}$ at time slot $t$.
+ELARA periodically updates the deployment matrix every few time slots by selecting an action from $ \{\text{add}, \text{remove}, \text{move}\} $ for each $m_i$ in a microservice subset $\mathcal{M}'(t) \subset \mathcal{M}$ at time slot $t$.
 Then we have:
 \begin{align}
 \mathbf{X}(t+1) = \Phi(\mathbf{X}(t), \mathcal{K}_t),
@@ -461,6 +461,16 @@ Constraint C1 enforces valid serving-satellite selection with per-segment routin
 
 
 
+
+
+\begin{figure}[!t]
+	\centering
+	\includegraphics[width=1\linewidth]{figs/elara.pdf}
+	\vspace{-0.6cm}
+	\caption{The overview of ELARA.}
+	\label{fig:elara}
+	\vspace{-0.5cm}
+\end{figure}
 
 
 \section{The Proposed ELARA Framework}
