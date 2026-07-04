@@ -6,9 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="1c9e062a-4b7b-438f-a78d-a5c39eefaaa7" name="Changes" comment="paper">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MyPaper/elara_exp/service_routing_analysis.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/MyPaper/elara_exp/service_routing_analysis.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MyPaper/elara_exp/service_routing_analysis_comparison.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/MyPaper/elara_exp/service_routing_analysis_comparison.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/pics/plot_elara_service_routing2.py" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/pics/plot_elara_service_routing2.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,12 +21,12 @@
     &quot;assignee&quot;: &quot;hongan-yuan&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;git@github.com:hongan-yuan/StkCode.git&quot;,
-    &quot;accountId&quot;: &quot;d0f1b38b-cddf-46fa-9b9e-8581ccfb1fcb&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/hongan-yuan/StkCode.git",
+    "accountId": "8c1e7bdd-d983-4a3c-a3fd-5a08602483e3"
   }
-}</component>
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 8
@@ -50,7 +47,9 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHELLCHECK.PATH": "/Users/yuan/Library/Application Support/JetBrains/PyCharm2025.2/plugins/Shell Script/shellcheck",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
     "git-widget-placeholder": "main",
     "last_opened_file_path": "/Users/yuan/Projects/PycharmProjects/StkCode/MyPaper/elara_exp",
     "node.js.detected.package.eslint": "true",
@@ -84,7 +83,9 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Simulation/pics/plot_chain_length_cross_slot_hop_stats.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -107,7 +108,9 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Simulation/pics/plot_elara_paper_figures2.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -130,7 +133,9 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Simulation/pics/plot_elara_redeployment.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -153,7 +158,9 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Simulation/pics/plot_elara_service_routing2.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -163,6 +170,12 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <list>
+      <item itemvalue="Python.plot_chain_length_cross_slot_hop_stats" />
+      <item itemvalue="Python.plot_elara_paper_figures2" />
+      <item itemvalue="Python.plot_elara_redeployment" />
+      <item itemvalue="Python.plot_elara_service_routing2" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="Python.plot_elara_service_routing2" />
@@ -175,8 +188,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-PY-252.27397.106" />
-        <option value="bundled-python-sdk-4e2b1448bda8-9a97661f3031-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.27397.106" />
+        <option value="bundled-python-sdk-b63d5a1f7c97-b61e75351b1f-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.22158.340" />
       </set>
     </attachedChunks>
   </component>
@@ -194,30 +206,7 @@
       <workItem from="1781853990715" duration="42814000" />
       <workItem from="1782821681122" duration="27062000" />
       <workItem from="1782969998174" duration="17137000" />
-    </task>
-    <task id="LOCAL-00011" summary="delete pics">
-      <option name="closed" value="true" />
-      <created>1781103123141</created>
-      <option name="number" value="00011" />
-      <option name="presentableId" value="LOCAL-00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1781103123141</updated>
-    </task>
-    <task id="LOCAL-00012" summary="baselines">
-      <option name="closed" value="true" />
-      <created>1781147412856</created>
-      <option name="number" value="00012" />
-      <option name="presentableId" value="LOCAL-00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1781147412856</updated>
-    </task>
-    <task id="LOCAL-00013" summary="baselines exp data">
-      <option name="closed" value="true" />
-      <created>1781154469178</created>
-      <option name="number" value="00013" />
-      <option name="presentableId" value="LOCAL-00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1781154469178</updated>
+      <workItem from="1783189277069" duration="58000" />
     </task>
     <task id="LOCAL-00014" summary="plot code">
       <option name="closed" value="true" />
@@ -587,7 +576,31 @@
       <option name="project" value="LOCAL" />
       <updated>1782995136938</updated>
     </task>
-    <option name="localTasksCounter" value="60" />
+    <task id="LOCAL-00060" summary="paper tex">
+      <option name="closed" value="true" />
+      <created>1783070540869</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1783070540869</updated>
+    </task>
+    <task id="LOCAL-00061" summary="paper tex">
+      <option name="closed" value="true" />
+      <created>1783070995241</created>
+      <option name="number" value="00061" />
+      <option name="presentableId" value="LOCAL-00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1783070995241</updated>
+    </task>
+    <task id="LOCAL-00062" summary="paper">
+      <option name="closed" value="true" />
+      <created>1783188790173</created>
+      <option name="number" value="00062" />
+      <option name="presentableId" value="LOCAL-00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1783188790173</updated>
+    </task>
+    <option name="localTasksCounter" value="63" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -618,14 +631,17 @@
     <MESSAGE value="new results" />
     <MESSAGE value="del large files" />
     <MESSAGE value="bandit ablation" />
+    <MESSAGE value="paper tex" />
     <MESSAGE value="paper" />
     <option name="LAST_COMMIT_MESSAGE" value="paper" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/StkCode$plot_elara_experiment_section_figures.coverage" NAME="plot_elara_experiment_section_figures Coverage Results" MODIFIED="1782898729085" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Simulation/pics" />
-    <SUITE FILE_PATH="coverage/StkCode$plot_elara_service_routing2.coverage" NAME="plot_elara_service_routing2 Coverage Results" MODIFIED="1782994585818" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Simulation/pics" />
+    <SUITE FILE_PATH="coverage/StkCode$plot_elara_paper_figures2.coverage" NAME="plot_elara_paper_figures2 Coverage Results" MODIFIED="1782907937816" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Simulation/pics" />
     <SUITE FILE_PATH="coverage/StkCode$plot_elara_redeployment.coverage" NAME="plot_elara_redeployment Coverage Results" MODIFIED="1782992118000" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Simulation/pics" />
     <SUITE FILE_PATH="coverage/StkCode$plot_chain_length_cross_slot_hop_stats.coverage" NAME="plot_chain_length_cross_slot_hop_stats Coverage Results" MODIFIED="1782979148421" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Simulation/pics" />
-    <SUITE FILE_PATH="coverage/StkCode$plot_elara_paper_figures2.coverage" NAME="plot_elara_paper_figures2 Coverage Results" MODIFIED="1782907937816" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Simulation/pics" />
+    <SUITE FILE_PATH="coverage/StkCode$plot_elara_service_routing2.coverage" NAME="plot_elara_service_routing2 Coverage Results" MODIFIED="1782994585818" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Simulation/pics" />
+    <SUITE FILE_PATH="coverage/StkCode$plot_elara_service_routing.coverage" NAME="Simulation.pics.plot_elara_service_routing Coverage Results" MODIFIED="1782993089539" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/StkCode$plot_elara_experiment_section_figures.coverage" NAME="plot_elara_experiment_section_figures Coverage Results" MODIFIED="1782898729085" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Simulation/pics" />
+    <SUITE FILE_PATH="coverage/StkCode$plot_elara_paper_figures.coverage" NAME="plot_elara_paper_figures Coverage Results" MODIFIED="1782912146479" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/" />
   </component>
 </project>
