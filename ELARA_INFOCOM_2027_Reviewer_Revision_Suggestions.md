@@ -55,7 +55,7 @@
 
 增加一个“Problem Decomposition”小节，明确写出：
 
-\[
+$$
 \mathcal{P}
 \rightarrow
 \mathcal{P}_{\mathrm{selection}}
@@ -63,7 +63,7 @@
 \mathcal{P}_{\mathrm{routing}}
 +
 \mathcal{P}_{\mathrm{deployment}}.
-\]
+$$
 
 并解释：
 
@@ -81,29 +81,29 @@
 
 当前问题中写为：
 
-\[
+$$
 \min_{y_{r,i,v},\Pi_r^{ru},A} J_r,
-\]
+$$
 
-其中 \(A\) 没有明确说明是 action set、deployment action，还是所有重部署动作集合。
+其中 $A$ 没有明确说明是 action set、deployment action，还是所有重部署动作集合。
 
 建议统一写为：
 
-\[
+$$
 \min_{\mathbf{y}_r,\boldsymbol{\Pi}^{ru}_r,\mathbf{K}(t)}.
-\]
+$$
 
-同时统一使用 \(K(t)\) 或 \(\mathbf{K}(t)\) 表示副本部署动作。
+同时统一使用 $K(t)$ 或 $\mathbf{K}(t)$ 表示副本部署动作。
 
 ### 2.2 请求级目标与窗口级部署目标混在一起
 
-当前 \(J_r\) 是单请求目标，但副本重部署是基于一个窗口内多个请求做出的慢时间尺度决策。二者不宜写入同一个 request-level objective。
+当前 $J_r$ 是单请求目标，但副本重部署是基于一个窗口内多个请求做出的慢时间尺度决策。二者不宜写入同一个 request-level objective。
 
 建议拆分为：
 
 #### 快时间尺度目标
 
-\[
+$$
 \min
 \mathbb{E}
 \left[
@@ -113,11 +113,11 @@ T_r^{e2e}
 +
 \rho I_r^{fail}
 \right].
-\]
+$$
 
 #### 慢时间尺度目标
 
-\[
+$$
 \min
 \frac{1}{|\mathcal{R}_W|}
 \sum_{r\in\mathcal{R}_W}
@@ -130,7 +130,7 @@ T_r^{e2e}
 \right)
 +
 \eta C^{mig}.
-\]
+$$
 
 这样可清楚区分在线请求调度和周期性副本部署。
 
@@ -154,7 +154,7 @@ T_r^{e2e}
 
 可定义：
 
-\[
+$$
 E^{tot}
 =
 E^{ru}
@@ -162,9 +162,9 @@ E^{ru}
 E^{cp}
 +
 E^{mig},
-\]
+$$
 
-\[
+$$
 T^{tot}
 =
 T^{ru}
@@ -172,7 +172,7 @@ T^{ru}
 T^{cp}
 +
 T^{cold}.
-\]
+$$
 
 ---
 
@@ -195,12 +195,12 @@ T^{cold}.
 
 当前路径时延写为：
 
-\[
+$$
 \delta_p^h
 =
 \sum_{e\in p}
 T_e^{cm}(d_p^h,t_h).
-\]
+$$
 
 该式隐含严格 store-and-forward 假设，即每一跳完整接收后下一跳才能发送。
 
@@ -216,34 +216,34 @@ T_e^{cm}(d_p^h,t_h).
 
 公式中虽然用：
 
-\[
+$$
 f_e^h
 =
 \sum_{p:e\in p}
 d_p^h
-\]
+$$
 
-表示共享边上的总流量，但路径时延仍使用单路径流量 \(d_p^h\) 计算。
+表示共享边上的总流量，但路径时延仍使用单路径流量 $d_p^h$ 计算。
 
 这可能低估共享链路上的拥塞与序列化时延。
 
 建议采用 edge-flow formulation：
 
-\[
+$$
 \sum_{e\in\delta^+(v)}f_e
 -
 \sum_{e\in\delta^-(v)}f_e
 =
 b_v,
-\]
+$$
 
-\[
+$$
 0
 \le
 f_e
 \le
 C_e(t).
-\]
+$$
 
 然后基于链路负载、瓶颈速率或阶段完成时间构造目标函数。
 
@@ -251,11 +251,11 @@ C_e(t).
 
 当前使用：
 
-\[
+$$
 \Delta_h^{ru}
 =
 \max_p \delta_p^h.
-\]
+$$
 
 但当多条路径共享部分 ISL 时，它们并不是真正独立并行，完成时间不能简单由最慢路径决定。
 
@@ -328,7 +328,7 @@ C_e(t).
 
 局部奖励已经包含每阶段的时延和能耗：
 
-\[
+$$
 r_{r,i}^{loc}
 =
 -
@@ -339,11 +339,11 @@ r_{r,i}^{loc}
 +
 \lambda N_{r,i}^{cross}
 \right).
-\]
+$$
 
 终止奖励又包含完整端到端时延和总能耗：
 
-\[
+$$
 r_r^{term}
 =
 -
@@ -352,7 +352,7 @@ r_r^{term}
 +
 \beta E_r^{tot}
 \right).
-\]
+$$
 
 这会重复计算已经在局部奖励中出现的成本。
 
@@ -363,12 +363,12 @@ r_r^{term}
 
 ### 4.4 统一折扣因子和奖励塑形参数
 
-当前 \(\omega_r\)、\(\gamma\) 等符号的作用容易混淆。
+当前 $\omega_r$、$\gamma$ 等符号的作用容易混淆。
 
 建议统一为：
 
-- PPO discount factor：\(\gamma\)；
-- terminal reward coefficient：\(\lambda_{\mathrm{term}}\)。
+- PPO discount factor：$\gamma$；
+- terminal reward coefficient：$\lambda_{\mathrm{term}}$。
 
 ---
 
@@ -376,7 +376,7 @@ r_r^{term}
 
 当前使用两层 mean aggregation GNN，类似 GraphSAGE。
 
-但两层 GNN 只能聚合有限范围的邻居信息，而候选执行节点可能距离当前节点多个 hops。论文又通过人工构造的候选特征 \(e_v\) 输入路由时延、链路风险、瓶颈容量和计算成本，这可能弱化 GNN 本身的作用。
+但两层 GNN 只能聚合有限范围的邻居信息，而候选执行节点可能距离当前节点多个 hops。论文又通过人工构造的候选特征 $e_v$ 输入路由时延、链路风险、瓶颈容量和计算成本，这可能弱化 GNN 本身的作用。
 
 ### 建议增加以下消融
 
@@ -385,7 +385,7 @@ r_r^{term}
 - GAT-PPO；
 - 不同 GNN 层数；
 - 不同 embedding dimension；
-- 不使用候选路由特征 \(e_v\)；
+- 不使用候选路由特征 $e_v$；
 - GNN-Greedy；
 - weighted-cost heuristic。
 
@@ -403,9 +403,9 @@ r_r^{term}
 
 当前 arm 定义为：
 
-\[
+$$
 k=(o,m,p_s,p_t).
-\]
+$$
 
 但相同 plane-level arm 最终还需选择具体卫星，因此同一个 arm 在不同时间可能对应不同执行结果，reward distribution 具有明显非平稳性。
 
@@ -422,9 +422,9 @@ k=(o,m,p_s,p_t).
 
 理论 arm 数量可能达到：
 
-\[
+$$
 3\times M\times P^2.
-\]
+$$
 
 需要说明：
 
@@ -638,7 +638,7 @@ Algorithm 2 允许一个部署窗口内同时执行多个 actions，但后续 re
 
 建议设置多档 deadline tightness：
 
-\[
+$$
 Z_r
 =
 \kappa T_r^{reference},
@@ -646,7 +646,7 @@ Z_r
 \kappa
 \in
 \{1.1,1.3,1.5,2.0\}.
-\]
+$$
 
 ---
 
@@ -656,13 +656,13 @@ Z_r
 
 请求模型为：
 
-\[
+$$
 r
 =
 \langle
 v_s,m_1,\ldots,m_L,v_d,\tau_{in}
 \rangle.
-\]
+$$
 
 但 Introduction 中请求来自 terrestrial user。
 
@@ -700,19 +700,19 @@ v_s,m_1,\ldots,m_L,v_d,\tau_{in}
 
 当前：
 
-\[
+$$
 E_m^{cp}(v,t)
 =
 P_v^{cp}
 \frac{C_m}{F_v(t)}.
-\]
+$$
 
-若 \(F_v(t)\) 变化来自 DVFS，则功率不应固定。
+若 $F_v(t)$ 变化来自 DVFS，则功率不应固定。
 
 建议明确：
 
 - CPU 工作频率固定；
-- \(F_v(t)\) 的变化来自 background load 或 available capacity；
+- $F_v(t)$ 的变化来自 background load 或 available capacity；
 - 本文不研究 DVFS。
 
 否则需采用频率相关功率模型。
@@ -725,12 +725,12 @@ P_v^{cp}
 
 建议至少写为：
 
-\[
+$$
 E_e
 =
 (P_e^{tx}+P_e^{rx})
 \frac{f_e}{R_e}.
-\]
+$$
 
 若忽略接收能耗，也应说明理由。
 
@@ -799,9 +799,9 @@ E_e
 
 例如路由模块可分析为：
 
-\[
+$$
 O(K_{\max}|E|\log |V|),
-\]
+$$
 
 具体形式根据所采用的 shortest augmenting path 实现确定。
 
@@ -909,12 +909,12 @@ Fig. 4 同时使用 reward 和 PPO loss 双纵轴，容易误读。
 - “a geographically close replica’s satellite” 改为 “a satellite hosting a geographically nearby replica”；
 - 统一 “mean execution energy” 和 “average energy consumption”；
 - 统一 “deadline acceptance rate” 和 “deadline violation rate”；
-- Equation (34) 中 “edge \(m\)” 应改为 “edge \(e\)”；
+- Equation (34) 中 “edge $m$” 应改为 “edge $e$”；
 - 检查公式编号是否从 (21) 跳到 (23)；
 - 检查公式 (17)、(18) 的求和范围和排版；
-- 避免 \(H\)、\(H_{r,i}\)、routing horizon 混用；
-- 副本数量上下界建议由 \(R^{min},R^{max}\) 改为 \(N_m^{min},N_m^{max}\)；
-- 避免 \(A\) 同时表示 satellite number 和 action notation；
+- 避免 $H$、$H_{r,i}$、routing horizon 混用；
+- 副本数量上下界建议由 $R^{min},R^{max}$ 改为 $N_m^{min},N_m^{max}$；
+- 避免 $A$ 同时表示 satellite number 和 action notation；
 - 统一 time slot、topology slot、slot window 等术语。
 
 ---
