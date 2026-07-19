@@ -15,38 +15,31 @@ class FairnessAwareGreedyVNFExecutionAgent(ServiceExecutionAgent):
     This implements a lightweight adaptation of FAGD_MASC from the
     Fair-NFV paper. For each time slot, it greedily builds a VNF mapping
     plan for active SFC requests. Each stage selects a deployed replica and a
-    shortest/least-cost route while minimizing the worst normalized delay
-    margin among requests already planned in the slot.
+    shortest/least-cost route while minimizing the worst elapsed delay among
+    requests already planned in the slot. No synthetic per-request time bound
+    is imposed in this adaptation.
     """
 
     def __init__(
         self,
         config: SimulationConfig,
-        deadline_base_s: float = 10.0,
-        deadline_per_service_s: float = 9.0,
         egress_shortage_weight: float = 2.0,
     ):
         super().__init__(config)
-        self.deadline_base_s = float(deadline_base_s)
-        self.deadline_per_service_s = float(deadline_per_service_s)
         self.egress_shortage_weight = float(egress_shortage_weight)
         self._slot_plan: dict[tuple[int, int], int] = {}
         self._slot_plan_metadata: dict[tuple[int, int], dict] = {}
-        self._slot_request_margins: dict[int, float] = {}
+        self._slot_request_delays: dict[int, float] = {}
 
-    def _request_deadline_s(self, request: SFCRequest) -> float:
-        chain_length = max(1, len(request.services))
-        return max(1.0e-6, self.deadline_base_s + self.deadline_per_service_s * chain_length)
-
-    def _delay_margin(self, request: SFCRequest, finish_time_s: float) -> float:
+    def _elapsed_delay(self, request: SFCRequest, finish_time_s: float) -> float:
         if not math.isfinite(finish_time_s):
             return math.inf
-        return max(0.0, finish_time_s - request.start_time) / self._request_deadline_s(request)
+        return max(0.0, finish_time_s - request.start_time)
 
-    def _existing_worst_margin(self, exclude_request_id: int | None = None) -> float:
+    def _existing_worst_delay(self, exclude_request_id: int | None = None) -> float:
         values = [
-            margin
-            for request_id, margin in self._slot_request_margins.items()
+            delay
+            for request_id, delay in self._slot_request_delays.items()
             if exclude_request_id is None or request_id != exclude_request_id
         ]
         return max(values) if values else 0.0
@@ -59,7 +52,7 @@ class FairnessAwareGreedyVNFExecutionAgent(ServiceExecutionAgent):
     def plan_slot_requests(self, requests: list[SFCRequest], context: dict) -> None:
         self._slot_plan = {}
         self._slot_plan_metadata = {}
-        self._slot_request_margins = {}
+        self._slot_request_delays = {}
 
         for request in sorted(requests, key=lambda item: (item.start_time, item.request_id)):
             current_node = request.source_node
@@ -90,12 +83,12 @@ class FairnessAwareGreedyVNFExecutionAgent(ServiceExecutionAgent):
                 self._slot_plan_metadata[key] = selected.metadata or {}
                 current_node = selected.selected_node
                 current_time = compute["compute_finish_s"]
-                self._slot_request_margins[request.request_id] = self._delay_margin(
+                self._slot_request_delays[request.request_id] = self._elapsed_delay(
                     request, current_time
                 )
 
             if request_failed:
-                self._slot_request_margins[request.request_id] = math.inf
+                self._slot_request_delays[request.request_id] = math.inf
                 continue
 
             final_route = route_data(
@@ -108,7 +101,7 @@ class FairnessAwareGreedyVNFExecutionAgent(ServiceExecutionAgent):
             finish_time = (
                 final_route["arrival_time"] if final_route.get("reachable", False) else math.inf
             )
-            self._slot_request_margins[request.request_id] = self._delay_margin(
+            self._slot_request_delays[request.request_id] = self._elapsed_delay(
                 request, finish_time
             )
 
@@ -190,29 +183,28 @@ class FairnessAwareGreedyVNFExecutionAgent(ServiceExecutionAgent):
                 ],
             )
         finish_time = compute["compute_finish_s"]
-        margin = self._delay_margin(request, finish_time)
+        elapsed_delay = self._elapsed_delay(request, finish_time)
         metadata = dict(self._slot_plan_metadata.get((request.request_id, service_index), {}))
         metadata.update(
             {
-                "fairness_deadline_s": self._request_deadline_s(request),
-                "fairness_delay_margin": margin,
-                "fairness_worst_margin": max(
-                    self._existing_worst_margin(request.request_id), margin
+                "fairness_elapsed_delay_s": elapsed_delay,
+                "fairness_worst_delay_s": max(
+                    self._existing_worst_delay(request.request_id), elapsed_delay
                 ),
             }
         )
         return CandidateDecision(
             service_id=service_id,
             selected_node=node_id,
-            score=metadata["fairness_worst_margin"],
+            score=metadata["fairness_worst_delay_s"],
             route_estimate=route,
             compute_estimate=compute,
             candidate_scores=[
                 {
                     "node_id": node_id,
                     "reachable": True,
-                    "score": metadata["fairness_worst_margin"],
-                    "delay_margin": margin,
+                    "score": metadata["fairness_worst_delay_s"],
+                    "elapsed_delay_s": elapsed_delay,
                     "route": route,
                     "compute": compute,
                 }
@@ -239,7 +231,7 @@ class FairnessAwareGreedyVNFExecutionAgent(ServiceExecutionAgent):
             context,
         )
         candidate_scores: list[dict] = []
-        existing_worst = self._existing_worst_margin(request.request_id)
+        existing_worst = self._existing_worst_delay(request.request_id)
 
         for node_id in candidates:
             route = (
@@ -263,7 +255,7 @@ class FairnessAwareGreedyVNFExecutionAgent(ServiceExecutionAgent):
                 service_id, node_id, route["arrival_time"], context
             )
             stage_finish = compute["compute_finish_s"]
-            stage_margin = self._delay_margin(request, stage_finish)
+            stage_delay = self._elapsed_delay(request, stage_finish)
             egress = self._estimate_egress_capacity(
                 request, service_index, node_id, stage_finish, context
             )
@@ -273,8 +265,8 @@ class FairnessAwareGreedyVNFExecutionAgent(ServiceExecutionAgent):
                 lookahead_finish = stage_finish + egress_delay
             else:
                 lookahead_finish = math.inf
-            lookahead_margin = self._delay_margin(request, lookahead_finish)
-            fairness_score = max(existing_worst, lookahead_margin) + (
+            lookahead_delay = self._elapsed_delay(request, lookahead_finish)
+            fairness_score = max(existing_worst, lookahead_delay) + (
                 self.egress_shortage_weight * egress_shortage
             )
             delay_cost = route["delay_s"] + compute["queue_delay_s"] + compute["compute_delay_s"]
@@ -284,10 +276,9 @@ class FairnessAwareGreedyVNFExecutionAgent(ServiceExecutionAgent):
                     "node_id": node_id,
                     "reachable": True,
                     "score": fairness_score,
-                    "stage_delay_margin": stage_margin,
-                    "lookahead_delay_margin": lookahead_margin,
-                    "existing_worst_delay_margin": existing_worst,
-                    "fairness_deadline_s": self._request_deadline_s(request),
+                    "stage_elapsed_delay_s": stage_delay,
+                    "lookahead_elapsed_delay_s": lookahead_delay,
+                    "existing_worst_delay_s": existing_worst,
                     "delay_cost_s": delay_cost,
                     "energy_cost_j": energy_cost,
                     **{
@@ -308,8 +299,8 @@ class FairnessAwareGreedyVNFExecutionAgent(ServiceExecutionAgent):
             reachable,
             key=lambda item: (
                 item["score"],
-                item["lookahead_delay_margin"],
-                item["stage_delay_margin"],
+                item["lookahead_elapsed_delay_s"],
+                item["stage_elapsed_delay_s"],
                 item["delay_cost_s"],
                 item["node_id"],
             ),
@@ -321,11 +312,10 @@ class FairnessAwareGreedyVNFExecutionAgent(ServiceExecutionAgent):
                 service_id, current_node, best["node_id"], data_gb, current_time, context
             )
         metadata = {
-            "fairness_deadline_s": self._request_deadline_s(request),
             "fairness_score": best["score"],
-            "fairness_stage_delay_margin": best["stage_delay_margin"],
-            "fairness_lookahead_delay_margin": best["lookahead_delay_margin"],
-            "fairness_existing_worst_delay_margin": existing_worst,
+            "fairness_stage_elapsed_delay_s": best["stage_elapsed_delay_s"],
+            "fairness_lookahead_elapsed_delay_s": best["lookahead_elapsed_delay_s"],
+            "fairness_existing_worst_delay_s": existing_worst,
         }
         return CandidateDecision(
             service_id=service_id,

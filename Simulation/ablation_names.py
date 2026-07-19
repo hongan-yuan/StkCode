@@ -47,6 +47,13 @@ OFFICIAL_ABLATIONS = (
 )
 
 ABLATION_LABELS = {name: name for name in OFFICIAL_ABLATIONS}
+ABLATION_LABELS.update(
+    {
+        "ELARA-NB": "No adaptation",
+        "ELARA-NR": "Nearest replica",
+        "ELARA-SH": "Shortest path",
+    }
+)
 
 ABLATION_GROUP_ABLATIONS = (
     "ELARA",

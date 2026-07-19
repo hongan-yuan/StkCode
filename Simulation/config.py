@@ -15,11 +15,12 @@ class SimulationConfig:
     sats_per_plane: int = 18
     num_microservices: int = 30
     replica_count_range: tuple[int, int] = (5, 10)
-    max_services_per_satellite: int = 3
 
     microservice_workload_range_cycles: tuple[float, float] = (1.0e9, 1.0e10)
     microservice_image_size_range_gb: tuple[float, float] = (0.2, 1.2)
-    microservice_storage_range_gb: tuple[float, float] = (1.0, 4.0)
+    # Every satellite stores the full image catalog on persistent storage.  Only
+    # activated replicas consume the constrained runtime memory below.
+    microservice_memory_range_gb: tuple[float, float] = (2.4, 4.0)
 
     cpu_freq_choices_ghz: tuple[float, ...] = (1.0, 2.0, 3.0, 4.0)
     cpu_power_by_freq_w: dict[float, float] = field(
@@ -74,7 +75,7 @@ class SimulationConfig:
     background_compute_rho_max: float = 0.95
     background_compute_queue_base_s: float = 0.05
 
-    satellite_storage_capacity_gb: float = 12.0
+    satellite_memory_capacity_gb: float = 12.0
     default_tx_power_w: float = 1.0
     speed_of_light_m_per_s: float = 299_792_458.0
 
@@ -98,8 +99,6 @@ class SimulationConfig:
     request_endpoint_sample_top_k: int = 4
     request_endpoint_route_check_limit: int = 12
 
-    migration_safety_margin: float = 0.05
-
     # Parameter Sensitivity
     route_horizon_slots: int = 3
     service_routing_strategy: str = "min_cost_max_flow"
@@ -107,22 +106,18 @@ class SimulationConfig:
     min_cost_flow_max_augmentations_per_slot: int = 5
     max_candidate_replicas: int = 4
     bandit_pressure_top_k_services: int = 8
-    bandit_target_top_n_planes: int = 3
     route_estimate_cache_enabled: bool = True
     route_estimate_time_bucket_s: float = 1.0
     route_estimate_data_bucket_gb: float = 0.25
+    # Edge-cost parameters used only by the Service-Pressure routing baseline.
     service_pressure_delay_scale_s: float = 10.0
     service_pressure_route_delay_weight: float = 0.20
-    service_pressure_compute_wait_weight: float = 0.20
     service_pressure_route_failure_weight: float = 1.00
-    service_pressure_p95_delay_weight: float = 0.10
-    service_pressure_replica_imbalance_weight: float = 0.50
     switch_penalty_s: float = 0.02
     candidate_bottleneck_shortage_penalty_weight: float = 2.0
     candidate_egress_shortage_penalty_weight: float = 2.0
     low_speed_neighbor_rate_threshold_mbps: float = 1000.0
     low_speed_neighbor_penalty_weight: float = 0.5
-    migration_failure_relief_bonus: float = 2.0
 
     background_link_lambda_per_slot: float = 0.35   # number of background requests
     background_link_data_mean_gb: float = 0.15      # data volume of each background requests   Exponential
@@ -135,7 +130,6 @@ class SimulationConfig:
 
     delay_weight: float = 0.4
     energy_weight: float = 0.6
-    migration_weight: float = 0.15
     failure_penalty: float = 100.0
     slot_switch_penalty_weight: float = 1.0
     route_failure_risk_weight: float = 1.0

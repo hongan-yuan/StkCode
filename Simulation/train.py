@@ -15,7 +15,11 @@ from .agents.migration import ReplicaPlacementMigrationAgent
 from .agents.ppo_gnn_agent import PPOGNNExecutionAgent
 from .core.env import SimulationEnvironment
 from .core.metrics import summarize_results
-from .domain.request import generate_request_templates, generate_slot_arrivals
+from .domain.request import (
+    generate_request_templates,
+    generate_slot_arrivals,
+    load_request_templates,
+)
 
 
 def jsonable(value):
@@ -186,7 +190,6 @@ def training_summary_row(
         "route_horizon_slots": args.route_horizon_slots,
         "max_candidate_replicas": base_config.max_candidate_replicas,
         "bandit_pressure_top_k_services": base_config.bandit_pressure_top_k_services,
-        "bandit_target_top_n_planes": base_config.bandit_target_top_n_planes,
         "route_estimate_cache_enabled": base_config.route_estimate_cache_enabled,
         "route_estimate_time_bucket_s": base_config.route_estimate_time_bucket_s,
         "route_estimate_data_bucket_gb": base_config.route_estimate_data_bucket_gb,
@@ -276,6 +279,12 @@ def parse_args() -> argparse.Namespace:
         default=SimulationConfig().output_dir.parent / "dyn_train_data_260605",
         help="Directory for checkpoints and training logs.",
     )
+    parser.add_argument(
+        "--request-template-csv",
+        type=Path,
+        default=None,
+        help="Reuse an existing request_templates.csv instead of generating a new set.",
+    )
     parser.add_argument("--log-every", type=int, default=500,
         help="Flush training CSV/JSON output files every N epochs.",
     )
@@ -330,10 +339,6 @@ def parse_args() -> argparse.Namespace:
         default=SimulationConfig().bandit_pressure_top_k_services,
         help="Let each Bandit round consider only the Top-K services by pressure.",
     )
-    parser.add_argument("--bandit-target-top-n-planes", type=int,
-        default=SimulationConfig().bandit_target_top_n_planes,
-        help="For each pressured service, evaluate only the Top-N target planes.",
-    )
     parser.add_argument("--route-estimate-time-bucket-s", type=float,
         default=SimulationConfig().route_estimate_time_bucket_s,
         help="Time bucket in seconds for route-estimate cache keys.",
@@ -358,7 +363,6 @@ def main() -> None:
     args.route_horizon_slots = max(1, args.route_horizon_slots)
     args.max_candidate_replicas = max(1, args.max_candidate_replicas)
     args.bandit_pressure_top_k_services = max(1, args.bandit_pressure_top_k_services)
-    args.bandit_target_top_n_planes = max(1, args.bandit_target_top_n_planes)
     args.route_estimate_time_bucket_s = max(0.0, args.route_estimate_time_bucket_s)
     args.route_estimate_data_bucket_gb = max(0.0, args.route_estimate_data_bucket_gb)
     args.failure_penalty = max(0.0, args.failure_penalty)
@@ -381,7 +385,6 @@ def main() -> None:
         route_horizon_slots=args.route_horizon_slots,
         max_candidate_replicas=args.max_candidate_replicas,
         bandit_pressure_top_k_services=args.bandit_pressure_top_k_services,
-        bandit_target_top_n_planes=args.bandit_target_top_n_planes,
         route_estimate_cache_enabled=not args.disable_route_estimate_cache,
         route_estimate_time_bucket_s=args.route_estimate_time_bucket_s,
         route_estimate_data_bucket_gb=args.route_estimate_data_bucket_gb,
@@ -412,7 +415,11 @@ def main() -> None:
 
     slot_count = env.context["slot_count"]
     slot_duration = env.context["slot_duration"]
-    request_templates = generate_request_templates(arrival_rng, env.context)
+    request_templates = (
+        load_request_templates(args.request_template_csv)
+        if args.request_template_csv is not None
+        else generate_request_templates(arrival_rng, env.context)
+    )
 
     next_request_id = 1
     bandit_window_requests = []
@@ -558,7 +565,10 @@ def main() -> None:
             "ppo_update_reason": update_stats.get("reason", ""),
             "ppo_device": str(agent.device) if agent.device is not None else "fallback",
             "bandit_updated": bandit_updated,
-            "bandit_action_count": len(migration_actions),
+            "bandit_decision_count": len(migration_actions),
+            "bandit_action_count": sum(
+                action.action == "relocate" for action in migration_actions
+            ),
             **{f"bandit_{k}": v for k, v in payload["bandit_summary"].items()},
             **{f"routing_{k}": v for k, v in payload["routing_cache_summary"].items()},
             **{

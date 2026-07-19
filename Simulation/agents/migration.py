@@ -1,925 +1,521 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 import csv
-import math
 import json
+import math
 from pathlib import Path
 
+import numpy as np
+
 from ..config import SimulationConfig
-from ..domain.constellation import orbit_plane, same_orbit
-from ..domain.service import Microservice, deployment_matrix
+from ..domain.constellation import orbit_plane
+from ..domain.service import Microservice, deployment_matrix, memory_usage_by_node
 from ..network.routing import route_data
 from ..network.topology import slot_from_time
 
 
+FEATURE_DIM = 3
+PRESSURE_EWMA_FACTOR = 0.5
+
+
 @dataclass
 class MigrationAction:
-    action: str
-    service_id: int | None = None
-    arm_key: tuple | None = None
-    source_node: int | None = None
-    target_node: int | None = None
-    source_plane: int | None = None
-    target_plane: int | None = None
-    selected_source_node: int | None = None
-    expected_saving: float = 0.0
-    migration_cost: float = 0.0
-    estimated_reward: float = 0.0
+    """One slow-timescale decision for a pressured service."""
+
+    action: str  # stay or relocate
+    service_id: int
+    arm_key: tuple
+    source_node: int
+    target_node: int
+    source_plane: int
+    target_plane: int
+    context_features: tuple[float, float, float]
+    service_pressure: float
+    expected_network_cost: float
+    target_compute_load: float
+    estimated_reward: float
+    baseline_service_cost: float
     execution_feedback_reward: float = 0.0
-    migration_delay_s: float = 0.0
-    migration_energy_j: float = 0.0
-    migration_route_mode: str = ""
-    cross_orbit_transfer: bool = False
+    activation_delay_s: float = 0.0
+    memory_requirement_gb: float = 0.0
 
 
 @dataclass
 class ServicePressureSignal:
     service_id: int
-    request_count: float = 0.0
-    average_route_delay_to_m: float = 0.0
-    average_compute_waiting_time_of_m: float = 0.0
-    route_failure_count_related_to_m: float = 0.0
-    p95_delay_of_m: float = 0.0
-    replica_utilization_imbalance: float = 0.0
+    invocation_count: int = 0
+    global_impact: float = 0.0
+    route_pressure: float = 0.0
+    waiting_pressure: float = 0.0
+    replica_imbalance: float = 0.0
+    actionability: float = 0.0
+    pressure: float = 0.0
+    mean_stage_cost: float = 0.0
+    mean_network_cost: float = 0.0
+    replica_stage_costs: dict[int, float] = field(default_factory=dict)
     replica_execution_counts: Counter[int] = field(default_factory=Counter)
+    routing_samples: list[tuple[int, float]] = field(default_factory=list)
 
 
 class ReplicaPlacementMigrationAgent:
-    """
-    Slow-layer multi-armed bandit migration agent.
+    """Shared linear-contextual-UCB policy for local replica activation.
 
-    Each legal migration/placement candidate is treated as an arm.
-    The default selection rule is UCB1 over estimated net benefit:
-
-    reward = ExpectedSaving - MigrationCost
-
-    This keeps the slow layer lightweight while still explicitly balancing
-    exploration of uncertain placement actions and exploitation of historically
-    profitable actions.
+    All service images are assumed to be pre-provisioned on every satellite.
+    A relocation therefore activates a local image, redirects new requests,
+    drains the old replica, and deactivates it.  No image is transferred over
+    an inter-satellite link and the active replica count remains unchanged.
     """
 
     def __init__(self, config: SimulationConfig, exploration_c: float = 1.25):
         self.config = config
-        self.exploration_c = exploration_c
-        self.arm_stats: dict[tuple, dict[str, float]] = {}
+        self.exploration_c = float(exploration_c)
+        self.matrix_a = np.eye(FEATURE_DIM, dtype=float)
+        self.vector_b = np.zeros(FEATURE_DIM, dtype=float)
         self.total_pulls = 0
         self.total_applied_actions = 0
+        self.total_execution_feedback_updates = 0
         self.applied_action_type_counts = Counter()
-        self.total_execution_feedback_updates = 0
-        self.last_apply_summary: dict[str, float] = {}
-        self.failed_replica_counts: Counter[tuple[int, int]] = Counter()
-        self.total_failed_replica_observations = 0
+        self.decision_stats: dict[tuple, dict[str, float]] = {}
         self.service_feedback_metrics: dict[int, ServicePressureSignal] = {}
-
-    def estimate_service_pressure(
-        self,
-        requests,
-        microservices: dict[int, Microservice] | None = None,
-    ) -> dict[int, ServicePressureSignal]:
-        service_pressure = {
-            service_id: replace(signal, request_count=0.0)
-            for service_id, signal in self.service_feedback_metrics.items()
-        }
-        for request in requests:
-            for service_id in request.services:
-                signal = service_pressure.setdefault(
-                    service_id,
-                    ServicePressureSignal(service_id=service_id),
-                )
-                signal.request_count += 1.0
-        if microservices is not None:
-            for service_id, signal in service_pressure.items():
-                service = microservices.get(service_id)
-                if service is None:
-                    continue
-                signal.replica_utilization_imbalance = self._replica_utilization_imbalance(
-                    service, signal.replica_execution_counts
-                )
-        return service_pressure
-
-    def apply(
-            self,
-            microservices: dict[int, Microservice],
-            requests,
-            context: dict,
-            max_actions: int = 4,
-    ) -> list[MigrationAction]:
-        service_pressure = self.estimate_service_pressure(requests, microservices)
-        service_count_by_node = self._service_count_by_node(microservices)
-        actions: list[MigrationAction] = []
-        migration_start_time = min((request.start_time for request in requests), default=0.0)
-        candidates = self._candidate_arms(microservices, service_pressure, service_count_by_node)
-        summary = Counter()
-
-        for candidate in self._rank_candidates(candidates, microservices, service_pressure):
-            if len(actions) >= max_actions:
-                break
-            action, service_id, source_plane, target_plane = candidate
-            if action == "no-op":
-                self._update_arm(candidate, 0.0, "estimated")
-                continue
-            service = microservices[service_id]
-            concrete = self._resolve_arm(
-                candidate, service, service_count_by_node, context, migration_start_time
-            )
-            if concrete is None:
-                summary["unresolved_arm_count"] += 1
-                continue
-            source_node, target_node = concrete
-
-            if not self._is_legal(action, source_node, target_node, service, service_count_by_node):
-                summary["illegal_arm_count"] += 1
-                continue
-
-            migration_cost, migration_route = self._migration_cost(
-                action, service, source_node, target_node, context, migration_start_time
-            )
-            if not math.isfinite(migration_cost):
-                summary["failed_cost_count"] += 1
-                self._update_arm(candidate, -1.0, "estimated")
-                continue
-            expected_saving = self._expected_saving(action, service_id, service_pressure)
-            failure_relief = self._failure_relieving_bonus(action, service_id, source_node)
-            placement_penalty = self._low_speed_placement_penalty(
-                action, source_node, target_node, context, migration_start_time
-            )
-            reward = expected_saving + failure_relief - migration_cost - placement_penalty
-            self._update_arm(candidate, reward, "estimated")
-            if reward <= self.config.migration_safety_margin:
-                summary["rejected_nonpositive_count"] += 1
-                continue
-
-            if action == "add":
-                service.replicas.append(target_node)
-                service.replicas.sort()
-                service_count_by_node[target_node] += 1
-            elif action == "remove":
-                service.replicas.remove(source_node)
-                service_count_by_node[source_node] -= 1
-            elif action == "move":
-                service.replicas.remove(source_node)
-                service.replicas.append(target_node)
-                service.replicas.sort()
-                service_count_by_node[source_node] -= 1
-                service_count_by_node[target_node] += 1
-
-            actions.append(
-                MigrationAction(
-                    action=action,
-                    service_id=service_id,
-                    arm_key=candidate,
-                    source_node=source_node,
-                    target_node=target_node,
-                    source_plane=source_plane,
-                    target_plane=target_plane,
-                    selected_source_node=migration_route.get("selected_source_node"),
-                    expected_saving=expected_saving,
-                    migration_cost=migration_cost,
-                    estimated_reward=reward,
-                    migration_delay_s=migration_route.get("delay_s", 0.0),
-                    migration_energy_j=migration_route.get("communication_energy_j", 0.0),
-                    migration_route_mode=migration_route.get("route_mode", ""),
-                    cross_orbit_transfer=(
-                            migration_route.get("selected_source_node") is not None
-                            and target_node is not None
-                            and not same_orbit(
-                        migration_route["selected_source_node"],
-                        target_node,
-                        self.config,
-                    )
-                    ),
-                )
-            )
-            self.total_applied_actions += 1
-            self.applied_action_type_counts[action] += 1
-            summary["applied_action_count"] += 1
-            summary[f"applied_{action}_count"] += 1
-
-        context["deployment_by_node"] = deployment_matrix(microservices)
-        self.last_apply_summary = dict(summary)
-        return actions
-
-    def _service_count_by_node(
-            self, microservices: dict[int, Microservice]
-    ) -> dict[int, int]:
-        deployment = deployment_matrix(microservices)
-        return {
-            node_id: len(deployment.get(node_id, set()))
-            for node_id in range(1, self.config.total_sats + 1)
-        }
-
-    def _candidate_arms(
-            self,
-            microservices: dict[int, Microservice],
-            service_pressure: dict[int, ServicePressureSignal],
-            service_count_by_node: dict[int, int],
-    ) -> list[tuple]:
-        spare_nodes = [
-            node_id
-            for node_id, count in service_count_by_node.items()
-            if count < self.config.max_services_per_satellite
-        ]
-        spare_planes = sorted({orbit_plane(node_id, self.config) for node_id in spare_nodes})
-        candidates: list[tuple] = [("no-op", 0, None, None)]
-        ranked_services = sorted(
-            service_pressure,
-            key=lambda service_id: self._service_pressure_score(service_pressure[service_id]),
-            reverse=True,
-        )
-        service_limit = max(1, int(self.config.bandit_pressure_top_k_services))
-        for service_id in ranked_services[:service_limit]:
-            if service_id not in microservices:
-                continue
-            service = microservices[service_id]
-            replica_planes = sorted(
-                {orbit_plane(node_id, self.config) for node_id in service.replicas}
-            )
-            target_planes = self._target_planes_for_service(
-                service, spare_planes, service_count_by_node
-            )
-            for target_plane in target_planes:
-                if (
-                    len(service.replicas) < self.config.replica_count_range[1]
-                    and self._plane_has_target(service, target_plane, service_count_by_node)
-                ):
-                    candidates.append(("add", service_id, None, target_plane))
-            for source_plane in replica_planes:
-                if len(service.replicas) > self.config.replica_count_range[0]:
-                    candidates.append(("remove", service_id, source_plane, None))
-                for target_plane in target_planes:
-                    if target_plane != source_plane and self._plane_has_target(
-                        service, target_plane, service_count_by_node
-                    ):
-                        candidates.append(("move", service_id, source_plane, target_plane))
-        return candidates
-
-    def _target_planes_for_service(
-        self,
-        service: Microservice,
-        spare_planes: list[int],
-        service_count_by_node: dict[int, int],
-    ) -> list[int]:
-        limit = max(1, int(self.config.bandit_target_top_n_planes))
-        planes = [
-            plane
-            for plane in spare_planes
-            if self._plane_has_target(service, plane, service_count_by_node)
-        ]
-        planes.sort(
-            key=lambda plane: self._target_plane_score(
-                service, plane, service_count_by_node
-            )
-        )
-        return planes[:limit]
-
-    def _target_plane_score(
-        self,
-        service: Microservice,
-        target_plane: int,
-        service_count_by_node: dict[int, int],
-    ) -> tuple[float, float, int]:
-        plane_nodes = [
-            node_id
-            for node_id, count in service_count_by_node.items()
-            if orbit_plane(node_id, self.config) == target_plane
-            and node_id not in service.replicas
-            and count < self.config.max_services_per_satellite
-        ]
-        if not plane_nodes:
-            return (math.inf, math.inf, target_plane)
-        existing_replica_penalty = (
-            1.0
-            if any(orbit_plane(node_id, self.config) == target_plane for node_id in service.replicas)
-            else 0.0
-        )
-        min_count = min(service_count_by_node[node_id] for node_id in plane_nodes)
-        avg_count = sum(service_count_by_node[node_id] for node_id in plane_nodes) / len(plane_nodes)
-        return (existing_replica_penalty, min_count + avg_count * 0.01, target_plane)
-
-    def _rank_candidates(
-        self,
-        candidates: list[tuple],
-        microservices: dict[int, Microservice],
-        service_pressure: dict[int, ServicePressureSignal],
-    ) -> list[tuple]:
-        return sorted(
-            candidates,
-            key=lambda arm: (
-                self._arm_failure_priority(arm, microservices),
-                self._arm_service_pressure_priority(arm, service_pressure),
-                self._ucb_score(arm),
-            ),
-            reverse=True,
-        )
-
-    def _service_pressure_score(self, signal: ServicePressureSignal) -> float:
-        delay_scale = max(1.0e-9, self.config.service_pressure_delay_scale_s)
-        return (
-            signal.request_count
-            + self.config.service_pressure_route_delay_weight
-            * signal.average_route_delay_to_m
-            / delay_scale
-            + self.config.service_pressure_compute_wait_weight
-            * signal.average_compute_waiting_time_of_m
-            / delay_scale
-            + self.config.service_pressure_route_failure_weight
-            * signal.route_failure_count_related_to_m
-            + self.config.service_pressure_p95_delay_weight
-            * signal.p95_delay_of_m
-            / delay_scale
-            + self.config.service_pressure_replica_imbalance_weight
-            * signal.replica_utilization_imbalance
-        )
-
-    def _arm_service_pressure_priority(
-        self,
-        arm: tuple,
-        service_pressure: dict[int, ServicePressureSignal],
-    ) -> float:
-        action, service_id, _, _ = arm
-        signal = service_pressure.get(service_id)
-        if signal is None:
-            return 0.0
-        score = self._service_pressure_score(signal)
-        if action == "move":
-            return 0.75 * score
-        if action == "remove":
-            return max(0.0, 0.25 - 0.1 * score)
-        if action == "add":
-            return score
-        return 0.0
-
-    def _arm_failure_priority(
-        self,
-        arm: tuple,
-        microservices: dict[int, Microservice],
-    ) -> float:
-        action, service_id, source_plane, _ = arm
-        if action not in {"move", "remove"} or service_id not in microservices:
-            return 0.0
-        service = microservices[service_id]
-        priority = 0.0
-        for node_id in service.replicas:
-            if source_plane is not None and orbit_plane(node_id, self.config) != source_plane:
-                continue
-            priority = max(priority, float(self.failed_replica_counts[(service_id, node_id)]))
-        return priority
-
-    def _ucb_score(self, arm: tuple) -> float:
-        stats = self.arm_stats.get(arm)
-        if stats is None or stats["count"] <= 0:
-            return math.inf
-        mean_reward = stats["reward_sum"] / stats["count"]
-        exploration = self.exploration_c * math.sqrt(
-            math.log(max(2, self.total_pulls + 1)) / stats["count"]
-        )
-        return mean_reward + exploration
-
-    def _update_arm(self, arm: tuple, reward: float, reward_type: str = "estimated") -> None:
-        stats = self.arm_stats.setdefault(
-            arm,
-            {
-                "count": 0.0,
-                "reward_sum": 0.0,
-                "estimated_count": 0.0,
-                "estimated_reward_sum": 0.0,
-                "execution_count": 0.0,
-                "execution_reward_sum": 0.0,
-            },
-        )
-        stats["count"] += 1.0
-        stats["reward_sum"] += reward
-        if reward_type == "execution":
-            stats["execution_count"] += 1.0
-            stats["execution_reward_sum"] += reward
-            self.total_execution_feedback_updates += 1
-        else:
-            stats["estimated_count"] += 1.0
-            stats["estimated_reward_sum"] += reward
-        self.total_pulls += 1
-
-    def export_arm_stats(self) -> list[dict]:
-        rows = []
-        for arm, stats in sorted(self.arm_stats.items(), key=lambda item: str(item[0])):
-            count = stats["count"]
-            reward_sum = stats["reward_sum"]
-            rows.append(
-                {
-                    "arm": json.dumps(arm, ensure_ascii=False),
-                    "action": arm[0],
-                    "service_id": arm[1],
-                    "source_plane": arm[2],
-                    "target_plane": arm[3],
-                    "pull_count": count,
-                    "reward_sum": reward_sum,
-                    "mean_reward": reward_sum / count if count else 0.0,
-                    "estimated_count": stats.get("estimated_count", 0.0),
-                    "estimated_mean_reward": (
-                        stats.get("estimated_reward_sum", 0.0)
-                        / stats.get("estimated_count", 1.0)
-                        if stats.get("estimated_count", 0.0)
-                        else 0.0
-                    ),
-                    "execution_count": stats.get("execution_count", 0.0),
-                    "execution_mean_reward": (
-                        stats.get("execution_reward_sum", 0.0)
-                        / stats.get("execution_count", 1.0)
-                        if stats.get("execution_count", 0.0)
-                        else 0.0
-                    ),
-                }
-            )
-        return rows
-
-    def load_arm_stats(self, path: str | Path) -> int:
-        path = Path(path)
-        loaded_count = 0
-        if not path.exists():
-            return loaded_count
-
-        self.arm_stats.clear()
-        self.total_pulls = 0
-        self.total_execution_feedback_updates = 0
-        with path.open("r", encoding="utf-8-sig", newline="") as file:
-            for row in csv.DictReader(file):
-                arm = tuple(json.loads(row["arm"]))
-                count = float(row.get("pull_count") or 0.0)
-                reward_sum = float(row.get("reward_sum") or 0.0)
-                estimated_count = float(row.get("estimated_count") or 0.0)
-                estimated_mean = float(row.get("estimated_mean_reward") or 0.0)
-                execution_count = float(row.get("execution_count") or 0.0)
-                execution_mean = float(row.get("execution_mean_reward") or 0.0)
-                self.arm_stats[arm] = {
-                    "count": count,
-                    "reward_sum": reward_sum,
-                    "estimated_count": estimated_count,
-                    "estimated_reward_sum": estimated_mean * estimated_count,
-                    "execution_count": execution_count,
-                    "execution_reward_sum": execution_mean * execution_count,
-                }
-                self.total_pulls += int(count)
-                self.total_execution_feedback_updates += int(execution_count)
-                loaded_count += 1
-        return loaded_count
-
-    def summary(self) -> dict:
-        rows = self.export_arm_stats()
-        positive = [row for row in rows if row["mean_reward"] > 0.0]
-        return {
-            "total_pulls": self.total_pulls,
-            "known_arm_count": len(rows),
-            "positive_arm_count": len(positive),
-            "average_arm_reward": (
-                sum(row["mean_reward"] for row in rows) / len(rows) if rows else 0.0
-            ),
-            "total_applied_actions": self.total_applied_actions,
-            "total_execution_feedback_updates": self.total_execution_feedback_updates,
-            "total_failed_replica_observations": self.total_failed_replica_observations,
-            "known_failed_replica_count": len(self.failed_replica_counts),
-            "known_service_pressure_metric_count": len(self.service_feedback_metrics),
-            **{
-                f"total_applied_{action}_count": count
-                for action, count in self.applied_action_type_counts.items()
-            },
-            **{f"last_{key}": value for key, value in self.last_apply_summary.items()},
-        }
-
-    def _is_legal(
-            self,
-            action: str,
-            source_node: int | None,
-            target_node: int | None,
-            service: Microservice,
-            service_count_by_node: dict[int, int],
-    ) -> bool:
-        if action == "no-op":
-            return False
-        if action == "add":
-            return (
-                    target_node not in service.replicas
-                    and len(service.replicas) < self.config.replica_count_range[1]
-                    and service_count_by_node[target_node] < self.config.max_services_per_satellite
-            )
-        if action == "remove":
-            return (
-                    source_node in service.replicas
-                    and len(service.replicas) > self.config.replica_count_range[0]
-            )
-        if action == "move":
-            return (
-                    source_node in service.replicas
-                    and target_node not in service.replicas
-                    and service_count_by_node[target_node] < self.config.max_services_per_satellite
-            )
-        return False
-
-    def _resolve_arm(
-        self,
-        arm: tuple,
-        service: Microservice,
-        service_count_by_node: dict[int, int],
-        context: dict,
-        start_time: float,
-    ) -> tuple[int | None, int | None] | None:
-        action, _, source_plane, target_plane = arm
-        if action == "add":
-            target_node = self._select_target_node(
-                service, target_plane, service_count_by_node, context, start_time
-            )
-            if target_node is None:
-                return None
-            return None, target_node
-        if action == "remove":
-            source_node = self._select_source_node(service, source_plane, context, start_time)
-            if source_node is None:
-                return None
-            return source_node, None
-        if action == "move":
-            source_node = self._select_source_node(service, source_plane, context, start_time)
-            target_node = self._select_target_node(
-                service, target_plane, service_count_by_node, context, start_time
-            )
-            if source_node is None or target_node is None:
-                return None
-            return source_node, target_node
-        return None
-
-    def _plane_has_target(
-        self,
-        service: Microservice,
-        target_plane: int | None,
-        service_count_by_node: dict[int, int],
-    ) -> bool:
-        return any(
-            (target_plane is None or orbit_plane(node_id, self.config) == target_plane)
-            and node_id not in service.replicas
-            and count < self.config.max_services_per_satellite
-            for node_id, count in service_count_by_node.items()
-        )
-
-    def _select_source_node(
-        self,
-        service: Microservice,
-        source_plane: int | None,
-        context: dict,
-        start_time: float,
-    ) -> int | None:
-        candidates = [
-            node_id
-            for node_id in service.replicas
-            if source_plane is None or orbit_plane(node_id, self.config) == source_plane
-        ]
-        if not candidates:
-            return None
-        candidates.sort(
-            key=lambda node_id: (
-                -self.failed_replica_counts[(service.service_id, node_id)],
-                -self._low_speed_neighbor_score(node_id, context, start_time),
-                node_id,
-            )
-        )
-        return candidates[0]
-
-    def _select_target_node(
-        self,
-        service: Microservice,
-        target_plane: int | None,
-        service_count_by_node: dict[int, int],
-        context: dict,
-        start_time: float,
-    ) -> int | None:
-        candidates = [
-            node_id
-            for node_id, count in service_count_by_node.items()
-            if (target_plane is None or orbit_plane(node_id, self.config) == target_plane)
-            and node_id not in service.replicas
-            and count < self.config.max_services_per_satellite
-        ]
-        candidates.sort(
-            key=lambda node_id: (
-                self._low_speed_neighbor_score(node_id, context, start_time),
-                service_count_by_node[node_id],
-                node_id,
-            )
-        )
-        return candidates[0] if candidates else None
-
-    def _low_speed_neighbor_score(
-        self,
-        node_id: int | None,
-        context: dict,
-        start_time: float,
-    ) -> float:
-        if node_id is None:
-            return 0.0
-        slot_duration = context["slot_duration"]
-        slot_count = context["slot_count"]
-        _, slot_mod = slot_from_time(start_time, slot_duration, slot_count)
-        graph = context["snapshots"][slot_mod]
-        if node_id not in graph:
-            return 0.0
-        threshold = max(1.0e-9, self.config.low_speed_neighbor_rate_threshold_mbps)
-        shortage_sum = 0.0
-        degree = 0
-        for neighbor in graph.neighbors(node_id):
-            degree += 1
-            rate_mbps = float(graph[node_id][neighbor].get("rate_mbps", 0.0))
-            if rate_mbps < threshold:
-                shortage_sum += 1.0 - max(0.0, rate_mbps) / threshold
-        return shortage_sum / degree if degree else 0.0
-
-    def _low_speed_placement_penalty(
-        self,
-        action: str,
-        source_node: int | None,
-        target_node: int | None,
-        context: dict,
-        start_time: float,
-    ) -> float:
-        source_score = self._low_speed_neighbor_score(source_node, context, start_time)
-        target_score = self._low_speed_neighbor_score(target_node, context, start_time)
-        if action == "add":
-            raw_penalty = target_score
-        elif action == "move":
-            raw_penalty = target_score - source_score
-        elif action == "remove":
-            raw_penalty = -source_score
-        else:
-            raw_penalty = 0.0
-        return self.config.low_speed_neighbor_penalty_weight * raw_penalty
-
-    def _failure_relieving_bonus(
-        self,
-        action: str,
-        service_id: int,
-        source_node: int | None,
-    ) -> float:
-        if action not in {"move", "remove"} or source_node is None:
-            return 0.0
-        count = self.failed_replica_counts[(service_id, source_node)]
-        return self.config.migration_failure_relief_bonus * min(1.0, float(count))
+        self._pressure_ewma: dict[int, float] = {}
+        self.last_apply_summary: dict[str, float] = {}
 
     def observe_failed_replicas(self, results: list[dict]) -> None:
-        for result in results:
-            if result.get("feasible", True):
-                continue
-            execution_plan = result.get("execution_plan") or []
-            if not execution_plan:
-                continue
-            failed_stage = result.get("failed_stage")
-            if not isinstance(failed_stage, int) or failed_stage <= 0:
-                continue
-            blame_index = min(failed_stage, len(execution_plan)) - 1
-            blame_step = execution_plan[blame_index]
-            service_id = blame_step.get("service_id")
-            node_id = blame_step.get("satellite_node")
-            if service_id is None or node_id is None:
-                continue
-            self.failed_replica_counts[(int(service_id), int(node_id))] += 1
-            self.total_failed_replica_observations += 1
-
-    def observe_execution_feedback(
-        self, actions: list[MigrationAction], results: list[dict]
-    ) -> None:
-        self.observe_service_pressure_feedback(results)
-        if not actions or not results:
-            return
-        feasible_count = sum(1 for result in results if result.get("feasible"))
-        success_rate = feasible_count / len(results)
-        finite_delays = [
-            float(result["total_delay_s"])
-            for result in results
-            if math.isfinite(float(result.get("total_delay_s", math.inf)))
-        ]
-        finite_energy = [
-            float(result["total_energy_j"])
-            for result in results
-            if math.isfinite(float(result.get("total_energy_j", math.inf)))
-        ]
-        avg_delay = sum(finite_delays) / len(finite_delays) if finite_delays else self.config.failure_penalty
-        avg_energy = sum(finite_energy) / len(finite_energy) if finite_energy else self.config.failure_penalty
-        execution_quality = (
-            success_rate
-            - self.config.delay_weight * avg_delay / 100.0
-            - self.config.energy_weight * avg_energy / 10_000.0
-        )
-        for action in actions:
-            if action.arm_key is None:
-                continue
-            feedback_reward = execution_quality - 0.1 * action.migration_cost
-            action.execution_feedback_reward = feedback_reward
-            self._update_arm(action.arm_key, feedback_reward, "execution")
+        """Compatibility hook; routing failures are not a pressure or reward term."""
 
     def observe_service_pressure_feedback(self, results: list[dict]) -> None:
         if not results:
             return
-        self.service_feedback_metrics = self._collect_service_feedback_metrics(results)
+        current = self._collect_service_feedback_metrics(results)
+        for service_id, signal in current.items():
+            previous = self._pressure_ewma.get(service_id, signal.pressure)
+            smoothed = (
+                PRESSURE_EWMA_FACTOR * signal.pressure
+                + (1.0 - PRESSURE_EWMA_FACTOR) * previous
+            )
+            self._pressure_ewma[service_id] = smoothed
+            signal.pressure = smoothed
+        self.service_feedback_metrics = current
+
+    def observe_execution_feedback(
+        self, actions: list[MigrationAction], results: list[dict]
+    ) -> None:
+        current = self._collect_service_feedback_metrics(results) if results else {}
+        for action in actions:
+            after = current.get(action.service_id)
+            after_cost = after.mean_stage_cost if after else action.baseline_service_cost
+            baseline = max(1.0e-9, action.baseline_service_cost)
+            reward = (action.baseline_service_cost - after_cost) / baseline
+            action.execution_feedback_reward = reward
+            features = np.asarray(action.context_features, dtype=float)
+            self.matrix_a += np.outer(features, features)
+            self.vector_b += reward * features
+            self.total_execution_feedback_updates += 1
+            stats = self.decision_stats.setdefault(
+                action.arm_key, {"count": 0.0, "reward_sum": 0.0}
+            )
+            stats["count"] += 1.0
+            stats["reward_sum"] += reward
+        self.observe_service_pressure_feedback(results)
+
+    def estimate_service_pressure(
+        self, requests, microservices: dict[int, Microservice] | None = None
+    ) -> dict[int, ServicePressureSignal]:
+        signals = {
+            sid: ServicePressureSignal(**vars(signal))
+            for sid, signal in self.service_feedback_metrics.items()
+        }
+        request_counts = Counter(
+            int(service_id) for request in requests for service_id in request.services
+        )
+        total = sum(request_counts.values())
+        for service_id, count in request_counts.items():
+            if service_id not in signals:
+                share = count / max(1, total)
+                signals[service_id] = ServicePressureSignal(
+                    service_id=service_id,
+                    invocation_count=count,
+                    global_impact=share,
+                    pressure=share,
+                )
+        if microservices is not None:
+            for service_id, signal in signals.items():
+                service = microservices.get(service_id)
+                if service is None or not service.replicas:
+                    continue
+                counts = [
+                    float(signal.replica_execution_counts.get(node_id, 0))
+                    for node_id in service.replicas
+                ]
+                mean_count = sum(counts) / len(counts)
+                signal.replica_imbalance = (
+                    max(counts) / max(1.0e-9, mean_count) - 1.0
+                    if sum(counts) > 0.0 else 0.0
+                )
+                signal.actionability = max(
+                    self._saturate(signal.route_pressure),
+                    self._saturate(signal.waiting_pressure),
+                    self._saturate(signal.replica_imbalance),
+                )
+                raw_pressure = signal.global_impact * signal.actionability
+                signal.pressure = 0.5 * raw_pressure + 0.5 * signal.pressure
+        return signals
+
+    def apply(
+        self,
+        microservices: dict[int, Microservice],
+        requests,
+        context: dict,
+        max_actions: int | None = None,
+    ) -> list[MigrationAction]:
+        del max_actions  # Top-K_m determines the number of per-service decisions.
+        pressure = self.estimate_service_pressure(requests, microservices)
+        ranked = sorted(
+            pressure.values(), key=lambda item: (-item.pressure, item.service_id)
+        )[: self.config.bandit_pressure_top_k_services]
+        if not ranked:
+            self.last_apply_summary = {"selected_service_count": 0}
+            return []
+
+        memory_used = memory_usage_by_node(microservices, self.config.total_sats)
+        start_time = (
+            max((request.start_time for request in requests), default=0.0)
+            + float(context["slot_duration"])
+        )
+        decisions: list[MigrationAction] = []
+        summary = Counter(selected_service_count=len(ranked))
+        pressure_values = [item.pressure for item in ranked]
+
+        for signal in ranked:
+            service = microservices[signal.service_id]
+            source = self._highest_cost_source(service, signal)
+            candidates = self._candidate_actions(
+                service, signal, source, memory_used, context, start_time
+            )
+            if not candidates:
+                summary["no_candidate_count"] += 1
+                continue
+
+            network_values = [item[3] for item in candidates]
+            load_values = [item[4] for item in candidates]
+            scored = []
+            for action, target, target_plane, network_cost, target_load in candidates:
+                features = (
+                    self._minmax(signal.pressure, pressure_values),
+                    self._minmax(network_cost, network_values),
+                    self._minmax(target_load, load_values),
+                )
+                score = self._ucb_score(features)
+                # Deterministic tie-breaking prefers staying when evidence is equal.
+                scored.append((score, action == "stay", -target, action, target, target_plane, features, network_cost, target_load))
+            selected = max(scored)
+            score, _, _, action, target, target_plane, features, network_cost, target_load = selected
+            arm_key = (action, service.service_id, orbit_plane(source, self.config), target_plane)
+
+            if action == "relocate":
+                service.replicas.remove(source)
+                service.replicas.append(target)
+                service.replicas.sort()
+                memory_used[source] -= service.memory_requirement_gb
+                memory_used[target] += service.memory_requirement_gb
+                self.total_applied_actions += 1
+                summary["relocated_count"] += 1
+            else:
+                summary["stay_count"] += 1
+
+            decision = MigrationAction(
+                action=action,
+                service_id=service.service_id,
+                arm_key=arm_key,
+                source_node=source,
+                target_node=target,
+                source_plane=orbit_plane(source, self.config),
+                target_plane=target_plane,
+                context_features=features,
+                service_pressure=signal.pressure,
+                expected_network_cost=network_cost,
+                target_compute_load=target_load,
+                estimated_reward=score,
+                baseline_service_cost=max(1.0e-9, signal.mean_stage_cost),
+                activation_delay_s=service.startup_delay_s if action == "relocate" else 0.0,
+                memory_requirement_gb=service.memory_requirement_gb,
+            )
+            decisions.append(decision)
+            self.total_pulls += 1
+            self.applied_action_type_counts[action] += 1
+
+        context["deployment_by_node"] = deployment_matrix(microservices)
+        self.last_apply_summary = dict(summary)
+        return decisions
+
+    def _candidate_actions(
+        self, service, signal, source, memory_used, context, start_time
+    ) -> list[tuple[str, int, int, float, float]]:
+        source_plane = orbit_plane(source, self.config)
+        result = [(
+            "stay",
+            source,
+            source_plane,
+            self._expected_network_cost(signal, source, context, start_time),
+            self._compute_load(source, context, start_time),
+        )]
+        for plane in range(self.config.num_planes):
+            if plane == source_plane:
+                continue
+            target = self._best_feasible_node_in_plane(
+                plane, service, memory_used, context, start_time
+            )
+            if target is None:
+                continue
+            network_cost = self._expected_network_cost(
+                signal, target, context, start_time
+            )
+            if not math.isfinite(network_cost):
+                continue
+            result.append((
+                "relocate",
+                target,
+                plane,
+                network_cost,
+                self._compute_load(target, context, start_time),
+            ))
+        return result
+
+    def _best_feasible_node_in_plane(
+        self, plane, service, memory_used, context, start_time
+    ) -> int | None:
+        resources = context["satellite_resources"]
+        candidates = []
+        for node_id in range(1, self.config.total_sats + 1):
+            if orbit_plane(node_id, self.config) != plane or node_id in service.replicas:
+                continue
+            capacity = resources[node_id].memory_capacity_gb
+            if memory_used[node_id] + service.memory_requirement_gb > capacity + 1.0e-9:
+                continue
+            candidates.append(node_id)
+        return min(
+            candidates,
+            key=lambda node: (
+                self._compute_load(node, context, start_time),
+                memory_used[node] / max(1.0e-9, resources[node].memory_capacity_gb),
+                node,
+            ),
+            default=None,
+        )
+
+    @staticmethod
+    def _highest_cost_source(service, signal) -> int:
+        return max(
+            service.replicas,
+            key=lambda node: (
+                signal.replica_stage_costs.get(node, 0.0),
+                -signal.replica_execution_counts.get(node, 0),
+                -node,
+            ),
+        )
+
+    def _expected_network_cost(
+        self, signal, target: int, context: dict, start_time: float
+    ) -> float:
+        if not signal.routing_samples:
+            return 0.0
+        costs = []
+        # Four representative arrivals keep candidate construction lightweight.
+        for origin, data_gb in signal.routing_samples[:4]:
+            route = route_data(origin, target, data_gb, start_time, context)
+            if not route.get("reachable", False):
+                continue
+            costs.append(
+                self.config.delay_weight * float(route["delay_s"])
+                + self.config.energy_weight
+                * float(route["communication_energy_j"]) / 1000.0
+            )
+        return sum(costs) / len(costs) if costs else signal.mean_network_cost
+
+    @staticmethod
+    def _compute_load(node_id: int, context: dict, start_time: float) -> float:
+        _, slot_mod = slot_from_time(
+            start_time, context["slot_duration"], context["slot_count"]
+        )
+        return float(
+            context.get("compute_utilization_table", {}).get(slot_mod, {}).get(node_id, 0.0)
+        )
+
+    def _ucb_score(self, features: tuple[float, float, float]) -> float:
+        x = np.asarray(features, dtype=float)
+        inverse = np.linalg.inv(self.matrix_a)
+        theta = inverse @ self.vector_b
+        uncertainty = math.sqrt(max(0.0, float(x @ inverse @ x)))
+        return float(theta @ x + self.exploration_c * uncertainty)
 
     def _collect_service_feedback_metrics(
         self, results: list[dict]
     ) -> dict[int, ServicePressureSignal]:
-        raw_stats = defaultdict(
-            lambda: {
-                "route_delays": [],
-                "compute_waits": [],
-                "step_delays": [],
-                "route_failures": 0.0,
-                "replica_counts": Counter(),
-            }
-        )
-        route_delay_by_stage: dict[tuple[int, int], float] = {}
-
+        raw = defaultdict(lambda: {
+            "route_delays": [], "network_costs": [], "waits": [], "stage_costs": [],
+            "costs_by_node": defaultdict(list), "counts": Counter(), "routing_samples": [],
+        })
+        total_request_cost = 0.0
+        route_by_key = {}
         for result in results:
-            request_info = result.get("request") or {}
-            services = [int(service_id) for service_id in request_info.get("services", [])]
-            for route_record in result.get("route_details") or []:
-                stage = route_record.get("stage")
-                if not isinstance(stage, int) or stage < 0 or stage >= len(services):
-                    continue
-                service_id = services[stage]
-                route_delay = float(route_record.get("communication_delay_s", math.inf))
-                if math.isfinite(route_delay):
-                    raw_stats[service_id]["route_delays"].append(route_delay)
-                    request_id = int(request_info.get("request_id", -1))
-                    route_delay_by_stage[(request_id, stage)] = route_delay
+            request = result.get("request") or {}
+            request_id = int(request.get("request_id", -1))
+            for route in result.get("route_details") or []:
+                stage = route.get("stage")
+                if isinstance(stage, int):
+                    route_by_key[(request_id, stage)] = route
+            delay = float(result.get("total_delay_s", math.inf))
+            energy = float(result.get("total_energy_j", math.inf))
+            if math.isfinite(delay) and math.isfinite(energy):
+                total_request_cost += self.config.delay_weight * delay + self.config.energy_weight * energy / 1000.0
 
             for step in result.get("execution_plan") or []:
-                service_id = step.get("service_id")
-                if service_id is None:
-                    continue
-                service_id = int(service_id)
-                queue_delay = float(step.get("queue_delay_s", math.inf))
-                compute_delay = float(step.get("compute_delay_s", math.inf))
-                if math.isfinite(queue_delay):
-                    raw_stats[service_id]["compute_waits"].append(queue_delay)
-                if math.isfinite(queue_delay) and math.isfinite(compute_delay):
-                    request_id = int(step.get("request_id", -1))
-                    stage = int(step.get("stage", -1))
-                    route_delay = route_delay_by_stage.get((request_id, stage), 0.0)
-                    raw_stats[service_id]["step_delays"].append(
-                        route_delay + queue_delay + compute_delay
+                service_id = int(step["service_id"])
+                stage = int(step.get("stage", -1))
+                node = int(step["satellite_node"])
+                route = route_by_key.get((request_id, stage), {})
+                route_delay = float(route.get("communication_delay_s", 0.0))
+                route_energy = float(route.get("communication_energy_j", 0.0))
+                wait = float(step.get("queue_delay_s", 0.0))
+                compute_delay = float(step.get("compute_delay_s", 0.0))
+                compute_energy = float(step.get("compute_energy_j", 0.0))
+                cost = self.config.delay_weight * (route_delay + wait + compute_delay) + self.config.energy_weight * (route_energy + compute_energy) / 1000.0
+                values = raw[service_id]
+                values["route_delays"].append(route_delay)
+                values["network_costs"].append(
+                    self.config.delay_weight * route_delay
+                    + self.config.energy_weight * route_energy / 1000.0
+                )
+                values["waits"].append(wait)
+                values["stage_costs"].append(cost)
+                values["costs_by_node"][node].append(cost)
+                values["counts"][node] += 1
+                origin = route.get("source_node")
+                if origin is not None:
+                    values["routing_samples"].append(
+                        (int(origin), float(route.get("data_gb", 0.0)))
                     )
-                node_id = step.get("satellite_node")
-                if node_id is not None:
-                    raw_stats[service_id]["replica_counts"][int(node_id)] += 1
 
-            if not result.get("feasible", True):
-                failed_service_id = self._failed_service_id(result, services)
-                if failed_service_id is not None:
-                    raw_stats[failed_service_id]["route_failures"] += 1.0
-
-        return {
-            service_id: ServicePressureSignal(
+        signals = {}
+        for service_id, values in raw.items():
+            stage_cost_sum = sum(values["stage_costs"])
+            impact = stage_cost_sum / max(1.0e-9, total_request_cost)
+            route_pressure = self._tail_pressure(values["route_delays"])
+            waiting_pressure = self._tail_pressure(values["waits"])
+            counts = list(values["counts"].values())
+            imbalance = (max(counts) / max(1.0e-9, sum(counts) / len(counts)) - 1.0) if counts else 0.0
+            actionability = max(self._saturate(route_pressure), self._saturate(waiting_pressure), self._saturate(imbalance))
+            signals[service_id] = ServicePressureSignal(
                 service_id=service_id,
-                average_route_delay_to_m=self._mean(values["route_delays"]),
-                average_compute_waiting_time_of_m=self._mean(values["compute_waits"]),
-                route_failure_count_related_to_m=values["route_failures"],
-                p95_delay_of_m=self._percentile(values["step_delays"], 0.95),
-                replica_execution_counts=values["replica_counts"],
+                invocation_count=len(values["stage_costs"]),
+                global_impact=impact,
+                route_pressure=route_pressure,
+                waiting_pressure=waiting_pressure,
+                replica_imbalance=imbalance,
+                actionability=actionability,
+                pressure=impact * actionability,
+                mean_stage_cost=stage_cost_sum / max(1, len(values["stage_costs"])),
+                mean_network_cost=(
+                    sum(values["network_costs"]) / len(values["network_costs"])
+                    if values["network_costs"] else 0.0
+                ),
+                replica_stage_costs={node: sum(costs) / len(costs) for node, costs in values["costs_by_node"].items()},
+                replica_execution_counts=values["counts"],
+                routing_samples=values["routing_samples"],
             )
-            for service_id, values in raw_stats.items()
-        }
+        return signals
 
-    def _failed_service_id(
-        self,
-        result: dict,
-        services: list[int],
-    ) -> int | None:
-        failed_route = result.get("failed_route") or {}
-        if failed_route.get("type") == "candidate_routes":
-            service_id = failed_route.get("service_id")
-            return int(service_id) if service_id is not None else None
-        failed_stage = result.get("failed_stage")
-        if not isinstance(failed_stage, int) or not services:
-            return None
-        if 0 <= failed_stage < len(services):
-            return services[failed_stage]
-        if failed_stage == len(services):
-            return services[-1]
-        return None
-
-    def _replica_utilization_imbalance(
-        self,
-        service: Microservice,
-        replica_counts: Counter[int],
-    ) -> float:
-        if not service.replicas:
-            return 0.0
-        counts = [float(replica_counts.get(node_id, 0)) for node_id in service.replicas]
-        total = sum(counts)
-        if total <= 0.0:
-            return 0.0
-        mean_count = total / len(counts)
-        return sum(abs(count - mean_count) for count in counts) / (2.0 * total)
-
-    @staticmethod
-    def _mean(values: list[float]) -> float:
-        return sum(values) / len(values) if values else 0.0
-
-    @staticmethod
-    def _percentile(values: list[float], percentile: float) -> float:
+    @classmethod
+    def _tail_pressure(cls, values: list[float]) -> float:
         if not values:
             return 0.0
+        median = cls._percentile(values, 0.5)
+        p95 = cls._percentile(values, 0.95)
+        return max(0.0, p95 / max(1.0e-9, median) - 1.0)
+
+    @staticmethod
+    def _percentile(values: list[float], q: float) -> float:
         ordered = sorted(values)
-        index = max(0, min(len(ordered) - 1, math.ceil(percentile * len(ordered)) - 1))
+        index = max(0, min(len(ordered) - 1, math.ceil(q * len(ordered)) - 1))
         return ordered[index]
 
-    def _expected_saving(
-        self,
-        action: str,
-        service_id: int,
-        service_pressure: dict[int, ServicePressureSignal],
-    ) -> float:
-        signal = service_pressure.get(service_id, ServicePressureSignal(service_id=service_id))
-        base = self._service_pressure_score(signal) * 0.1
-        if action == "add":
-            return base
-        if action == "move":
-            return base * 0.75
-        if action == "remove":
-            return max(0.0, 0.25 - base * 0.1)
-        return 0.0
+    @staticmethod
+    def _saturate(value: float) -> float:
+        value = max(0.0, value)
+        return value / (1.0 + value)
 
-    def _migration_cost(
-            self,
-            action: str,
-            service: Microservice,
-            source_node: int | None,
-            target_node: int | None,
-            context: dict,
-            start_time: float,
-    ) -> tuple[float, dict]:
-        if action == "remove":
-            return 0.01, {"delay_s": 0.0, "communication_energy_j": 0.0, "route_mode": "remove_only"}
-        if target_node is None:
-            return math.inf, {"reachable": False, "failure_reason": "missing_migration_endpoint"}
+    @staticmethod
+    def _minmax(value: float, values: list[float]) -> float:
+        low, high = min(values), max(values)
+        return 0.0 if high <= low + 1.0e-12 else (value - low) / (high - low)
 
-        selected_source_node = source_node
-        if action == "add":
-            selected_source_node = self._select_add_source(
-                service, target_node, context, start_time
-            )
-        if selected_source_node is None:
-            return math.inf, {"reachable": False, "failure_reason": "missing_add_source"}
+    def export_arm_stats(self) -> list[dict]:
+        model = {
+            "record_type": "model",
+            "model_type": "shared_linear_contextual_ucb",
+            "matrix_a": json.dumps(self.matrix_a.tolist()),
+            "vector_b": json.dumps(self.vector_b.tolist()),
+            "pull_count": self.total_pulls,
+            "execution_count": self.total_execution_feedback_updates,
+        }
+        rows = [model]
+        for arm, stats in sorted(self.decision_stats.items(), key=lambda item: str(item[0])):
+            count = stats["count"]
+            rows.append({
+                "record_type": "decision",
+                "arm": json.dumps(arm),
+                "action": arm[0],
+                "service_id": arm[1],
+                "source_plane": arm[2],
+                "target_plane": arm[3],
+                "pull_count": count,
+                "reward_sum": stats["reward_sum"],
+                "mean_reward": stats["reward_sum"] / count if count else 0.0,
+            })
+        return rows
 
-        route = route_data(
-            selected_source_node,
-            target_node,
-            service.image_size_gb,
-            start_time,
-            context,
-        )
-        if not route["reachable"]:
-            return math.inf, route
-        route["selected_source_node"] = selected_source_node
-
-        # The route layer decides the actual image-transfer path. Therefore,
-        # cross-orbit migrations use the same orbit-aware dual-path routing
-        # mechanism as ordinary microservice intermediate-data transfers.
-        route_cost = (
-                self.config.delay_weight * route["delay_s"]
-                + self.config.energy_weight * route["communication_energy_j"] / 1000.0
-                + self.config.slot_switch_penalty_weight * route["slot_crossings"]
-                + self.config.route_failure_risk_weight
-                * float(route.get("route_failure_risk", 0.0))
-        )
-        image_cost = self.config.migration_weight * service.image_size_gb
-        startup_cost = 0.01 * service.startup_delay_s
-        if action == "move":
-            return route_cost + image_cost + startup_cost + 0.02, route
-        if action == "add":
-            return route_cost + image_cost + startup_cost, route
-        return 0.0, {"delay_s": 0.0, "communication_energy_j": 0.0, "route_mode": "no-op"}
-
-    def _select_add_source(
-            self,
-            service: Microservice,
-            target_node: int,
-            context: dict,
-            start_time: float,
-    ) -> int | None:
-        best_source = None
-        best_cost = math.inf
-        for source_node in service.replicas:
-            route = route_data(
-                source_node,
-                target_node,
-                service.image_size_gb,
-                start_time,
-                context,
-            )
-            if not route["reachable"]:
+    def load_arm_stats(self, path: str | Path) -> int:
+        path = Path(path)
+        if not path.exists():
+            return 0
+        with path.open("r", encoding="utf-8-sig", newline="") as file:
+            rows = list(csv.DictReader(file))
+        model_rows = [row for row in rows if row.get("model_type") == "shared_linear_contextual_ucb"]
+        if not model_rows:
+            return 0  # Old UCB1 checkpoints are intentionally incompatible.
+        model = model_rows[0]
+        self.matrix_a = np.asarray(json.loads(model["matrix_a"]), dtype=float)
+        self.vector_b = np.asarray(json.loads(model["vector_b"]), dtype=float)
+        self.total_pulls = int(float(model.get("pull_count") or 0))
+        self.total_execution_feedback_updates = int(float(model.get("execution_count") or 0))
+        self.decision_stats.clear()
+        for row in rows:
+            if row.get("record_type") != "decision" or not row.get("arm"):
                 continue
-            cost = (
-                    self.config.delay_weight * route["delay_s"]
-                    + self.config.energy_weight * route["communication_energy_j"] / 1000.0
-                    + self.config.slot_switch_penalty_weight * route["slot_crossings"]
-                    + self.config.route_failure_risk_weight
-                    * float(route.get("route_failure_risk", 0.0))
-            )
-            if cost < best_cost:
-                best_cost = cost
-                best_source = source_node
-        return best_source
+            arm = tuple(json.loads(row["arm"]))
+            self.decision_stats[arm] = {
+                "count": float(row.get("pull_count") or 0.0),
+                "reward_sum": float(row.get("reward_sum") or 0.0),
+            }
+        return max(1, len(self.decision_stats))
+
+    def summary(self) -> dict:
+        means = [
+            stats["reward_sum"] / stats["count"]
+            for stats in self.decision_stats.values() if stats["count"]
+        ]
+        return {
+            "policy": "shared_linear_contextual_ucb",
+            "feature_dimension": FEATURE_DIM,
+            "total_pulls": self.total_pulls,
+            "known_arm_count": len(self.decision_stats),
+            "positive_arm_count": sum(value > 0.0 for value in means),
+            "average_arm_reward": sum(means) / len(means) if means else 0.0,
+            "total_applied_actions": self.total_applied_actions,
+            "total_execution_feedback_updates": self.total_execution_feedback_updates,
+            "known_service_pressure_metric_count": len(self.service_feedback_metrics),
+            **{f"total_selected_{action}_count": count for action, count in self.applied_action_type_counts.items()},
+            **{f"last_{key}": value for key, value in self.last_apply_summary.items()},
+        }

@@ -462,7 +462,6 @@ def request_summary(
         values[(method, length, key)] = {
             "total_delay_s": delay,
             "total_energy_j": energy,
-            "deadline_accepted": 1.0 if row.get("deadline_accepted") == "True" else 0.0,
         }
 
     rows_out: list[dict] = []
@@ -470,14 +469,12 @@ def request_summary(
         for length in chain_lengths:
             delay_values = []
             energy_values = []
-            deadline_values = []
             for key in common[length]:
                 item = values.get((method, length, key))
                 if not item:
                     continue
                 delay_values.append(item["total_delay_s"])
                 energy_values.append(item["total_energy_j"])
-                deadline_values.append(item["deadline_accepted"])
             rows_out.append(
                 {
                     "method": method,
@@ -485,7 +482,6 @@ def request_summary(
                     "sample_size": len(delay_values),
                     "total_delay_s": float(np.mean(delay_values)),
                     "total_energy_1e3_j": float(np.mean(energy_values)) / 1000.0,
-                    "deadline_satisfaction_pct": 100.0 * float(np.mean(deadline_values)),
                 }
             )
     return rows_out
@@ -634,12 +630,11 @@ def save_e2e_impact_figure(
     methods: list[str],
     chain_lengths: list[int],
 ) -> None:
-    fig, axes = plt.subplots(1, 3, figsize=(15.2, 4.2))
+    fig, axes = plt.subplots(1, 2, figsize=(10.4, 4.2))
     fig.subplots_adjust(left=0.055, right=0.995, top=0.80, bottom=0.20, wspace=0.25)
     metrics = [
         ("total_delay_s", "End-to-end latency (s)"),
         ("total_energy_1e3_j", r"Energy (x1k J)"),
-        ("deadline_satisfaction_pct", "Deadline satisfaction (%)"),
     ]
     x_positions, bar_width, offsets = grouped_positions(chain_lengths, methods)
     for ax, (metric, ylabel) in zip(axes, metrics):
@@ -780,7 +775,6 @@ def build_group_outputs(
             "subset",
             "total_delay_s",
             "total_energy_1e3_j",
-            "deadline_satisfaction_pct",
         ],
     )
     paths = [

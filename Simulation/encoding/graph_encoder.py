@@ -17,6 +17,7 @@ def encode_satellite_graph(
     config: SimulationConfig = context["config"]
     resources = context["satellite_resources"]
     deployment_by_node = context["deployment_by_node"]
+    microservices = context["microservices"]
     queue_delay_table = context["queue_delay_table"]
     discount_table = context.get("discount_table", {})
     utilization_table = context.get("compute_utilization_table", {})
@@ -41,7 +42,8 @@ def encode_satellite_graph(
         features[int(node_id)] = [
             resource.base_freq_ghz / max(config.cpu_freq_choices_ghz),
             queue_delay_table[slot][int(node_id)] / max(1.0, context["slot_duration"]),
-            len(deployed) / config.max_services_per_satellite,
+            sum(microservices[sid].memory_requirement_gb for sid in deployed)
+            / max(1.0e-9, resource.memory_capacity_gb),
             orbit_plane(int(node_id), config) / max(1, config.num_planes - 1),
             sat_position(int(node_id), config) / max(1, config.sats_per_plane - 1),
             1.0 if int(node_id) == current_node else 0.0,

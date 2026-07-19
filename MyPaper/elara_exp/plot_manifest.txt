@@ -1,0 +1,6 @@
+/Users/yuan/Projects/PycharmProjects/StkCode/MyPaper/elara_exp/elara_train.png
+/Users/yuan/Projects/PycharmProjects/StkCode/MyPaper/elara_exp/elara_train.pdf
+/Users/yuan/Projects/PycharmProjects/StkCode/MyPaper/elara_exp/elara_comparison.png
+/Users/yuan/Projects/PycharmProjects/StkCode/MyPaper/elara_exp/elara_comparison.pdf
+/Users/yuan/Projects/PycharmProjects/StkCode/MyPaper/elara_exp/elara_ablation.png
+/Users/yuan/Projects/PycharmProjects/StkCode/MyPaper/elara_exp/elara_ablation.pdf

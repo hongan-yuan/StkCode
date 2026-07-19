@@ -15,7 +15,7 @@ class SatelliteResource:
     base_freq_ghz: float
     base_freq_hz: float
     power_w: float
-    storage_capacity_gb: float
+    memory_capacity_gb: float
 
 
 @dataclass
@@ -23,7 +23,7 @@ class Microservice:
     service_id: int
     workload_cycles: float
     image_size_gb: float
-    storage_requirement_gb: float
+    memory_requirement_gb: float
     startup_delay_s: float
     replicas: list[int]
 
@@ -39,7 +39,7 @@ def generate_satellite_resources(
             base_freq_ghz=freq_ghz,
             base_freq_hz=freq_ghz * 1.0e9,
             power_w=config.cpu_power_by_freq_w[freq_ghz],
-            storage_capacity_gb=config.satellite_storage_capacity_gb,
+            memory_capacity_gb=config.satellite_memory_capacity_gb,
         )
     return resources
 
@@ -48,29 +48,31 @@ def generate_microservice_catalog(
     rng: random.Random, config: SimulationConfig
 ) -> dict[int, Microservice]:
     catalog: dict[int, Microservice] = {}
-    service_count_by_sat = {node_id: 0 for node_id in range(1, config.total_sats + 1)}
+    memory_used_by_sat = {node_id: 0.0 for node_id in range(1, config.total_sats + 1)}
     min_workload, max_workload = config.microservice_workload_range_cycles
 
     for service_id in range(1, config.num_microservices + 1):
         replica_count = rng.randint(*config.replica_count_range)
+        memory_requirement_gb = rng.uniform(*config.microservice_memory_range_gb)
         feasible_nodes = [
             node_id
-            for node_id, count in service_count_by_sat.items()
-            if count < config.max_services_per_satellite
+            for node_id, memory_used in memory_used_by_sat.items()
+            if memory_used + memory_requirement_gb
+            <= config.satellite_memory_capacity_gb + 1.0e-9
         ]
         if len(feasible_nodes) < replica_count:
-            raise RuntimeError("Not enough satellite capacity for microservice replicas.")
+            raise RuntimeError("Not enough satellite memory for microservice replicas.")
 
-        feasible_nodes.sort(key=lambda node_id: (service_count_by_sat[node_id], rng.random()))
+        feasible_nodes.sort(key=lambda node_id: (memory_used_by_sat[node_id], rng.random()))
         replicas = sorted(feasible_nodes[:replica_count])
         for node_id in replicas:
-            service_count_by_sat[node_id] += 1
+            memory_used_by_sat[node_id] += memory_requirement_gb
 
         catalog[service_id] = Microservice(
             service_id=service_id,
             workload_cycles=rng.uniform(min_workload, max_workload),
             image_size_gb=rng.uniform(*config.microservice_image_size_range_gb),
-            storage_requirement_gb=rng.uniform(*config.microservice_storage_range_gb),
+            memory_requirement_gb=memory_requirement_gb,
             startup_delay_s=rng.uniform(0.2, 2.0),
             replicas=replicas,
         )
@@ -85,6 +87,19 @@ def deployment_matrix(
         for node_id in service.replicas:
             by_node.setdefault(node_id, set()).add(service.service_id)
     return by_node
+
+
+def memory_usage_by_node(
+    microservices: dict[int, Microservice], total_sats: int | None = None
+) -> dict[int, float]:
+    """Return memory occupied by active replicas on each satellite."""
+    usage = {
+        node_id: 0.0 for node_id in range(1, (total_sats or 0) + 1)
+    }
+    for service in microservices.values():
+        for node_id in service.replicas:
+            usage[node_id] = usage.get(node_id, 0.0) + service.memory_requirement_gb
+    return usage
 
 
 def compute_service_execution(

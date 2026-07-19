@@ -6,9 +6,11 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 PYTHON_BIN="${PYTHON_BIN:-python}"
 SEEDS="${SEEDS:-42 43 44 45}"
-RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-SECO}}"
-MERGE_ABLATIONS="${MERGE_ABLATIONS:-ELARA ELARA-NB ELARA-NR ELARA-SH Fair-NFV SECO SP-Routing SC-NFV}"
-GPUS="${GPUS:-0 1 2 3}"
+RUN_ABLATIONS="${RUN_ABLATIONS:-${ABLATIONS:-SECO SP-Routing SC-NFV}}"
+#MERGE_ABLATIONS="${MERGE_ABLATIONS:-ELARA ELARA-NB ELARA-NR ELARA-SH SECO SP-Routing SC-NFV}"
+MERGE_ABLATIONS="${MERGE_ABLATIONS:-SECO SP-Routing SC-NFV}"
+GPUS="${GPUS:-0}"
+GPU_COUNT="${GPU_COUNT:-1}"
 MODEL_ROOT="${MODEL_ROOT:-${SCRIPT_DIR}/multi_seed_runs}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-${SCRIPT_DIR}/test_outputs/ablation_experiments}"
 DEFAULT_ISL_CSV="${PROJECT_ROOT}/WalkerDeltaConstellationSimu/Walker_Delta_ISL_Simu.csv"
@@ -19,7 +21,21 @@ CHECKPOINT_NAME="${CHECKPOINT_NAME:-ppo_gnn_latest.pth}"
 BANDIT_STATS_NAME="${BANDIT_STATS_NAME:-bandit_arm_stats.csv}"
 PROGRESS_EVERY="${PROGRESS_EVERY:-25}"
 CPU_WORKERS="${CPU_WORKERS:-4}"
-GPU_WORKERS_PER_GPU="${GPU_WORKERS_PER_GPU:-9}"
+
+EXTRA_ARGS=()
+while (( $# > 0 )); do
+  case "$1" in
+    --gpu-count) GPU_COUNT="$2"; shift 2 ;;
+    --gpu-count=*) GPU_COUNT="${1#*=}"; shift ;;
+    --max-parallel) MAX_PARALLEL="$2"; shift 2 ;;
+    --max-parallel=*) MAX_PARALLEL="${1#*=}"; shift ;;
+    --seeds) SEEDS="$2"; shift 2 ;;
+    --seeds=*) SEEDS="${1#*=}"; shift ;;
+    --gpus) GPUS="$2"; shift 2 ;;
+    --gpus=*) GPUS="${1#*=}"; shift ;;
+    *) EXTRA_ARGS+=("$1"); shift ;;
+  esac
+done
 
 common_args=(
   --model-root "${MODEL_ROOT}"
@@ -67,6 +83,14 @@ if [[ "${DEVICE}" != "cpu" && "${#GPU_ARRAY[@]}" -eq 0 ]]; then
   echo "Expected at least one GPU id, got: ${GPUS}" >&2
   exit 1
 fi
+if [[ "${DEVICE}" != "cpu" ]]; then
+  GPU_COUNT="${GPU_COUNT:-${#GPU_ARRAY[@]}}"
+  if [[ "${GPU_COUNT}" -lt 1 || "${GPU_COUNT}" -gt "${#GPU_ARRAY[@]}" ]]; then
+    echo "GPU_COUNT must be between 1 and the number of GPUS entries (${#GPU_ARRAY[@]}), got: ${GPU_COUNT}" >&2
+    exit 1
+  fi
+  GPU_ARRAY=("${GPU_ARRAY[@]:0:${GPU_COUNT}}")
+fi
 
 if [[ "${#RUN_ABLATION_ARRAY[@]}" -eq 0 ]]; then
   echo "Expected at least one ablation variant to run, got: ${RUN_ABLATIONS}" >&2
@@ -87,8 +111,8 @@ echo "  seeds: ${SEEDS}"
 if [[ "${DEVICE}" == "cpu" ]]; then
   echo "  cpu_workers: ${CPU_WORKERS}"
 else
-  echo "  gpus: ${GPUS}"
-  echo "  gpu_workers_per_gpu: ${GPU_WORKERS_PER_GPU}"
+  echo "  gpu_count: ${#GPU_ARRAY[@]}"
+  echo "  gpus: ${GPU_ARRAY[*]}"
 fi
 echo "  model_root: ${MODEL_ROOT}"
 echo "  output_root: ${OUTPUT_ROOT}"
@@ -98,36 +122,19 @@ if [[ "${DEVICE}" == "cpu" ]]; then
   max_parallel="${MAX_PARALLEL:-${CPU_WORKERS}}"
 else
   gpu_count="${#GPU_ARRAY[@]}"
-  max_parallel="${MAX_PARALLEL:-$((gpu_count * GPU_WORKERS_PER_GPU))}"
+  max_parallel="${MAX_PARALLEL:-${CPU_WORKERS}}"
 fi
 echo "  max_parallel_tasks: ${max_parallel}"
 if [[ "${max_parallel}" -lt 1 ]]; then
-  echo "MAX_PARALLEL/CPU_WORKERS/GPU_WORKERS_PER_GPU must be at least 1, got: ${max_parallel}" >&2
+  echo "MAX_PARALLEL/CPU_WORKERS must be at least 1, got: ${max_parallel}" >&2
   exit 1
 fi
 
 task_index=0
 failed=0
-pids=()
-labels=()
-
-wait_active_tasks() {
-  local i
-  for i in "${!pids[@]}"; do
-    if ! wait "${pids[$i]}"; then
-      echo "Task failed: ${labels[$i]}" >&2
-      failed=1
-    fi
-  done
-  pids=()
-  labels=()
-}
-
-wait_for_slot() {
-  if [[ "${#pids[@]}" -ge "${max_parallel}" ]]; then
-    wait_active_tasks
-  fi
-}
+total_tasks=$((${#RUN_ABLATION_ARRAY[@]} * ${#SEED_ARRAY[@]}))
+source "${SCRIPT_DIR}/parallel_runner.sh"
+parallel_runner_init "${total_tasks}" "${max_parallel}"
 
 existing_seed_list() {
   local variant_dir="$1"
@@ -182,7 +189,7 @@ for ablation in "${RUN_ABLATION_ARRAY[@]}"; do
           --device "${DEVICE}" \
           --skip-aggregate \
           "${common_args[@]}" \
-          "$@"
+          ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}
       ) > "${log_file}" 2>&1 &
     else
       gpu="${GPU_ARRAY[$((task_index % gpu_count))]}"
@@ -196,11 +203,10 @@ for ablation in "${RUN_ABLATION_ARRAY[@]}"; do
           --device "${DEVICE}" \
           --skip-aggregate \
           "${common_args[@]}" \
-          "$@"
+          ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}
       ) > "${log_file}" 2>&1 &
     fi
-    pids+=("$!")
-    labels+=("${label}")
+    parallel_register_task "$!" "${label}"
     task_index=$((task_index + 1))
   done
 done
@@ -339,10 +345,6 @@ metric_columns = [
     "average_reward_per_request",
     "failure_count",
     "bandit_action_count",
-    "deadline_acceptance_rate",
-    "delay_margin_mean",
-    "delay_margin_max",
-    "delay_margin_jain_fairness",
 ]
 
 summary_rows = []
@@ -373,4 +375,4 @@ write_rows(output_root / "ablation_metric_summary.csv", summary_rows)
 PY
 
 echo "Done. Outputs are under ${OUTPUT_ROOT}."
-echo "Per-task progress bars and ETA are in each seed_<seed>.log file."
+echo "Per-task progress is in each seed_<seed>.log; aggregate progress and ETA were printed above."

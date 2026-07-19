@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Patch
 
-from ..ablation_names import canonical_ablation_name
+from ..ablation_names import ABLATION_LABELS, canonical_ablation_name
 
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
@@ -391,7 +391,10 @@ def plot_dual_axis_bars(
     )
 
     ax_delay.set_xticks(x)
-    ax_delay.set_xticklabels(labels)
+    display_labels = [ABLATION_LABELS.get(label, label) for label in labels]
+    if any(label.startswith("ELARA-") for label in labels):
+        display_labels = [label.replace(" ", "\n") for label in display_labels]
+    ax_delay.set_xticklabels(display_labels)
     ax_delay.set_ylabel("Mean end-to-end latency (s)")
     ax_energy.set_ylabel(SCALED_ENERGY_AXIS_LABEL)
     ax_delay.tick_params(axis="y")

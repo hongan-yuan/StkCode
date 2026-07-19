@@ -21,7 +21,6 @@ from .full_cycle_seed_distribution import (
     build_config,
     build_execution_agent,
     canonicalize_ablation_row,
-    delay_margin_summary,
     filter_templates_by_chain_length,
     generate_arrivals_for_slot,
     jsonable,
@@ -513,7 +512,10 @@ def run_seed(
                 "average_slot_crossings": window_summary["average_slot_crossings"],
                 "redeployment_enabled": redeployment_enabled,
                 "redeployment_after_window": redeployment_after_window,
-                "redeployment_action_count": len(migration_actions),
+                "redeployment_decision_count": len(migration_actions),
+                "redeployment_action_count": sum(
+                    action.action == "relocate" for action in migration_actions
+                ),
                 "cumulative_redeployment_action_count": len(migration_rows),
                 "checkpoint_loaded": checkpoint_loaded,
                 "execution_agent": agent.__class__.__name__,
@@ -577,7 +579,6 @@ def run_seed(
             else None
         ),
         "window_summaries": window_rows,
-        "delay_margin_summary": delay_margin_summary(all_results),
         "bandit_summary": bandit_agent.summary(),
     }
 

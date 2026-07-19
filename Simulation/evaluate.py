@@ -275,7 +275,10 @@ def main() -> None:
             "average_slot_crossings": summary["average_slot_crossings"],
             **flatten_route_counts(summary["route_mode_counts"]),
             "bandit_updated": bandit_updated,
-            "bandit_action_count": len(migration_actions),
+            "bandit_decision_count": len(migration_actions),
+            "bandit_action_count": sum(
+                action.action == "relocate" for action in migration_actions
+            ),
             **{f"bandit_{key}": value for key, value in bandit_agent.summary().items()},
             **{
                 f"routing_{key}": value

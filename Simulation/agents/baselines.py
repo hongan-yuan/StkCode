@@ -338,7 +338,11 @@ class ServicePressureExecutionAgent(ServiceExecutionAgent):
             context.get("discount_table", {}).get(slot_mod, {}).get(node_id, 1.0)
         )
         deployed = context.get("deployment_by_node", {}).get(node_id, set())
-        deployment_pressure = len(deployed) / max(1, self.config.max_services_per_satellite)
+        memory_used = sum(
+            context["microservices"][sid].memory_requirement_gb for sid in deployed
+        )
+        memory_capacity = context["satellite_resources"][node_id].memory_capacity_gb
+        deployment_pressure = memory_used / max(1.0e-9, memory_capacity)
         virtual_backlog = self.virtual_service_backlog[(int(node_id), int(service_id))]
         return (
             utilization
@@ -1030,7 +1034,11 @@ class SCNFVChainingOrbitExecutionAgent(ServiceExecutionAgent):
             context.get("discount_table", {}).get(slot_mod, {}).get(node_id, 1.0)
         )
         deployed = context.get("deployment_by_node", {}).get(node_id, set())
-        deployment_load = len(deployed) / max(1, self.config.max_services_per_satellite)
+        memory_used = sum(
+            context["microservices"][sid].memory_requirement_gb for sid in deployed
+        )
+        memory_capacity = context["satellite_resources"][node_id].memory_capacity_gb
+        deployment_load = memory_used / max(1.0e-9, memory_capacity)
         return (
             utilization
             + queue_delay / slot_duration
