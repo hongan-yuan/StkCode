@@ -1,9 +1,0 @@
-figure_group,ablation,mean_end_to_end_latency_s,mean_end_to_end_energy_j
-comparison,ELARA,35.36693177,1493.413124
-comparison,SECO,36.98197416,1496.891595
-comparison,SC-NFV,42.72064275,1789.928889
-comparison,SP-Routing,49.3410221,1884.249283
-ablation,ELARA,35.36693177,1493.413124
-ablation,ELARA-NB,37.49783461,1489.935199
-ablation,ELARA-NR,54.76803403,2578.218495
-ablation,ELARA-SH,47.64536468,1510.243173
