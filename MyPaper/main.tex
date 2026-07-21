@@ -626,6 +626,7 @@ after window $w+1$; missing observations produce zero feedback. Both retention a
 %For a look-ahead window of $W_{\text{ru}}$ time slots and at most $K_{\max}$ augmentations per time slot, the routing complexity is $\mathcal{O}(W_{\text{ru}}K_{\max}|\mathcal{E}|\log|\mathcal{V}|)$.
 %For deployment, considering $K_s$ high-pressure services and $K_p$ target planes yields only $\mathcal{O}(K_sK_p|\mathcal{P}|)$ arms per round, avoiding exhaustive satellite-level service placement.
 
+
 \section{Performance Evaluation}
 \label{sec:eval}
 
@@ -633,88 +634,90 @@ after window $w+1$; missing observations produce zero feedback. Both retention a
 %We aim to answer the following questions: (i) whether ELARA reduces end-to-end latency and energy compared with representative service orchestration baselines; (ii) whether its major components are all necessary; (iii) how the service-routing module behaves under different chain lengths; and (iv) whether adaptive replica redeployment provides sustained benefits over time.
 
 \subsection{Experimental Setup}
-We implement ELARA and all baselines in a discrete event simulator written in Python.
-The simulator replays time varying LEO topology snapshots, maintains dynamic onboard computing queues and ISL queues, and records execution traces for requests and individual service stages.
+We implement ELARA and all baselines in a Python-based event-driven simulator.
+The simulator replays time-varying LEO topology snapshots, maintains dynamic onboard computing queues and ISL queues, and records request-level and hop-level execution traces.
 Unless otherwise specified, each reported result is averaged over four random seeds.
-\mbox{Table~\ref{tab:env_params}} summarizes the default constellation, workload, routing, and replica adaptation settings, whereas \mbox{Table~\ref{tab:learning_params}} lists the PPO, GNN, and bandit parameters. In particular, the default configuration uses 180 satellites, service chains of 5--15 microservices, a routing horizon of three slots, and an adaptation window of ten slots; these settings are kept fixed across the compared methods unless otherwise stated.
+\mbox{Table~\ref{tab:env_params}} summarizes the default constellation, workload, routing, and redeployment settings, whereas \mbox{Table~\ref{tab:learning_params}} lists the GNN-PPO and bandit hyperparameters. In particular, the default configuration uses 180 satellites, service chains of 5--15 microservices, a three-slot routing look-ahead window, and a ten-slot redeployment window; these settings are kept fixed across the compared methods unless otherwise stated.
 
 \begin{table}[!t]
-\centering
-\caption{Environment and Workload Parameters}
-\label{tab:env_params}
-\setlength{\tabcolsep}{2.8pt}
-\scriptsize
-\begin{tabular}{l|l}
-\toprule
-\textbf{Parameter} & \textbf{Default setting} \\
-\midrule
-Constellation size & 10 orbital planes, 18 satellites per plane \\
-Time slot duration & 10 s \\
-Time slots per cycle & 606 \\
-Number of microservices & 30 \\
-Replicas per microservice & 5--10 \\
-Runtime memory per satellite & 12 GB \\
-Runtime memory per microservice & 2.4--4.0 GB \\
-Service image availability & Complete catalog on every satellite \\
-CPU frequency & 1, 2, 3, or 4 GHz \\
-Request chain length & 5, 10, or 15 \\
-Request arrivals & Poisson process \\
-Candidate replicas per stage $N_{\text{cand}}$ & 4 \\
-Routing horizon $W_{\text{ru}}$ & 3 time slots \\
-Maximum paths per time slot & 5 \\
-Replica adaptation window & 10 time slots \\
-\bottomrule
-\end{tabular}
-\vspace{-0.15cm}
+	\centering
+	\caption{Environment and Workload Parameters}
+	\label{tab:env_params}
+	\setlength{\tabcolsep}{2.8pt}
+	\scriptsize
+	\begin{tabular}{l|l}
+		\toprule
+		\textbf{Parameter} & \textbf{Default setting} \\
+		\midrule
+		Constellation size & 10 orbital planes, 18 satellites per plane \\
+		Time-slot duration & 10 s \\
+		Time slots per cycle & 606 \\
+		Number of microservices & 30 \\
+		Replicas per microservice & 5--10 \\
+		Maximum services per satellite & 3 \\
+		CPU frequency & 1, 2, 3, or 4 GHz \\
+		Request chain length & 5, 10, or 15 \\
+		Request arrivals & Poisson process \\
+		Routing look-ahead window $W_{\text{ru}}$ & 3 time slots \\
+		Max augmenting paths per time slot & 5 \\
+		Redeployment window length & 10 time slots \\
+		\bottomrule
+	\end{tabular}
+	\vspace{-0.15cm}
 \end{table}
 
 \begin{table}[!t]
-\centering
-\caption{Learning Parameters}
-\label{tab:learning_params}
-\setlength{\tabcolsep}{2.8pt}
-\scriptsize
-\begin{tabular}{l|l}
-\toprule
-\textbf{Parameter} & \textbf{Default setting} \\
-\midrule
-GNN message passing layers & 2 \\
-GNN/PPO hidden dimension & 128 \\
-PPO learning rate & $3\times 10^{-4}$ \\
-PPO discount factor & 0.99 \\
-PPO clip parameter & 0.2 \\
-PPO GAE parameter & 0.95 \\
-PPO batch size & 64 \\
-PPO rollout buffer size & 256 \\
-Contextual UCB exploration factor $c$ & 1.25 \\
-Services selected per window $K_{\mathrm m}$ & 8 \\
-Bandit context dimension & 3 \\
-\bottomrule
-\end{tabular}
-\vspace{-0.15cm}
+	\centering
+	\caption{Learning Parameters}
+	\label{tab:learning_params}
+	\setlength{\tabcolsep}{2.8pt}
+	\scriptsize
+	\begin{tabular}{l|l}
+		\toprule
+		\textbf{Parameter} & \textbf{Default setting} \\
+		\midrule
+		GNN message-passing layers & 2 \\
+		GNN/PPO hidden dimension & 128 \\
+		PPO learning rate & $3\times 10^{-4}$ \\
+		PPO discount factor & 0.99 \\
+		PPO clip parameter & 0.2 \\
+		PPO GAE parameter & 0.95 \\
+		PPO batch size & 64 \\
+		PPO rollout buffer size & 256 \\
+		Bandit UCB exploration factor & 1.25 \\
+		Bandit pressure Top-$K_{\text{ms}}$ services & 8 \\
+		Bandit target Top-$N$ planes & 3 \\
+		\bottomrule
+	\end{tabular}
+	\vspace{-0.15cm}
 \end{table}
 
-The constellation contains 180 satellites and follows the slot based topology model in Sec.~\ref{sec:sys_model}.
-Each microservice is associated with a CPU cycle demand and a runtime memory requirement. The memory settings permit approximately three to five active services on one satellite, depending on their individual requirements; the simulator does not impose a fixed service count per satellite.
-All satellites store the same image catalog in persistent storage, so replica relocation uses local activation and deactivation without image traffic over ISLs.
+The constellation contains 180 satellites and follows the time-slotted topology model in Sec.~\ref{sec:sys_model}.
+Each microservice is associated with a CPU-cycle demand, an image size, and a storage requirement.
 Satellite CPUs are heterogeneous, and their effective computing capacities vary with background load states.
-For communication, ISL capacities and propagation delays are obtained from the time varying topology snapshots, while queuing delay and effective rate degradation reflect background traffic.
+For communication, ISL capacities and propagation delays are obtained from the time-varying topology snapshots, while queuing delay and effective-rate degradation reflect background traffic.
 Requests arrive according to a Poisson process and invoke sequential microservice chains.
-The workload traces cover chain lengths of 5, 10, and 15, and are used consistently across the compared methods when request analyses are reported.
+The workload traces cover chain lengths of 5, 10, and 15, and are used consistently across the compared methods when request-level analyses are reported.
 
 \begin{figure*}[!ht]
 	\centering
-	\begin{minipage}[!b]{0.42\textwidth}
+	\begin{minipage}[!b]{0.33\textwidth}
 		\centering
-		\includegraphics[width=1\linewidth]{elara_exp/elara_comparison.pdf}
+		\includegraphics[width=1\linewidth]{elara_exp/elara_train.pdf}
+		\vspace{-0.58cm}
+		\caption{Training loss and reward curves.}
+		\label{fig:elara_train}
+	\end{minipage}
+	\begin{minipage}[!b]{0.32\textwidth}
+		\centering
+		\includegraphics[width=0.98\linewidth]{elara_exp/elara_comparison.pdf}
 		\vspace{-0.3cm}
 		\caption{Performance against all baselines.}
 		\label{fig:elara_comparison}
 	\end{minipage}
-	\hfill
-	\begin{minipage}[!b]{0.42\textwidth}
+	\begin{minipage}[!b]{0.32\textwidth}
 		\centering
-		\includegraphics[width=1\linewidth]{elara_exp/elara_ablation.pdf}
+		\includegraphics[width=0.98\linewidth]{elara_exp/elara_ablation.pdf}
 		\vspace{-0.3cm}
 		\caption{Ablation study of ELARA.}
 		\label{fig:elara_ablation}
@@ -725,67 +728,93 @@ The workload traces cover chain lengths of 5, 10, and 15, and are used consisten
 \subsection{Baselines and Metrics}
 We compare ELARA with the following baselines:
 \begin{itemize}
-\item \textbf{SECO}~\cite{seco_infocom2024}: a satellite edge computing baseline that performs processing and routing decisions according to queue states.
-\item \textbf{SC-NFV}~\cite{sc_nfv_tmc2024}: a service chaining baseline adapted from satellite edge networks with network function virtualization to the considered microservice execution setting.
-\item \textbf{SP-Routing}~\cite{service_pressure}: a service pressure routing baseline, inspired by backpressure, that favors nodes and paths with smaller virtual backlog.
+	\item \textbf{SECO}~\cite{seco_infocom2024}: a satellite edge computing baseline that performs queue-aware processing and routing decisions for each request.
+	\item \textbf{SC-NFV}~\cite{sc_nfv_tmc2024}: a service-chaining baseline adapted from NFV-enabled satellite edge networks to the considered microservice execution setting.
+	\item \textbf{SP-Routing}~\cite{service_pressure}: a service-pressure routing baseline, inspired by backpressure, that favors nodes and paths with smaller virtual backlog.
 \end{itemize}
 
 For the ablation study, we further consider the following ELARA variants:
 \begin{itemize}
-\item \textbf{ELARA without adaptation}: disables the contextual bandit for replica adaptation.
-\item \textbf{ELARA with nearest replica selection}: replaces the PPO policy with selection of the nearest replica.
-\item \textbf{ELARA with shortest path routing}: replaces the proposed routing procedure across slots with shortest path routing.
+	\item \textbf{ELARA-NB}: disables bandit-based replica redeployment.
+	\item \textbf{ELARA-NR}: replaces GNN-PPO serving satellite selection with nearest-replica selection.
+	\item \textbf{ELARA-SH}: replaces the min-cost max-flow routing module with shortest-hop routing.
 \end{itemize}
 
-We evaluate all methods using mean request latency, mean execution energy, mean communication delay, and the mean number of slot transitions.
-Request latency includes both data routing and onboard computation, while execution energy includes communication and computation energy.
-Slot transitions measure how often the transmission for a service stage spans multiple slots, thereby reflecting the ability of a method to handle dynamic ISL changes.
+We evaluate all methods using mean end-to-end latency, mean execution energy, success rate, deadline acceptance rate, mean communication delay, and mean time-slot crossings.
+End-to-end latency includes both data routing and onboard computation, while execution energy includes communication and computation energy.
+Time-slot crossings measure how often service-stage data transmission spans multiple time slots, thereby reflecting the ability of a method to handle dynamic ISL changes.
 
 \subsection{Performance Evaluation}
 
 \paragraph{Overall Performance.}
+Fig.~\ref{fig:elara_train} reports the training dynamics of the proposed GNN-PPO serving-node selector agent.
+The reward curve gradually stabilizes and the PPO loss converges after training, indicating that the GNN-PPO selector learns a stable policy under dynamic topology traces.
+
 Fig.~\ref{fig:elara_comparison} compares ELARA with the representative baselines.
-ELARA achieves the lowest average request latency of 35.37 s, reducing latency by 4.4\%, 17.2\%, and 28.3\% compared with SECO, SC-NFV, and SP-Routing, respectively.
-The gains over SP-Routing and SC-NFV are larger because ELARA coordinates serving satellite selection with routing across slots and considers onboard computation states.
+ELARA achieves the lowest average end-to-end latency of 35.37 s, reducing latency by 4.4\%, 17.2\%, and 28.3\% compared with SECO, SC-NFV, and SP-Routing, respectively.
+The improvement is especially significant over the SP-Routing and SC-NFV baselines, since ELARA jointly accounts for serving-satellite selection, cross-slot ISL routing, and onboard computation states.
 For mean execution energy, ELARA incurs 1.49 kJ, which is comparable to SECO and 16.6\% and 20.7\% lower than SC-NFV and SP-Routing, respectively.
-These results show that optimizing routing pressure or service chain feasibility alone is insufficient, because serving satellite selection directly affects both communication and computation costs.
+These results show that optimizing routing pressure or service-chain feasibility alone is insufficient, because serving-satellite selection directly affects both communication and computation costs.
 
 Fig.~\ref{fig:elara_ablation} studies the contribution of each ELARA component.
-Removing replica adaptation increases the average latency from 35.37 s to 37.50 s, showing that placement updates can improve request execution as request patterns and topology states evolve.
-Replacing the PPO node selector with nearest replica selection causes the largest degradation. This variant increases mean latency by 54.9\% and mean execution energy by 72.6\%, because it ignores onboard computation load, future routing risk, and ISL states, indicating that a satellite hosting a geographically nearby replica can be overloaded or poorly connected.
-Replacing the proposed routing procedure with shortest path routing also degrades performance, increasing average latency by 34.7\%.
-This result shows that hop count alone is a weak routing objective in dynamic LEO networks, where link availability, effective rate, queueing delay, and the amount left at the source for subsequent slots all affect routing performance.
+Removing the adaptive redeployment module increases the average latency from 35.37 s to 37.50 s, proving the importance of adapting the replica placement as request patterns and topology states evolve.
+Replacing the GNN-PPO node selector with nearest-replica selection causes the largest degradation. ELARA-NR increases mean latency by 54.9\% and mean execution energy by 72.6\%, because it ignores onboard computation load, future routing risk, and ISL states, indicating that a satellite hosting a geographically nearby replica can be overloaded or poorly connected.
+Replacing min-cost max-flow routing with shortest-hop routing also degrades performance.
+ELARA-SH increases average latency by 34.7\% and reduces the deadline acceptance rate from 99.98\% to 98.10\%.
+This result demonstrates that hop count alone is a weak routing objective in dynamic LEO networks, where link availability, effective rate, queuing delay, and residual cross-slot delivery jointly determine routing quality.
 
 \begin{figure}[!t]
-\centering
-\includegraphics[width=1\linewidth]{elara_exp/service_routing_analysis_comparison.pdf}
-\vspace{-0.6cm}
-\caption{Service routing analysis against baselines.}
-\label{fig:service_routing_analysis_comparison}
-%	\vspace{-0.7cm}
+	\centering
+	\includegraphics[width=1\linewidth]{elara_exp/service_routing_analysis_comparison.pdf}
+	\vspace{-0.6cm}
+	\caption{Service-routing analysis against baselines.}
+	\label{fig:service_routing_analysis_comparison}
+	%	\vspace{-0.7cm}
 \end{figure}
 
 \begin{figure}[!t]
-\centering
-\includegraphics[width=1\linewidth]{elara_exp/service_routing_analysis.pdf}
-\vspace{-0.6cm}
-\caption{Service routing analysis against ELARA variants.}
-\label{fig:service_routing_analysis}
+	\centering
+	\includegraphics[width=1\linewidth]{elara_exp/service_routing_analysis.pdf}
+	\vspace{-0.6cm}
+	\caption{Service-routing analysis against ELARA variants.}
+	\label{fig:service_routing_analysis}
+\end{figure}
+
+\begin{figure}[!t]
+	\centering
+	\includegraphics[width=1\linewidth]{elara_exp/redeployment_adaptivity.pdf}
+	\vspace{-0.6cm}
+	\caption{Adaptivity of replica redeployment.}
+	\label{fig:redeployment_adaptivity}
+	%	\vspace{-0.7cm}
 \end{figure}
 
 \paragraph{Service Routing Analysis}
-Fig.~\ref{fig:service_routing_analysis_comparison} further examines requests and individual service stages under different chain lengths.
-Across the analyzed traces, ELARA reduces request latency by about 15--24\% compared with SECO, SC-NFV, and SP-Routing.
+Fig.~\ref{fig:service_routing_analysis_comparison} further examines request-level and hop-level behavior under different chain lengths.
+Across the analyzed traces, ELARA reduces end-to-end latency by about 15--24\% compared with SECO, SC-NFV, and SP-Routing.
 Its mean execution energy is also consistently lower, with reductions of about 14--25\%.
-The gain persists for longer service chains: for chain length 15, ELARA lowers the request latency by 10.6\% over SECO, 19.2\% over SC-NFV, and 29.0\% over SP-Routing.
-These results show that ELARA's serving satellite selection is not only beneficial for isolated service stages, but also accumulates gains over a sequence of microservice executions.
+The gain persists for longer service chains: for chain length 15, ELARA lowers the end-to-end latency by 10.6\% over SECO, 19.2\% over SC-NFV, and 29.0\% over SP-Routing.
+These results show that ELARA's serving-node selection is not only beneficial for isolated service stages, but also accumulates gains over multi-stage microservice execution.
 
 Fig.~\ref{fig:service_routing_analysis} compares ELARA with its variants using common request traces.
-ELARA reduces the average communication delay per hop by roughly 24\% over the variant without adaptation and 43\% over the variant with shortest path routing.
-The shortest path variant suffers from larger communication delay because it may choose paths with fewer hops but insufficient effective rate or higher queuing delay.
+ELARA reduces the average communication delay per hop by roughly 24\% over ELARA-NB and 43\% over ELARA-SH.
+The shortest-hop variant suffers from larger communication delay because it may choose fewer-hop paths with insufficient effective rate or higher queuing delay.
 In contrast, ELARA evaluates residual slot capacity and future link risk, allowing it to split traffic over multiple feasible paths when this lowers the overall delivery cost.
-The nearest replica variant has shorter communication delay because it selects nearby replicas, but its much larger computation delay dominates the request latency.
+ELARA-NR has shorter communication delay because it selects nearby replicas, but its much larger computation delay dominates the end-to-end latency.
 This confirms that proximity alone is misleading when onboard computation heterogeneity and queuing states dominate service execution.
+
+\paragraph{Adaptivity of Replica Redeployment}
+Fig.~\ref{fig:redeployment_adaptivity} evaluates the slow-timescale replica redeployment module.
+Panel (a) compares ELARA with ELARA-NB over redeployment windows, each comprising 10 time slots.
+ELARA achieves positive latency reduction in all 60 redeployment windows, with a mean reduction of 9.6\%, while also reducing mean execution energy by 4.3\%.
+This confirms that monitoring recent service pressure, routing failures, and computation waiting time helps the system move replicas toward more suitable orbital regions.
+
+Panel (b) shows the distribution of applied redeployment actions.
+Among 944 redeployment actions, 896 actions are replica movements and 48 actions are replica additions; thus, 94.9\% of the actions reallocate existing service capacity.
+This behavior is desirable in SCPNs because service image transfer consumes ISL bandwidth and onboard storage is limited.
+The results demonstrate that replica redeployment complements online routing: fast decisions handle per-request execution under the current topology, while periodic redeployment reshapes the service layout according to accumulated workload and network feedback.
+
+
 
 \section{Related Work}
 \label{sec:related_work}
