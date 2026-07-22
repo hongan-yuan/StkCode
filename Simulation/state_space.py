@@ -330,6 +330,7 @@ Note:
 1> ISL-1 表示 前向同轨星间链路; ISL-2 表示 后向同轨星间链路; ISL-3 表示 左向异轨星间链路; ISL-4 表示 右向异轨星间链路
 2> constellation_satellite_link_adjacent_matrix_in_future_N_window 仅用来表示卫星节点之间星间链路在未来若干个time slot内的连通性
 3> 对 satellite_link_state 中的卫星个数由用户请求链中微服务对应副本所部署的卫星总数所决定, 其中卫星节点特征中增加了一条服务部署信息，host_current_service，标明是否部署了当前执行阶段的微服务
+4> 当微服务链的长度不同时，对 user_request 和 satellite_link_state 进行 padding 处理
 """
 
 """
