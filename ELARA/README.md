@@ -55,6 +55,13 @@ source .venv-elara/bin/activate
 python3 -m pip install -r ELARA/requirements.txt
 ```
 
+On Windows Command Prompt:
+
+```bat
+py -3 -m venv .venv-elara
+.venv-elara\Scripts\python.exe -m pip install -r ELARA\requirements.txt
+```
+
 The default topology trace is read from:
 
 ```text
@@ -162,29 +169,36 @@ task count, elapsed time, and estimated remaining time. ETA is computed from
 the observed speed of each active job and uses the slowest remaining job as the
 parallel batch estimate.
 
-### Windows Command Prompt
+### Windows PowerShell
 
-Windows users can run the `.cmd` launchers from Command Prompt or Windows
-Terminal. They use the active environment's `python` first and fall back to
-`py -3` automatically. The scripts can be launched from any working directory.
+Windows users can run every workflow through the `.ps1` launchers from
+PowerShell or Windows Terminal. The scripts can be launched from any working
+directory. They look for Python 3.10+ in `ELARA_PYTHON`, the active
+virtual/Conda environment, `.venv-elara`, `.venv`, `python.exe`, and finally
+`py.exe -3`, in that order.
 
-```bat
-REM Four parallel CUDA training jobs. Use --device auto for CUDA/CPU fallback.
-ELARA\scripts\train_parallel.cmd ^
-  --device auto ^
-  --tasks 4 ^
-  --base-seed 42 ^
-  --output-root ELARA\outputs\train-batch ^
+```powershell
+# Unit tests and single-process commands.
+.\ELARA\scripts\test.ps1
+.\ELARA\scripts\evaluate.ps1 --policy greedy --episodes 10
+.\ELARA\scripts\train.ps1 --device auto --episodes 500
+
+# Four parallel CUDA training jobs. Use --device auto for CUDA/CPU fallback.
+.\ELARA\scripts\train_parallel.ps1 `
+  --device auto `
+  --tasks 4 `
+  --base-seed 42 `
+  --output-root ELARA\outputs\train-batch `
   --episodes 500
 
-REM Parallel PPO evaluation.
-ELARA\scripts\evaluate_parallel.cmd ^
-  --device auto ^
-  --tasks 4 ^
-  --base-seed 1000 ^
-  --output-root ELARA\outputs\test-batch ^
-  --policy ppo ^
-  --checkpoint ELARA\outputs\train-seed42\ppo_final.pt ^
+# Parallel PPO evaluation.
+.\ELARA\scripts\evaluate_parallel.ps1 `
+  --device auto `
+  --tasks 4 `
+  --base-seed 1000 `
+  --output-root ELARA\outputs\test-batch `
+  --policy ppo `
+  --checkpoint ELARA\outputs\train-seed42\ppo_final.pt `
   --episodes 100
 ```
 
