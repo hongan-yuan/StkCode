@@ -174,7 +174,7 @@ def _job_specs(
     output_root = args.output_root or _default_output_root(args.mode)
     module = "ELARA.train" if args.mode == "train" else "ELARA.evaluate"
     episodes = _forwarded_int(
-        forwarded, "--episodes", 500 if args.mode == "train" else 100
+        forwarded, "--episodes", 606 if args.mode == "train" else 100
     )
     jobs = []
     for task_index in range(args.tasks):
