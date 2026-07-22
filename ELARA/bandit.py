@@ -23,6 +23,21 @@ class StageExecutionRecord:
     compute_delay_s: float
     compute_energy_j: float
     normalized_cost: float
+    template_id: int | None = None
+    request_arrival_time_s: float = 0.0
+    stage_index: int = 0
+    chain_length: int = 1
+    stage_start_time_s: float = 0.0
+    stage_finish_time_s: float = 0.0
+    topology_slot: int = 0
+    destination_node: int = -1
+    route_slot_crossings: int = 0
+    candidate_nodes: tuple[int, ...] = ()
+    candidate_hop_distances: tuple[float, ...] = ()
+    candidate_bottleneck_rates: tuple[float, ...] = ()
+    candidate_compute_queues: tuple[float, ...] = ()
+    success: bool = True
+    failure_reason: str = ""
 
 
 @dataclass
@@ -35,33 +50,37 @@ class ServicePressure:
     replica_imbalance: float
     pressure: float
     mean_stage_cost: float
-    replica_mean_cost: dict[int, float] = field(default_factory=dict)
+    replica_cost_contribution: dict[int, float] = field(default_factory=dict)
     replica_counts: Counter = field(default_factory=Counter)
-    routing_samples: list[tuple[int, float]] = field(default_factory=list)
+    records: list[StageExecutionRecord] = field(default_factory=list)
 
 
 @dataclass
 class MigrationAction:
     action: str
     service_id: int
-    source_node: int
-    target_node: int
-    source_plane: int
-    target_plane: int
-    features: tuple[float, float, float]
+    source_node: int | None
+    target_node: int | None
+    source_plane: int | None
+    target_plane: int | None
+    features: tuple[float, ...]
     pressure: float
-    expected_network_cost: float
+    expected_service_cost: float
     target_compute_load: float
+    predicted_gain: float
     ucb_score: float
     baseline_service_cost: float
+    replica_count_before: int
+    replica_count_after: int
     activation_delay_s: float = 0.0
     feedback_reward: float = 0.0
 
 
 class BanditReplicaAdapter:
-    """Slow-timescale service-pressure ranking plus shared linear UCB."""
+    """Trace-driven four-action replica number and placement adaptation."""
 
-    feature_dim = 3
+    ACTIONS = ("no_op", "relocate", "scale_out", "scale_in")
+    feature_dim = 8  # four shared context values plus four-action one-hot
 
     def __init__(self, config):
         self.config = config
@@ -69,11 +88,11 @@ class BanditReplicaAdapter:
         self.vector_b = np.zeros(self.feature_dim, dtype=np.float64)
         self.window_records: list[StageExecutionRecord] = []
         self.requests_in_window = 0
+        self.window_start_slot: int | None = None
         self.pending_actions: list[MigrationAction] = []
         self.pressure_ewma: dict[int, float] = {}
         self.total_windows = 0
         self.total_pulls = 0
-        self.total_relocations = 0
         self.total_feedback_updates = 0
         self.action_counts = Counter()
         self.last_pressures: dict[int, ServicePressure] = {}
@@ -83,9 +102,7 @@ class BanditReplicaAdapter:
 
     @staticmethod
     def _percentile(values: list[float], q: float) -> float:
-        if not values:
-            return 0.0
-        return float(np.quantile(np.asarray(values, dtype=float), q))
+        return float(np.quantile(np.asarray(values, dtype=float), q)) if values else 0.0
 
     @classmethod
     def _tail_pressure(cls, values: list[float]) -> float:
@@ -101,38 +118,41 @@ class BanditReplicaAdapter:
         return value / (1.0 + value)
 
     def _pressures(self, services: dict[int, Microservice]) -> dict[int, ServicePressure]:
-        grouped = defaultdict(list)
+        grouped: dict[int, list[StageExecutionRecord]] = defaultdict(list)
         for record in self.window_records:
             grouped[record.service_id].append(record)
         total_cost = sum(record.normalized_cost for record in self.window_records)
         result = {}
         for service_id, records in grouped.items():
-            costs_by_node = defaultdict(list)
-            counts = Counter(record.serving_node for record in records)
-            for record in records:
-                costs_by_node[record.serving_node].append(record.normalized_cost)
             service = services[service_id]
+            counts = Counter(record.serving_node for record in records)
             all_counts = [counts.get(node, 0) for node in service.replicas]
             mean_count = sum(all_counts) / max(1, len(all_counts))
             imbalance = (
                 max(all_counts) / max(1.0e-9, mean_count) - 1.0
                 if sum(all_counts) else 0.0
             )
-            impact = sum(record.normalized_cost for record in records) / max(total_cost, 1.0e-9)
-            route_pressure = self._tail_pressure([record.route_delay_s for record in records])
-            queue_pressure = self._tail_pressure([record.compute_queue_s for record in records])
-            actionability = max(
+            service_cost = sum(record.normalized_cost for record in records)
+            cost_by_replica = defaultdict(float)
+            for record in records:
+                cost_by_replica[record.serving_node] += record.normalized_cost
+            contribution = {
+                node: cost_by_replica[node] / max(service_cost, 1.0e-9)
+                for node in service.replicas
+            }
+            impact = service_cost / max(total_cost, 1.0e-9)
+            route_pressure = self._tail_pressure([item.route_delay_s for item in records])
+            queue_pressure = self._tail_pressure([item.compute_queue_s for item in records])
+            opportunity = max(
                 self._saturate(route_pressure),
                 self._saturate(queue_pressure),
                 self._saturate(imbalance),
             )
-            raw_pressure = impact * actionability
+            raw_pressure = impact * opportunity
             previous = self.pressure_ewma.get(service_id, raw_pressure)
-            smoothed = (
-                self.config.pressure_ewma * raw_pressure
-                + (1.0 - self.config.pressure_ewma) * previous
-            )
-            self.pressure_ewma[service_id] = smoothed
+            decay = min(1.0, max(0.0, self.config.pressure_ewma))
+            pressure = decay * previous + (1.0 - decay) * raw_pressure
+            self.pressure_ewma[service_id] = pressure
             result[service_id] = ServicePressure(
                 service_id=service_id,
                 invocation_count=len(records),
@@ -140,20 +160,21 @@ class BanditReplicaAdapter:
                 route_pressure=route_pressure,
                 queue_pressure=queue_pressure,
                 replica_imbalance=imbalance,
-                pressure=smoothed,
-                mean_stage_cost=sum(record.normalized_cost for record in records) / len(records),
-                replica_mean_cost={
-                    node: sum(values) / len(values) for node, values in costs_by_node.items()
-                },
+                pressure=pressure,
+                mean_stage_cost=service_cost / len(records),
+                replica_cost_contribution=contribution,
                 replica_counts=counts,
-                routing_samples=[(record.source_node, record.data_gb) for record in records[:4]],
+                records=records,
             )
         return result
 
     def _update_feedback(self, pressures: dict[int, ServicePressure]) -> None:
         for action in self.pending_actions:
             after = pressures.get(action.service_id)
-            after_cost = after.mean_stage_cost if after else action.baseline_service_cost
+            after_cost = (
+                after.mean_stage_cost
+                if after else action.baseline_service_cost
+            )
             baseline = max(action.baseline_service_cost, 1.0e-9)
             reward = (action.baseline_service_cost - after_cost) / baseline
             action.feedback_reward = reward
@@ -162,34 +183,134 @@ class BanditReplicaAdapter:
             self.vector_b += reward * features
             self.total_feedback_updates += 1
 
-    @staticmethod
-    def _minmax(value: float, values: list[float]) -> float:
-        low, high = min(values), max(values)
-        return 0.0 if high <= low + 1.0e-12 else (value - low) / (high - low)
-
-    def _ucb(self, features: tuple[float, float, float]) -> float:
+    def _ucb(self, features: tuple[float, ...]) -> float:
         x = np.asarray(features, dtype=float)
         inverse = np.linalg.inv(self.matrix_a)
         theta = inverse @ self.vector_b
         uncertainty = math.sqrt(max(0.0, float(x @ inverse @ x)))
         return float(theta @ x + self.config.bandit_exploration * uncertainty)
 
-    def _memory_usage(self, services: dict[int, Microservice]) -> dict[int, float]:
+    @staticmethod
+    def _memory_usage(services: dict[int, Microservice]) -> dict[int, float]:
         usage = defaultdict(float)
         for service in services.values():
             for node in service.replicas:
                 usage[node] += service.memory_requirement_gb
         return usage
 
-    def _source_replica(self, service: Microservice, signal: ServicePressure) -> int:
-        return max(
-            service.replicas,
-            key=lambda node: (
-                signal.replica_mean_cost.get(node, 0.0),
-                -signal.replica_counts.get(node, 0),
-                -node,
-            ),
+    def _window_due(self, current_time: float) -> bool:
+        self.requests_in_window += 1
+        if self.config.deployment_window_requests is not None:
+            return self.requests_in_window >= self.config.deployment_window_requests
+        slot = int(current_time // self.config.slot_duration_s)
+        if self.window_start_slot is None:
+            self.window_start_slot = slot
+            return False
+        return slot - self.window_start_slot >= self.config.adaptation_window_slots
+
+    def _representative_targets(
+        self,
+        service: Microservice,
+        signal: ServicePressure,
+        services: dict[int, Microservice],
+        resources: dict[int, SatelliteResource],
+        compute_load: Callable[[int, float], float],
+    ) -> list[int]:
+        memory = self._memory_usage(services)
+        times = [record.stage_start_time_s for record in signal.records]
+        if not times:
+            times = [0.0]
+        result = []
+        for plane in range(self.config.num_planes):
+            nodes = range(
+                plane * self.config.sats_per_plane,
+                (plane + 1) * self.config.sats_per_plane,
+            )
+            feasible = [
+                node for node in nodes
+                if node not in service.replicas
+                and memory[node] + service.memory_requirement_gb
+                <= resources[node].memory_capacity_gb + 1.0e-9
+            ]
+            if feasible:
+                result.append(
+                    min(
+                        feasible,
+                        key=lambda node: (
+                            sum(compute_load(node, time_s) for time_s in times) / len(times),
+                            node,
+                        ),
+                    )
+                )
+        return result
+
+    def _target_cost(
+        self,
+        record: StageExecutionRecord,
+        target: int,
+        route_cost: Callable[[int, int, float, float], float],
+        compute_load: Callable[[int, float], float],
+    ) -> float:
+        network = route_cost(
+            record.source_node, target, record.data_gb, record.stage_start_time_s
         )
+        if not math.isfinite(network):
+            return math.inf
+        return network + compute_load(target, record.stage_start_time_s)
+
+    def _best_target_action(
+        self,
+        action: str,
+        source: int | None,
+        service: Microservice,
+        signal: ServicePressure,
+        targets: list[int],
+        route_cost,
+        compute_load,
+    ) -> tuple[int, float, float] | None:
+        records = signal.records[: self.config.adaptation_trace_sample_limit]
+        best = None
+        for target in targets:
+            costs = []
+            for record in records:
+                candidate = self._target_cost(record, target, route_cost, compute_load)
+                if action == "scale_out":
+                    costs.append(min(record.normalized_cost, candidate))
+                elif record.serving_node == source:
+                    costs.append(candidate)
+                else:
+                    costs.append(record.normalized_cost)
+            if not costs or not all(math.isfinite(value) for value in costs):
+                continue
+            expected = sum(costs) / len(costs)
+            load = sum(
+                compute_load(target, record.stage_start_time_s) for record in records
+            ) / max(1, len(records))
+            item = (expected, load, target)
+            if best is None or item < best:
+                best = item
+        if best is None:
+            return None
+        expected, load, target = best
+        return target, expected, load
+
+    def _scale_in_cost(self, source, service, signal, route_cost, compute_load) -> float:
+        remaining = [node for node in service.replicas if node != source]
+        records = signal.records[: self.config.adaptation_trace_sample_limit]
+        values = []
+        for record in records:
+            if record.serving_node != source:
+                values.append(record.normalized_cost)
+                continue
+            alternatives = [
+                self._target_cost(record, target, route_cost, compute_load)
+                for target in remaining
+            ]
+            finite = [value for value in alternatives if math.isfinite(value)]
+            if not finite:
+                return math.inf
+            values.append(min(finite))
+        return sum(values) / max(1, len(values))
 
     def close_request(
         self,
@@ -199,10 +320,10 @@ class BanditReplicaAdapter:
         route_cost: Callable[[int, int, float, float], float],
         compute_load: Callable[[int, float], float],
     ) -> list[MigrationAction]:
-        self.requests_in_window += 1
-        if self.requests_in_window < self.config.deployment_window_requests:
+        if not self._window_due(current_time):
             return []
         self.requests_in_window = 0
+        self.window_start_slot = int(current_time // self.config.slot_duration_s)
         self.total_windows += 1
         pressures = self._pressures(services)
         self._update_feedback(pressures)
@@ -210,77 +331,85 @@ class BanditReplicaAdapter:
         ranked = sorted(
             pressures.values(), key=lambda item: (-item.pressure, item.service_id)
         )[: self.config.adaptation_top_k_services]
-        if not ranked:
-            self.window_records.clear()
-            self.pending_actions = []
-            return []
+        decisions = []
+        pressure_max = max((item.pressure for item in ranked), default=1.0)
+        min_replicas, max_replicas = self.config.replica_count_range
 
-        memory = self._memory_usage(services)
-        pressure_values = [signal.pressure for signal in ranked]
-        decisions: list[MigrationAction] = []
         for signal in ranked:
             service = services[signal.service_id]
-            source = self._source_replica(service, signal)
-            source_plane = source // self.config.sats_per_plane
-            raw_candidates = []
-
-            def expected_cost(target: int) -> float:
-                values = [
-                    route_cost(origin, target, data_gb, current_time)
-                    for origin, data_gb in signal.routing_samples
-                ]
-                finite = [value for value in values if math.isfinite(value)]
-                return sum(finite) / len(finite) if finite else signal.mean_stage_cost
-
-            raw_candidates.append(
-                ("stay", source, source_plane, expected_cost(source), compute_load(source, current_time))
+            count_before = len(service.replicas)
+            baseline_mean = max(signal.mean_stage_cost, 1.0e-9)
+            baseline_total = baseline_mean
+            bottleneck = max(
+                service.replicas,
+                key=lambda node: (signal.replica_cost_contribution.get(node, 0.0), -node),
             )
-            for plane in range(self.config.num_planes):
-                if plane == source_plane:
-                    continue
-                nodes = range(
-                    plane * self.config.sats_per_plane,
-                    (plane + 1) * self.config.sats_per_plane,
+            redundant = min(
+                service.replicas,
+                key=lambda node: (signal.replica_cost_contribution.get(node, 0.0), node),
+            )
+            targets = self._representative_targets(
+                service, signal, services, resources, compute_load
+            )
+            candidates = [
+                ("no_op", None, None, baseline_mean, 0.0, count_before)
+            ]
+            relocate = self._best_target_action(
+                "relocate", bottleneck, service, signal, targets, route_cost, compute_load
+            )
+            if relocate is not None:
+                target, expected, load = relocate
+                candidates.append(
+                    ("relocate", bottleneck, target, expected, load, count_before)
                 )
-                feasible = [
-                    node for node in nodes
-                    if node not in service.replicas
-                    and memory[node] + service.memory_requirement_gb
-                    <= resources[node].memory_capacity_gb + 1.0e-9
-                ]
-                if not feasible:
-                    continue
-                target = min(feasible, key=lambda node: (compute_load(node, current_time), node))
-                network = expected_cost(target)
-                network += (
-                    self.config.delay_weight
-                    * service.activation_delay_s
-                    / max(self.config.latency_scale_s, 1.0e-9)
+            if count_before < max_replicas:
+                scale_out = self._best_target_action(
+                    "scale_out", None, service, signal, targets, route_cost, compute_load
                 )
-                if math.isfinite(network):
-                    raw_candidates.append(
-                        ("relocate", target, plane, network, compute_load(target, current_time))
+                if scale_out is not None:
+                    target, expected, load = scale_out
+                    candidates.append(
+                        ("scale_out", None, target, expected, load, count_before + 1)
+                    )
+            if count_before > min_replicas:
+                expected = self._scale_in_cost(
+                    redundant, service, signal, route_cost, compute_load
+                )
+                if math.isfinite(expected):
+                    candidates.append(
+                        ("scale_in", redundant, None, expected, 0.0, count_before - 1)
                     )
 
-            network_values = [item[3] for item in raw_candidates]
-            load_values = [item[4] for item in raw_candidates]
             scored = []
-            for action, target, plane, network, load in raw_candidates:
+            for action, source, target, expected, load, count_after in candidates:
+                expected_total = expected
+                gain = (baseline_total - expected_total) / max(baseline_total, 1.0e-9)
+                one_hot = tuple(float(action == name) for name in self.ACTIONS)
                 features = (
-                    self._minmax(signal.pressure, pressure_values),
-                    self._minmax(network, network_values),
-                    self._minmax(load, load_values),
+                    signal.pressure / max(pressure_max, 1.0e-9),
+                    max(-1.0, min(1.0, gain)),
+                    count_before / max(1, max_replicas),
+                    min(1.0, max(0.0, load)),
+                    *one_hot,
                 )
                 score = self._ucb(features)
-                scored.append((score, action == "stay", -target, action, target, plane, features, network, load))
-            score, _, _, action, target, plane, features, network, load = max(scored)
+                scored.append(
+                    (score, action == "no_op", action, source, target, expected_total,
+                     load, gain, features, count_after)
+                )
+            (
+                score, _, action, source, target, expected_total, load, gain,
+                features, count_after,
+            ) = max(scored)
+
             if action == "relocate":
                 service.replicas.remove(source)
                 service.replicas.append(target)
-                service.replicas.sort()
-                memory[source] -= service.memory_requirement_gb
-                memory[target] += service.memory_requirement_gb
-                self.total_relocations += 1
+            elif action == "scale_out":
+                service.replicas.append(target)
+            elif action == "scale_in":
+                service.replicas.remove(source)
+            service.replicas.sort()
             self.action_counts[action] += 1
             self.total_pulls += 1
             decisions.append(
@@ -289,17 +418,18 @@ class BanditReplicaAdapter:
                     service_id=service.service_id,
                     source_node=source,
                     target_node=target,
-                    source_plane=source_plane,
-                    target_plane=plane,
+                    source_plane=(source // self.config.sats_per_plane if source is not None else None),
+                    target_plane=(target // self.config.sats_per_plane if target is not None else None),
                     features=features,
                     pressure=signal.pressure,
-                    expected_network_cost=network,
+                    expected_service_cost=expected_total,
                     target_compute_load=load,
+                    predicted_gain=gain,
                     ucb_score=score,
-                    baseline_service_cost=max(signal.mean_stage_cost, 1.0e-9),
-                    activation_delay_s=(
-                        service.activation_delay_s if action == "relocate" else 0.0
-                    ),
+                    baseline_service_cost=baseline_total,
+                    replica_count_before=count_before,
+                    replica_count_after=count_after,
+                    activation_delay_s=(service.activation_delay_s if action in {"relocate", "scale_out"} else 0.0),
                 )
             )
 
@@ -309,13 +439,14 @@ class BanditReplicaAdapter:
 
     def summary(self) -> dict:
         return {
-            "policy": "service_pressure_shared_linear_ucb",
+            "policy": "trace_pressure_four_action_shared_linear_ucb",
             "windows": self.total_windows,
             "pulls": self.total_pulls,
-            "relocations": self.total_relocations,
             "feedback_updates": self.total_feedback_updates,
-            "stay_actions": self.action_counts["stay"],
+            "no_op_actions": self.action_counts["no_op"],
             "relocate_actions": self.action_counts["relocate"],
+            "scale_out_actions": self.action_counts["scale_out"],
+            "scale_in_actions": self.action_counts["scale_in"],
             "tracked_pressures": len(self.last_pressures),
         }
 
@@ -325,30 +456,39 @@ class BanditReplicaAdapter:
             "vector_b": self.vector_b.tolist(),
             "window_records": [vars(record) for record in self.window_records],
             "requests_in_window": self.requests_in_window,
+            "window_start_slot": self.window_start_slot,
             "pending_actions": [vars(action) for action in self.pending_actions],
             "pressure_ewma": dict(self.pressure_ewma),
             "total_windows": self.total_windows,
             "total_pulls": self.total_pulls,
-            "total_relocations": self.total_relocations,
             "total_feedback_updates": self.total_feedback_updates,
             "action_counts": dict(self.action_counts),
         }
 
     def load_state_dict(self, state: dict) -> None:
-        self.matrix_a = np.asarray(state["matrix_a"], dtype=np.float64)
-        self.vector_b = np.asarray(state["vector_b"], dtype=np.float64)
+        matrix = np.asarray(state.get("matrix_a", []), dtype=np.float64)
+        vector = np.asarray(state.get("vector_b", []), dtype=np.float64)
+        if matrix.shape == (self.feature_dim, self.feature_dim) and vector.shape == (self.feature_dim,):
+            self.matrix_a, self.vector_b = matrix, vector
         self.window_records = [
             StageExecutionRecord(**record) for record in state.get("window_records", [])
         ]
         self.requests_in_window = int(state.get("requests_in_window", 0))
-        self.pending_actions = [
-            MigrationAction(**action) for action in state.get("pending_actions", [])
-        ]
+        self.window_start_slot = state.get("window_start_slot")
+        self.pending_actions = []
+        for action in state.get("pending_actions", []):
+            try:
+                restored = MigrationAction(**action)
+                if len(restored.features) == self.feature_dim:
+                    self.pending_actions.append(restored)
+            except TypeError:
+                # Old two-action checkpoints do not contain the four-action
+                # context fields and cannot provide valid delayed feedback.
+                continue
         self.pressure_ewma = {
             int(key): float(value) for key, value in state.get("pressure_ewma", {}).items()
         }
         self.total_windows = int(state.get("total_windows", 0))
         self.total_pulls = int(state.get("total_pulls", 0))
-        self.total_relocations = int(state.get("total_relocations", 0))
         self.total_feedback_updates = int(state.get("total_feedback_updates", 0))
         self.action_counts = Counter(state.get("action_counts", {}))

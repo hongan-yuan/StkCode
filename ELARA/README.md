@@ -22,9 +22,15 @@ selection design.  It does not import code or scripts from `Simulation/`.
 - After serving selection, a capacity-aware min-cost splittable-flow router
   reserves complete paths within each slot. Undelivered data remains at the
   stage source and is rerouted under the next topology snapshot.
-- At every deployment window, service pressure ranks costly services and a
-  shared linear contextual-UCB policy selects stay or one-replica relocation.
-  The next window's measured stage-cost improvement supplies bandit feedback.
+- Initial replica counts are independently sampled per service and constrained
+  by satellite memory. At every adaptation window, service pressure ranks
+  costly services and a shared contextual-UCB policy selects one fully
+  specified `no_op`, `relocate`, `scale_out`, or `scale_in` action. Scale
+  actions change the count by exactly one; relocation preserves it.
+- Three fixed service-chain templates (lengths 5, 10, and 15 by default) feed a
+  chronological Poisson arrival process. Compute and ISL background load evolve
+  through slot-correlated Markov states, and reservations persist across
+  overlapping requests.
 - The last action includes final-output routing to the destination in its
   latency, energy, and reward.
 
@@ -35,7 +41,9 @@ selection design.  It does not import code or scripts from `Simulation/`.
 - `topology.py`: CSV trace loader and sparse temporal graph.
 - `connector.py`: connected request subgraph and lazy repair.
 - `routing.py`: cross-slot min-cost splittable flow and capacity reservation.
-- `bandit.py`: service pressure, shared LinUCB, and replica relocation.
+- `background.py`: Markov compute and ISL background-load processes.
+- `bandit.py`: trace pressure, target-plane resolution, four-action LinUCB, and
+  dynamic replica-number/placement adaptation.
 - `state.py`: variable-size sparse PPO observation.
 - `environment.py`: request execution, routing, computation, reward, and update.
 - `model.py`: request encoder, edge-aware spatial graph attention, temporal
@@ -87,14 +95,15 @@ Use `--policy random` for the random serving baseline.
 
 ```bash
 ELARA/scripts/train.sh \
-  --episodes 500 \
-  --max-trace-slots 120 \
-  --chain-length 5 \
-  --replicas 4 \
+  --max-trace-slots 606 \
+  --request-template-lengths 5,10,15 \
+  --arrival-lambda 0.35 \
+  --replica-min 5 \
+  --replica-max 10 \
   --future-horizon 3 \
   --route-horizon 3 \
   --route-max-paths 3 \
-  --deployment-window 20 \
+  --adaptation-window-slots 10 \
   --adaptation-top-k 10 \
   --output-dir ELARA/outputs/train-seed42
 ```
@@ -104,6 +113,12 @@ Outputs include `config.json`, `training_metrics.csv`, periodic
 optimizer, shared LinUCB state, partially collected deployment window, and the
 current replica placement. `orchestration_summary.json` records final bandit
 statistics and deployment.
+
+Training always covers one loaded constellation cycle. With the default trace,
+this cycle contains 606 time slots. The Poisson arrival process determines how
+many requests arrive before the cycle boundary, so training has no
+`--episodes` argument. `training_metrics.csv` contains one row for every
+admitted request in that cycle.
 
 ## PPO evaluation
 
@@ -128,10 +143,10 @@ default task count is four. Explicit `--device cuda`, `--device mps`, and
 
 ```bash
 # Apple Silicon: four independent jobs share the MPS accelerator.
-ELARA/scripts/train_parallel.sh --device mps --tasks 4 --episodes 500
+ELARA/scripts/train_parallel.sh --device mps --tasks 4 --max-trace-slots 606
 
 # Single-process training and PPO evaluation can select MPS directly.
-ELARA/scripts/train.sh --device mps --episodes 500
+ELARA/scripts/train.sh --device mps --max-trace-slots 606
 ELARA/scripts/evaluate.sh --device mps --policy ppo --checkpoint MODEL.pt
 ```
 
@@ -141,8 +156,7 @@ ELARA/scripts/train_parallel.sh \
   --tasks 4 \
   --base-seed 42 \
   --output-root ELARA/outputs/train-batch \
-  --episodes 500 \
-  --max-trace-slots 120
+  --max-trace-slots 606
 
 # Four concurrent evaluations of one checkpoint with different request seeds.
 ELARA/scripts/evaluate_parallel.sh \
@@ -175,7 +189,7 @@ ELARA\scripts\train_parallel.cmd ^
   --tasks 4 ^
   --base-seed 42 ^
   --output-root ELARA\outputs\train-batch ^
-  --episodes 500
+  --max-trace-slots 606
 
 REM Parallel PPO evaluation.
 ELARA\scripts\evaluate_parallel.cmd ^
@@ -224,10 +238,14 @@ For every service stage:
 At a deployment-window boundary:
 
 1. services are ranked by impact and route/queue/imbalance pressure;
-2. up to `adaptation_top_k_services` receive one LinUCB decision;
-3. relocation replaces exactly one active replica and preserves memory limits;
-4. the next request rebuilds its terminals, relay connector, candidates, and
+2. cumulative stage-cost contribution selects the highest-impact replica for
+   relocation and the lowest-impact replica for scale-in;
+3. each orbital plane contributes at most one feasible low-load target, and
+   historical traces estimate the best relocate/scale-out realization;
+4. up to `adaptation_top_k_services` receive one four-action LinUCB decision;
+5. scale-out/in adds/removes exactly one replica; relocation replaces one;
+6. the next request rebuilds its terminals, relay connector, candidates, and
    action mask from the new deployment;
-5. the following window updates LinUCB from normalized cost improvement.
+7. the following window updates LinUCB from normalized cost improvement.
 
 Pass `--disable-adaptation` to training or evaluation to keep placement fixed.

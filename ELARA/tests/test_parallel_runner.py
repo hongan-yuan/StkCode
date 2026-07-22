@@ -27,9 +27,13 @@ class ParallelRunnerTests(unittest.TestCase):
             self.assertEqual(detect_gpu_ids(), ["2", "5"])
 
     def test_default_parallelism_is_four(self):
-        args, forwarded = parse_args(["train", "--episodes", "2"])
+        args, forwarded = parse_args(["train", "--max-trace-slots", "606"])
         self.assertEqual(args.tasks, 4)
-        self.assertEqual(forwarded, ["--episodes", "2"])
+        self.assertEqual(forwarded, ["--max-trace-slots", "606"])
+
+    def test_training_rejects_fixed_episode_count(self):
+        with self.assertRaises(SystemExit):
+            parse_args(["train", "--episodes", "500"])
 
     def test_auto_uses_mps_when_cuda_is_unavailable(self):
         self.assertEqual(select_accelerator("auto", [], True), "mps")

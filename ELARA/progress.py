@@ -7,14 +7,20 @@ from pathlib import Path
 
 
 class ProgressReporter:
-    """Atomically publish episode progress for an external launcher."""
+    """Atomically publish progress for an external launcher."""
 
-    def __init__(self, path: Path | None, total: int):
+    def __init__(self, path: Path | None, total: int, unit: str = "episodes"):
         self.path = path
         self.total = max(0, int(total))
+        self.unit = str(unit)
         self.started_at = time.time()
 
-    def update(self, completed: int, status: str = "running") -> None:
+    def update(
+        self,
+        completed: int,
+        status: str = "running",
+        item_count: int | None = None,
+    ) -> None:
         if self.path is None:
             return
         completed = min(max(0, int(completed)), self.total)
@@ -25,6 +31,8 @@ class ProgressReporter:
         payload = {
             "completed": completed,
             "total": self.total,
+            "unit": self.unit,
+            "item_count": item_count,
             "fraction": completed / max(1, self.total),
             "elapsed_s": elapsed,
             "eta_s": eta,

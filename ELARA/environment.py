@@ -7,9 +7,15 @@ from dataclasses import asdict, dataclass, replace
 import numpy as np
 
 from .config import ELARAConfig
+from .background import MarkovBackgroundProcess
 from .bandit import BanditReplicaAdapter, StageExecutionRecord
 from .connector import ConnectorBuilder, RequestSubgraph
-from .domain import Microservice, SatelliteResource, ServiceRequest
+from .domain import (
+    Microservice,
+    SatelliteResource,
+    ServiceRequest,
+    ServiceRequestTemplate,
+)
 from .routing import CrossSlotMinCostRouter
 from .state import (
     CANDIDATE_FEATURES,
@@ -56,8 +62,13 @@ class ELARAEnvironment:
         self.connector = ConnectorBuilder(self.config.connector_edge_weight)
         self.router = CrossSlotMinCostRouter(self.topology, self.config)
         self.replica_adapter = BanditReplicaAdapter(self.config)
-        self.services = self._generate_services()
         self.resources = self._generate_resources()
+        self.services = self._generate_services()
+        self.background = MarkovBackgroundProcess(
+            self.topology, self.resources, self.config, self.config.seed + 20_000
+        )
+        self.request_templates = self._generate_request_templates()
+        self.arrival_time_s = 0.0
         self.compute_available_at = {node: 0.0 for node in range(self.config.total_satellites)}
         self.link_available_at: dict[tuple[int, int], float] = {}
         self.runtime: EpisodeRuntime | None = None
@@ -68,17 +79,12 @@ class ELARAEnvironment:
     def _generate_resources(self) -> dict[int, SatelliteResource]:
         resources = {}
         for node in range(self.config.total_satellites):
+            capacity = self.rng.choice(self.config.compute_capacity_choices_gflops)
             resources[node] = SatelliteResource(
                 node_id=node,
-                capacity_gflops=self.rng.uniform(
-                    self.config.compute_capacity_gflops_min,
-                    self.config.compute_capacity_gflops_max,
-                ),
-                compute_power_w=self.rng.uniform(
-                    self.config.compute_power_w_min,
-                    self.config.compute_power_w_max,
-                ),
-                efficiency=self.rng.uniform(0.70, 1.0),
+                capacity_gflops=capacity,
+                compute_power_w=self.config.compute_power_by_capacity_w[capacity],
+                efficiency=1.0,
                 memory_capacity_gb=self.config.satellite_memory_capacity_gb,
             )
         return resources
@@ -86,55 +92,120 @@ class ELARAEnvironment:
     def _generate_services(self) -> dict[int, Microservice]:
         services = {}
         nodes = list(range(self.config.total_satellites))
-        replica_count = min(self.config.replicas_per_service, len(nodes))
+        memory_used = {node: 0.0 for node in nodes}
         for service_id in range(self.config.num_services):
+            if self.config.replicas_per_service is None:
+                replica_count = self.rng.randint(*self.config.replica_count_range)
+            else:
+                replica_count = self.config.replicas_per_service
+            replica_count = min(replica_count, len(nodes))
+            memory_requirement = self.rng.uniform(
+                self.config.service_memory_gb_min,
+                self.config.service_memory_gb_max,
+            )
+            feasible = [
+                node for node in nodes
+                if memory_used[node] + memory_requirement
+                <= self.resources[node].memory_capacity_gb + 1.0e-9
+            ]
+            if len(feasible) < replica_count:
+                raise RuntimeError("not enough satellite memory for initial replicas")
+            feasible.sort(key=lambda node: (memory_used[node], self.rng.random()))
+            replicas = sorted(feasible[:replica_count])
+            for node in replicas:
+                memory_used[node] += memory_requirement
             services[service_id] = Microservice(
                 service_id=service_id,
                 workload_cycles=self.rng.uniform(
                     self.config.service_cycles_min,
                     self.config.service_cycles_max,
                 ),
-                replicas=sorted(self.rng.sample(nodes, replica_count)),
-                memory_requirement_gb=self.rng.uniform(
-                    self.config.service_memory_gb_min,
-                    self.config.service_memory_gb_max,
+                replicas=replicas,
+                memory_requirement_gb=memory_requirement,
+                activation_delay_s=self.rng.uniform(
+                    self.config.replica_activation_delay_s_min,
+                    self.config.replica_activation_delay_s_max,
                 ),
-                activation_delay_s=self.config.replica_activation_delay_s,
             )
         return services
 
+    def _sample_data_gb(self) -> float:
+        return min(
+            self.config.input_data_gb_max,
+            max(
+                self.config.input_data_gb_min,
+                self.rng.gauss(
+                    self.config.request_data_mean_gb,
+                    math.sqrt(self.config.request_data_variance_gb),
+                ),
+            ),
+        )
+
+    def _generate_request_templates(self) -> tuple[ServiceRequestTemplate, ...]:
+        lengths = (
+            (self.config.chain_length,)
+            if self.config.chain_length is not None
+            else self.config.request_template_chain_lengths
+        )
+        templates = []
+        service_ids = list(self.services)
+        for template_id, requested_length in enumerate(lengths, start=1):
+            length = max(1, int(requested_length))
+            services = tuple(self.rng.choices(service_ids, k=length))
+            volumes = tuple(self._sample_data_gb() for _ in range(length + 1))
+            templates.append(ServiceRequestTemplate(template_id, services, volumes))
+        return tuple(templates)
+
+    def _nearby_nodes(self, anchors: list[int], graph: SparseGraph) -> list[int]:
+        visited = set(map(int, anchors))
+        frontier = set(visited)
+        for _ in range(max(0, self.config.request_endpoint_near_hops)):
+            next_frontier = set()
+            for node in frontier:
+                next_frontier.update(map(int, graph.neighbors(node)))
+            next_frontier -= visited
+            visited.update(next_frontier)
+            frontier = next_frontier
+        return sorted(visited)
+
     def sample_request(self) -> ServiceRequest:
-        chain_length = min(self.config.chain_length, len(self.services))
-        service_ids = tuple(self.rng.sample(list(self.services), chain_length))
-        source, destination = self.rng.sample(range(self.config.total_satellites), 2)
-        data = self.rng.uniform(self.config.input_data_gb_min, self.config.input_data_gb_max)
-        volumes = [data]
-        for _ in range(chain_length):
-            data *= self.rng.uniform(self.config.data_shrink_min, self.config.data_shrink_max)
-            volumes.append(max(1.0e-5, data))
+        total_lambda = (
+            self.config.request_arrival_lambda_per_template_per_slot
+            * len(self.request_templates)
+        )
+        rate_per_second = total_lambda / self.topology.slot_duration_s
+        if rate_per_second > 0.0:
+            self.arrival_time_s += self.rng.expovariate(rate_per_second)
+        template = self.rng.choice(self.request_templates)
+        graph = self.topology.graph_at_time(self.arrival_time_s)
+        first_replicas = self.services[template.services[0]].replicas
+        last_replicas = self.services[template.services[-1]].replicas
+        source_pool = self._nearby_nodes(first_replicas, graph)
+        destination_pool = self._nearby_nodes(last_replicas, graph)
+        source = self.rng.choice(source_pool)
+        destination_choices = [node for node in destination_pool if node != source]
+        if not destination_choices:
+            destination_choices = [node for node in graph.nodes if node != source]
+        destination = self.rng.choice(destination_choices)
         request = ServiceRequest(
             request_id=self.request_counter,
             source=source,
             destination=destination,
-            services=service_ids,
-            data_volumes_gb=tuple(volumes),
-            arrival_time_s=(
-                self.rng.randrange(self.topology.slot_count) * self.topology.slot_duration_s
-            ),
+            services=template.services,
+            data_volumes_gb=template.data_volumes_gb,
+            arrival_time_s=self.arrival_time_s,
+            template_id=template.template_id,
         )
         self.request_counter += 1
         return request
 
     def reset(self, request: ServiceRequest | None = None) -> ServingSelectionState:
         request = request or self.sample_request()
-        # Each request is an independent PPO episode.  Background state is a
-        # deterministic function of the observed slot; reservations made by a
-        # previous episode must not leak into a new episode whose clock starts
-        # at a different trace position.
-        self.compute_available_at = {
-            node: request.arrival_time_s for node in range(self.config.total_satellites)
-        }
-        self.link_available_at.clear()
+        if not self.config.preserve_inter_request_reservations:
+            self.compute_available_at = {
+                node: request.arrival_time_s for node in range(self.config.total_satellites)
+            }
+            self.link_available_at.clear()
         terminals = {request.source, request.destination}
         for service_id in request.services:
             terminals.update(self.services[service_id].replicas)
@@ -156,34 +227,21 @@ class ELARAEnvironment:
         self.last_state.validate()
         return self.last_state
 
-    def _background_compute_queue(self, node: int, slot: int) -> float:
-        # Fully observable current background state; future values are never put
-        # in the observation.  Integer mixing keeps experiments reproducible.
-        mixed = (node * 1_103_515_245 + slot * 12_345 + self.config.seed) & 0xFFFF
-        return (mixed / 0xFFFF) * 0.20 * self.config.slot_duration_s
-
     def _compute_efficiency(self, node: int, slot: int) -> float:
-        base = self.resources[node].efficiency
-        modifier = 0.90 + 0.10 * math.cos(0.37 * slot + 0.11 * node)
-        return max(0.2, min(1.0, base * modifier))
+        return self.background.compute(node, slot).discount
 
     def _compute_queue(self, node: int, time_s: float) -> float:
         slot = self.topology.absolute_slot(time_s)
         reserved = max(0.0, self.compute_available_at.get(node, 0.0) - time_s)
-        return reserved + self._background_compute_queue(node, slot)
+        return reserved + self.background.compute(node, slot).queue_delay_s
 
     def _link_efficiency(self, edge: ISLEdge, slot: int) -> float:
-        phase = 0.19 * slot + 0.07 * edge.u + 0.13 * edge.v
-        return max(0.55, min(1.0, 0.80 + 0.20 * math.sin(phase)))
-
-    def _background_link_queue(self, edge: ISLEdge, slot: int) -> float:
-        mixed = (edge.u * 2_654_435_761 + edge.v * 97_531 + slot * 31) & 0xFFFF
-        return (mixed / 0xFFFF) * 0.05 * self.config.slot_duration_s
+        return self.background.link(edge, slot).efficiency
 
     def _link_queue(self, edge: ISLEdge, time_s: float) -> float:
         slot = self.topology.absolute_slot(time_s)
         reserved = max(0.0, self.link_available_at.get(edge.key, 0.0) - time_s)
-        return reserved + self._background_link_queue(edge, slot)
+        return reserved + self.background.link(edge, slot).queue_delay_s
 
     def _ensure_connector_at(self, time_s: float) -> SparseGraph:
         assert self.runtime is not None
@@ -253,8 +311,10 @@ class ELARAEnvironment:
         )
         request_features = np.asarray(
             [
-                request.arrival_time_s / max(self.topology.slot_duration_s, 1.0),
-                runtime.current_time_s / max(self.topology.slot_duration_s * self.topology.slot_count, 1.0),
+                (request.arrival_time_s % (self.topology.slot_duration_s * self.topology.slot_count))
+                / max(self.topology.slot_duration_s * self.topology.slot_count, 1.0),
+                (runtime.current_time_s % (self.topology.slot_duration_s * self.topology.slot_count))
+                / max(self.topology.slot_duration_s * self.topology.slot_count, 1.0),
                 remaining / self.topology.slot_duration_s,
                 runtime.stage / max(1, len(request.services)),
                 request.data_volumes_gb[runtime.stage] / max(self.config.input_data_gb_max, 1.0e-9),
@@ -434,6 +494,71 @@ class ELARAEnvironment:
             "energy_j": resource.compute_power_w * compute_s,
         }
 
+    def _trace_candidates(self):
+        assert self.last_state is not None
+        return {
+            "candidate_nodes": tuple(
+                int(self.last_state.node_ids[int(index)])
+                for index in self.last_state.candidate_indices
+            ),
+            "candidate_hop_distances": tuple(
+                float(value) for value in self.last_state.candidate_features[:, 0]
+            ),
+            "candidate_bottleneck_rates": tuple(
+                float(value) for value in self.last_state.candidate_features[:, 1]
+            ),
+            "candidate_compute_queues": tuple(
+                float(value) for value in self.last_state.candidate_features[:, 2]
+            ),
+        }
+
+    def _close_replica_window(self, runtime: EpisodeRuntime):
+        if not self.config.adaptation_enabled:
+            return []
+        return self.replica_adapter.close_request(
+            self.services,
+            self.resources,
+            runtime.request.arrival_time_s,
+            self._estimate_full_network_cost,
+            self._normalized_compute_load,
+        )
+
+    def _observe_failed_stage(
+        self,
+        runtime: EpisodeRuntime,
+        service_id: int,
+        stage_index: int,
+        stage_start: float,
+        selected_node: int,
+        reason: str,
+    ) -> None:
+        self.replica_adapter.observe_stage(
+            StageExecutionRecord(
+                request_id=runtime.request.request_id,
+                service_id=service_id,
+                source_node=runtime.current_node,
+                serving_node=selected_node,
+                data_gb=runtime.request.data_volumes_gb[stage_index],
+                route_delay_s=self.config.failure_penalty * self.config.latency_scale_s,
+                route_energy_j=0.0,
+                compute_queue_s=0.0,
+                compute_delay_s=0.0,
+                compute_energy_j=0.0,
+                normalized_cost=self.config.failure_penalty,
+                template_id=runtime.request.template_id,
+                request_arrival_time_s=runtime.request.arrival_time_s,
+                stage_index=stage_index,
+                chain_length=len(runtime.request.services),
+                stage_start_time_s=stage_start,
+                stage_finish_time_s=stage_start,
+                topology_slot=self.topology.absolute_slot(stage_start),
+                destination_node=runtime.request.destination,
+                success=False,
+                failure_reason=reason,
+                **self._trace_candidates(),
+            )
+        )
+
     def step(self, action: int):
         if self.runtime is None or self.last_state is None:
             raise RuntimeError("reset() must be called before step()")
@@ -446,6 +571,7 @@ class ELARAEnvironment:
 
         runtime = self.runtime
         stage_start = runtime.current_time_s
+        stage_index = runtime.stage
         energy = 0.0
         local_index = int(self.last_state.candidate_indices[action])
         selected_node = int(self.last_state.node_ids[local_index])
@@ -455,11 +581,26 @@ class ELARAEnvironment:
         route = self._route(runtime.current_node, selected_node, data_gb)
         if not route["reachable"]:
             runtime.done = True
+            reason = route.get("failure_reason", "route_failed")
+            self._observe_failed_stage(
+                runtime, service_id, stage_index, stage_start, selected_node, reason
+            )
+            migration_actions = self._close_replica_window(runtime)
+            self.last_migration_actions = migration_actions
+            self.last_state = None
             reward = -self.config.failure_penalty
             return None, reward, True, False, {
                 "success": False,
-                "reason": route.get("failure_reason", "route_failed"),
+                "request_id": runtime.request.request_id,
+                "template_id": runtime.request.template_id,
+                "arrival_time_s": runtime.request.arrival_time_s,
+                "chain_length": len(runtime.request.services),
+                "reason": reason,
                 "route": route,
+                "total_latency_s": runtime.accumulated_latency_s,
+                "total_energy_j": runtime.accumulated_energy_j,
+                "migration_actions": [asdict(item) for item in migration_actions],
+                "bandit_summary": self.replica_adapter.summary(),
             }
         energy += route["energy_j"]
         computation = self._compute(service_id, selected_node, route["arrival_time"])
@@ -478,11 +619,26 @@ class ELARAEnvironment:
             )
             if not final_route["reachable"]:
                 runtime.done = True
+                reason = final_route.get("failure_reason", "egress_failed")
+                self._observe_failed_stage(
+                    runtime, service_id, stage_index, stage_start, selected_node, reason
+                )
+                migration_actions = self._close_replica_window(runtime)
+                self.last_migration_actions = migration_actions
+                self.last_state = None
                 reward = -self.config.failure_penalty
                 return None, reward, True, False, {
                     "success": False,
-                    "reason": final_route.get("failure_reason", "egress_failed"),
+                    "request_id": runtime.request.request_id,
+                    "template_id": runtime.request.template_id,
+                    "arrival_time_s": runtime.request.arrival_time_s,
+                    "chain_length": len(runtime.request.services),
+                    "reason": reason,
                     "final_route": final_route,
+                    "total_latency_s": runtime.accumulated_latency_s,
+                    "total_energy_j": runtime.accumulated_energy_j,
+                    "migration_actions": [asdict(item) for item in migration_actions],
+                    "bandit_summary": self.replica_adapter.summary(),
                 }
             runtime.current_time_s = final_route["arrival_time"]
             energy += final_route["energy_j"]
@@ -517,6 +673,16 @@ class ELARAEnvironment:
                 compute_delay_s=computation["compute_s"],
                 compute_energy_j=computation["energy_j"],
                 normalized_cost=normalized_stage_cost,
+                template_id=runtime.request.template_id,
+                request_arrival_time_s=runtime.request.arrival_time_s,
+                stage_index=stage_index,
+                chain_length=len(runtime.request.services),
+                stage_start_time_s=stage_start,
+                stage_finish_time_s=runtime.current_time_s,
+                topology_slot=self.topology.absolute_slot(stage_start),
+                destination_node=runtime.request.destination,
+                route_slot_crossings=int(route.get("slot_crossings", 0)),
+                **self._trace_candidates(),
             )
         )
         reward = -(
@@ -540,16 +706,14 @@ class ELARAEnvironment:
         }
         if runtime.done:
             migration_actions = []
-            if terminated and self.config.adaptation_enabled:
-                migration_actions = self.replica_adapter.close_request(
-                    self.services,
-                    self.resources,
-                    runtime.current_time_s,
-                    self._estimate_full_network_cost,
-                    self._normalized_compute_load,
-                )
+            if terminated:
+                migration_actions = self._close_replica_window(runtime)
             self.last_migration_actions = migration_actions
             info.update(
+                request_id=runtime.request.request_id,
+                template_id=runtime.request.template_id,
+                arrival_time_s=runtime.request.arrival_time_s,
+                chain_length=len(runtime.request.services),
                 total_latency_s=runtime.accumulated_latency_s,
                 total_energy_j=runtime.accumulated_energy_j,
                 serving_history=tuple(runtime.serving_history),

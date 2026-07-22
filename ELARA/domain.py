@@ -13,6 +13,13 @@ class Microservice:
 
 
 @dataclass(frozen=True)
+class ServiceRequestTemplate:
+    template_id: int
+    services: tuple[int, ...]
+    data_volumes_gb: tuple[float, ...]
+
+
+@dataclass(frozen=True)
 class SatelliteResource:
     node_id: int
     capacity_gflops: float
@@ -29,6 +36,7 @@ class ServiceRequest:
     services: tuple[int, ...]
     data_volumes_gb: tuple[float, ...]
     arrival_time_s: float = 0.0
+    template_id: int | None = None
 
     def __post_init__(self) -> None:
         if len(self.data_volumes_gb) != len(self.services) + 1:

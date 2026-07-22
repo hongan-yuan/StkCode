@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 
@@ -12,29 +12,97 @@ class ELARAConfig:
     seed: int = 42
     num_planes: int = 10
     sats_per_plane: int = 18
-    num_services: int = 24
-    replicas_per_service: int = 4
-    chain_length: int = 5
+    num_services: int = 30
+    # ``replicas_per_service`` is a fixed-count compatibility override used by
+    # small tests. Normal experiments draw an independent initial count for
+    # every service and the adaptation layer changes it at runtime.
+    replicas_per_service: int | None = None
+    replica_count_range: tuple[int, int] = (5, 10)
+    chain_length: int | None = None
+    request_template_chain_lengths: tuple[int, ...] = (5, 10, 15)
 
     trace_csv: Path = PROJECT_ROOT / "WalkerDeltaConstellationSimu" / "Walker_Delta_ISL_Simu.csv"
     max_trace_slots: int | None = 120
     slot_duration_s: float = 10.0
     future_topology_horizon: int = 3
 
-    compute_capacity_gflops_min: float = 80.0
-    compute_capacity_gflops_max: float = 240.0
-    compute_power_w_min: float = 45.0
-    compute_power_w_max: float = 85.0
-    service_cycles_min: float = 0.5e9
-    service_cycles_max: float = 3.0e9
-    service_memory_gb_min: float = 1.0
-    service_memory_gb_max: float = 2.5
-    satellite_memory_capacity_gb: float = 16.0
-    replica_activation_delay_s: float = 0.05
-    input_data_gb_min: float = 0.005
-    input_data_gb_max: float = 0.030
-    data_shrink_min: float = 0.65
-    data_shrink_max: float = 0.95
+    compute_capacity_choices_gflops: tuple[float, ...] = (1.0, 2.0, 3.0, 4.0)
+    compute_capacity_gflops_min: float = 1.0
+    compute_capacity_gflops_max: float = 4.0
+    compute_power_by_capacity_w: dict[float, float] = field(
+        default_factory=lambda: {1.0: 50.0, 2.0: 60.0, 3.0: 70.0, 4.0: 80.0}
+    )
+    compute_power_w_min: float = 50.0
+    compute_power_w_max: float = 80.0
+    service_cycles_min: float = 1.0e9
+    service_cycles_max: float = 1.0e10
+    service_memory_gb_min: float = 2.4
+    service_memory_gb_max: float = 4.0
+    satellite_memory_capacity_gb: float = 12.0
+    replica_activation_delay_s_min: float = 0.2
+    replica_activation_delay_s_max: float = 2.0
+    input_data_gb_min: float = 0.5
+    input_data_gb_max: float = 4.0
+    request_data_mean_gb: float = 2.0
+    request_data_variance_gb: float = 0.5
+    request_arrival_lambda_per_template_per_slot: float = 0.35
+    request_endpoint_near_hops: int = 2
+    preserve_inter_request_reservations: bool = True
+
+    compute_load_states: tuple[str, ...] = ("Idle", "Light", "Medium", "Heavy")
+    compute_load_initial_distribution: dict[str, float] = field(
+        default_factory=lambda: {"Idle": 0.35, "Light": 0.35, "Medium": 0.20, "Heavy": 0.10}
+    )
+    compute_load_transition_matrix: dict[str, dict[str, float]] = field(
+        default_factory=lambda: {
+            "Idle": {"Idle": 0.70, "Light": 0.25, "Medium": 0.04, "Heavy": 0.01},
+            "Light": {"Idle": 0.20, "Light": 0.55, "Medium": 0.20, "Heavy": 0.05},
+            "Medium": {"Idle": 0.05, "Light": 0.25, "Medium": 0.50, "Heavy": 0.20},
+            "Heavy": {"Idle": 0.02, "Light": 0.08, "Medium": 0.30, "Heavy": 0.60},
+        }
+    )
+    compute_load_lambda_per_slot: dict[str, float] = field(
+        default_factory=lambda: {"Idle": 0.05, "Light": 0.20, "Medium": 0.65, "Heavy": 1.40}
+    )
+    compute_load_utilization_ranges: dict[str, tuple[float, float]] = field(
+        default_factory=lambda: {
+            "Idle": (0.00, 0.20), "Light": (0.20, 0.45),
+            "Medium": (0.45, 0.70), "Heavy": (0.70, 0.95),
+        }
+    )
+    compute_load_discount_ranges: dict[str, tuple[float, float]] = field(
+        default_factory=lambda: {
+            "Idle": (0.80, 1.00), "Light": (0.60, 0.80),
+            "Medium": (0.40, 0.60), "Heavy": (0.20, 0.40),
+        }
+    )
+    background_compute_cycles_mean: float = 2.0e9
+    background_compute_cycles_min: float = 1.0e8
+    background_compute_rho_max: float = 0.95
+    background_compute_queue_base_s: float = 0.05
+
+    link_load_states: tuple[str, ...] = ("Idle", "Light", "Medium", "Heavy")
+    link_load_initial_distribution: dict[str, float] = field(
+        default_factory=lambda: {"Idle": 0.40, "Light": 0.35, "Medium": 0.20, "Heavy": 0.05}
+    )
+    link_load_transition_matrix: dict[str, dict[str, float]] = field(
+        default_factory=lambda: {
+            "Idle": {"Idle": 0.72, "Light": 0.23, "Medium": 0.04, "Heavy": 0.01},
+            "Light": {"Idle": 0.18, "Light": 0.57, "Medium": 0.21, "Heavy": 0.04},
+            "Medium": {"Idle": 0.05, "Light": 0.22, "Medium": 0.53, "Heavy": 0.20},
+            "Heavy": {"Idle": 0.02, "Light": 0.08, "Medium": 0.28, "Heavy": 0.62},
+        }
+    )
+    background_link_lambda_per_slot_by_state: dict[str, float] = field(
+        default_factory=lambda: {"Idle": 0.05, "Light": 0.20, "Medium": 0.55, "Heavy": 1.20}
+    )
+    background_link_data_mean_gb: float = 0.15
+    background_link_data_min_gb: float = 0.01
+    background_link_rho_max: float = 0.95
+    background_link_eta_min: float = 0.35
+    background_link_kappa: float = 1.0
+    background_link_queue_base_s: float = 0.02
+    background_epsilon: float = 1.0e-6
 
     delay_weight: float = 0.5
     energy_weight: float = 0.5
@@ -53,10 +121,12 @@ class ELARAConfig:
     route_failure_risk_weight: float = 0.0
 
     adaptation_enabled: bool = True
-    deployment_window_requests: int = 20
+    adaptation_window_slots: int = 10
+    deployment_window_requests: int | None = None
     adaptation_top_k_services: int = 10
     bandit_exploration: float = 1.25
     pressure_ewma: float = 0.5
+    adaptation_trace_sample_limit: int = 32
 
     hidden_dim: int = 128
     graph_layers: int = 2
@@ -73,6 +143,15 @@ class ELARAConfig:
     max_grad_norm: float = 0.5
 
     output_dir: Path = PROJECT_ROOT / "ELARA" / "outputs"
+
+    def __post_init__(self) -> None:
+        low, high = self.replica_count_range
+        if low < 1 or high < low:
+            raise ValueError("replica_count_range must satisfy 1 <= min <= max")
+        if not self.request_template_chain_lengths and self.chain_length is None:
+            raise ValueError("at least one request template chain length is required")
+        if self.request_arrival_lambda_per_template_per_slot <= 0.0:
+            raise ValueError("request arrival lambda must be positive")
 
     @property
     def total_satellites(self) -> int:

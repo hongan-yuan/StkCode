@@ -20,12 +20,17 @@ def parse_args():
     parser.add_argument("--policy", choices=("random", "greedy", "ppo"), default="greedy")
     parser.add_argument("--checkpoint", type=Path)
     parser.add_argument("--max-trace-slots", type=int, default=120)
-    parser.add_argument("--chain-length", type=int, default=5)
-    parser.add_argument("--replicas", type=int, default=4)
+    parser.add_argument("--chain-length", type=int)
+    parser.add_argument("--replicas", type=int, help="fixed replica-count compatibility override")
+    parser.add_argument("--replica-min", type=int, default=5)
+    parser.add_argument("--replica-max", type=int, default=10)
+    parser.add_argument("--request-template-lengths", default="5,10,15")
+    parser.add_argument("--arrival-lambda", type=float, default=0.35,
+                        help="Poisson lambda per request template per slot")
     parser.add_argument("--future-horizon", type=int, default=3)
     parser.add_argument("--route-horizon", type=int, default=3)
     parser.add_argument("--route-max-paths", type=int, default=3)
-    parser.add_argument("--deployment-window", type=int, default=20)
+    parser.add_argument("--adaptation-window-slots", "--deployment-window", type=int, default=10)
     parser.add_argument(
         "--adaptation-top-k",
         "--adaption-top-k",
@@ -55,15 +60,22 @@ def main() -> None:
     args = parse_args()
     progress = ProgressReporter(args.progress_file, args.episodes)
     progress.update(0)
+    template_lengths = tuple(
+        int(value.strip()) for value in args.request_template_lengths.split(",")
+        if value.strip()
+    )
     config = ELARAConfig(
         seed=args.seed,
         max_trace_slots=args.max_trace_slots,
         chain_length=args.chain_length,
         replicas_per_service=args.replicas,
+        replica_count_range=(args.replica_min, args.replica_max),
+        request_template_chain_lengths=template_lengths,
+        request_arrival_lambda_per_template_per_slot=args.arrival_lambda,
         future_topology_horizon=args.future_horizon,
         route_horizon_slots=args.route_horizon,
         route_max_paths_per_slot=args.route_max_paths,
-        deployment_window_requests=args.deployment_window,
+        adaptation_window_slots=args.adaptation_window_slots,
         adaptation_top_k_services=args.adaptation_top_k,
         adaptation_enabled=not args.disable_adaptation,
         output_dir=args.output_dir,
@@ -107,6 +119,10 @@ def main() -> None:
         records.append(
             {
                 "episode": episode,
+                "request_id": final_info.get("request_id", ""),
+                "template_id": final_info.get("template_id", ""),
+                "arrival_time_s": final_info.get("arrival_time_s", ""),
+                "chain_length": final_info.get("chain_length", ""),
                 "success": int(bool(final_info.get("success"))),
                 "return": episode_return,
                 "latency_s": final_info.get("total_latency_s", float("nan")),
@@ -116,8 +132,20 @@ def main() -> None:
                 "route_slot_crossings": route_slot_crossings,
                 "route_phase_count": route_phase_count,
                 "migration_action_count": len(final_info.get("migration_actions", [])),
+                "no_op_count": sum(
+                    item.get("action") == "no_op"
+                    for item in final_info.get("migration_actions", [])
+                ),
                 "relocation_count": sum(
                     item.get("action") == "relocate"
+                    for item in final_info.get("migration_actions", [])
+                ),
+                "scale_out_count": sum(
+                    item.get("action") == "scale_out"
+                    for item in final_info.get("migration_actions", [])
+                ),
+                "scale_in_count": sum(
+                    item.get("action") == "scale_in"
                     for item in final_info.get("migration_actions", [])
                 ),
             }
@@ -146,6 +174,9 @@ def main() -> None:
             sum(row["migration_action_count"] for row in records)
         ),
         "relocation_count": int(sum(row["relocation_count"] for row in records)),
+        "scale_out_count": int(sum(row["scale_out_count"] for row in records)),
+        "scale_in_count": int(sum(row["scale_in_count"] for row in records)),
+        "no_op_count": int(sum(row["no_op_count"] for row in records)),
         "bandit": environment.replica_adapter.summary(),
     }
     with (args.output_dir / "summary.json").open("w", encoding="utf-8") as handle:

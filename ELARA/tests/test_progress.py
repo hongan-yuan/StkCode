@@ -13,12 +13,14 @@ class ProgressTests(unittest.TestCase):
     def test_reporter_writes_progress_atomically(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "progress.json"
-            reporter = ProgressReporter(path, total=10)
-            reporter.update(4)
+            reporter = ProgressReporter(path, total=10, unit="slots")
+            reporter.update(4, item_count=7)
             payload = json.loads(path.read_text(encoding="utf-8"))
             self.assertEqual(payload["completed"], 4)
             self.assertEqual(payload["total"], 10)
             self.assertAlmostEqual(payload["fraction"], 0.4)
+            self.assertEqual(payload["unit"], "slots")
+            self.assertEqual(payload["item_count"], 7)
             self.assertIsNotNone(payload["eta_s"])
 
     def test_aggregate_progress_bar_and_eta(self):
@@ -28,14 +30,22 @@ class ProgressTests(unittest.TestCase):
                 path = Path(directory) / f"{index}.json"
                 path.write_text(
                     json.dumps(
-                        {"completed": 5, "total": 10, "elapsed_s": 5.0, "eta_s": eta}
+                        {
+                            "completed": 5,
+                            "total": 10,
+                            "unit": "slots",
+                            "item_count": 8,
+                            "elapsed_s": 5.0,
+                            "eta_s": eta,
+                        }
                     ),
                     encoding="utf-8",
                 )
                 jobs.append({"progress_file": str(path)})
             line = progress_line(jobs, width=10)
             self.assertIn("50.00%", line)
-            self.assertIn("10/20", line)
+            self.assertIn("slots 10/20", line)
+            self.assertIn("requests 16", line)
             self.assertIn("ETA 00:00:09", line)
 
     def test_duration_format(self):
