@@ -17,7 +17,7 @@ from .progress import ProgressReporter
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train the independent ELARA PPO agent")
-    parser.add_argument("--episodes", type=int, default=500)
+    parser.add_argument("--episodes", type=int, default=606)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--max-trace-slots", type=int, default=120)
     parser.add_argument("--chain-length", type=int, default=5)
@@ -25,7 +25,7 @@ def parse_args():
     parser.add_argument("--future-horizon", type=int, default=3)
     parser.add_argument("--route-horizon", type=int, default=3)
     parser.add_argument("--route-max-paths", type=int, default=3)
-    parser.add_argument("--deployment-window", type=int, default=20)
+    parser.add_argument("--deployment-window", type=int, default=10)
     parser.add_argument(
         "--adaptation-top-k",
         "--adaption-top-k",
