@@ -11,7 +11,7 @@ user_request = [
     "data_2",
     "data_3",
     "data_4",
-    "execution_stage"
+    "execution_stage",
     "execution_time_slot"
 ]
 satellite_link_state = [
@@ -376,13 +376,13 @@ satellite_link_state = [
 1. 拟定使用 MLP 来编码 user_request 这个向量, 生成一个 hidden states,
 2. 拟定使用 Attention-based encoder 来编码 satellite_link_state 这个矩阵, 然后生成一个 hidden states,
 3. 将1.和2.中生成的 hidden states 进行拼接, 再经过一个 MLP, 得到我们的动作logits, action logits是一个向量, 其长度为 N_max (论文中规定的允许最大微服务副本数), 如果某个微服务的副本数小于 N_max, 则对 action logits 进行 mask 处理, 确保最后采样出来的 action 是合法的.
-4. 生成的serving satellite selection action 作用之后, 按照下面的要求更新 状态空间.
+4. 生成的serving satellite selection action 作用之后, 按照下面的要求更新 状态空间. 然后获得一个奖励 r = alpha * latency + beta * energy
 """
 
 
 """
-1. 其中 *_satellite_latency 表示执行到当前卫星节点时，这一阶段所消耗的latency
-2. 其中 *_satellite_energy 表示执行到当前卫星节点时，这一阶段所消耗的energy
+1. 其中 *_satellite_latency 表示执行到当前卫星节点时，这一阶段所消耗的 latency
+2. 其中 *_satellite_energy 表示执行到当前卫星节点时，这一阶段所消耗的 energy
 3. "is_chosen" 主要是针对微服务的副本对应所在卫星是否被agent选中。如果卫星未被选中，则*_satellite_latency和*_satellite_energy均为无穷大
 4. 如果卫星的某个ISL处于极区，则其*_ISL_*_transmission_*的值均为0, *_ISL_*_transmission_distance的值均为无穷大
 5. 随着请求的执行, 要不断更新 user_request 中的 execution_stage, 和 execution_time_slot 这两个信息, 其中后者为当前阶段执行的最新的time slot.
