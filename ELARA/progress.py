@@ -20,6 +20,7 @@ class ProgressReporter:
         completed: int,
         status: str = "running",
         item_count: int | None = None,
+        phase: str = "processing requests",
     ) -> None:
         if self.path is None:
             return
@@ -37,6 +38,7 @@ class ProgressReporter:
             "elapsed_s": elapsed,
             "eta_s": eta,
             "status": status,
+            "phase": phase,
             "updated_at": now,
         }
         self.path.parent.mkdir(parents=True, exist_ok=True)

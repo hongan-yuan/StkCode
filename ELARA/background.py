@@ -80,7 +80,9 @@ class MarkovBackgroundProcess:
         config = self.config
         resource = self.resources[node]
         count = poisson_sample(
-            self.rng, config.compute_load_lambda_per_slot.get(state, 0.0)
+            self.rng,
+            config.compute_load_lambda_per_slot.get(state, 0.0)
+            * config.background_load_scale,
         )
         cycles = sum(
             max(
@@ -108,7 +110,9 @@ class MarkovBackgroundProcess:
     def _generate_link(self, edge: ISLEdge, state: str) -> LinkBackground:
         config = self.config
         count = poisson_sample(
-            self.rng, config.background_link_lambda_per_slot_by_state.get(state, 0.0)
+            self.rng,
+            config.background_link_lambda_per_slot_by_state.get(state, 0.0)
+            * config.background_load_scale,
         )
         data = sum(
             max(
@@ -117,7 +121,12 @@ class MarkovBackgroundProcess:
             )
             for _ in range(count)
         )
-        capacity = edge.rate_mbps * self.topology.slot_duration_s / 8_000.0
+        capacity = (
+            edge.rate_mbps
+            * config.link_capacity_scale
+            * self.topology.slot_duration_s
+            / 8_000.0
+        )
         utilization = (
             min(data / capacity, config.background_link_rho_max)
             if capacity > 0.0

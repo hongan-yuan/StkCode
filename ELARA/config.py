@@ -20,6 +20,8 @@ class ELARAConfig:
     replica_count_range: tuple[int, int] = (5, 10)
     chain_length: int | None = None
     request_template_chain_lengths: tuple[int, ...] = (5, 10, 15)
+    request_template_file: Path | None = None
+    request_data_scale: float = 1.0
 
     trace_csv: Path = PROJECT_ROOT / "WalkerDeltaConstellationSimu" / "Walker_Delta_ISL_Simu.csv"
     max_trace_slots: int | None = 120
@@ -27,6 +29,7 @@ class ELARAConfig:
     future_topology_horizon: int = 3
 
     compute_capacity_choices_gflops: tuple[float, ...] = (1.0, 2.0, 3.0, 4.0)
+    compute_capacity_scale: float = 1.0
     compute_capacity_gflops_min: float = 1.0
     compute_capacity_gflops_max: float = 4.0
     compute_power_by_capacity_w: dict[float, float] = field(
@@ -103,6 +106,8 @@ class ELARAConfig:
     background_link_kappa: float = 1.0
     background_link_queue_base_s: float = 0.02
     background_epsilon: float = 1.0e-6
+    link_capacity_scale: float = 1.0
+    background_load_scale: float = 1.0
 
     delay_weight: float = 0.5
     energy_weight: float = 0.5
@@ -140,6 +145,7 @@ class ELARAConfig:
     ppo_entropy_coef: float = 0.01
     ppo_epochs: int = 4
     rollout_steps: int = 128
+    ppo_minibatch_size: int = 16
     max_grad_norm: float = 0.5
 
     output_dir: Path = PROJECT_ROOT / "ELARA" / "outputs"
@@ -152,6 +158,20 @@ class ELARAConfig:
             raise ValueError("at least one request template chain length is required")
         if self.request_arrival_lambda_per_template_per_slot <= 0.0:
             raise ValueError("request arrival lambda must be positive")
+        if self.delay_weight < 0.0 or self.energy_weight < 0.0:
+            raise ValueError("delay and energy weights must be nonnegative")
+        if abs(self.delay_weight + self.energy_weight - 1.0) > 1.0e-9:
+            raise ValueError("delay and energy weights must sum to one")
+        for name, value in (
+            ("request_data_scale", self.request_data_scale),
+            ("compute_capacity_scale", self.compute_capacity_scale),
+            ("link_capacity_scale", self.link_capacity_scale),
+            ("background_load_scale", self.background_load_scale),
+        ):
+            if value <= 0.0:
+                raise ValueError(f"{name} must be positive")
+        if self.ppo_minibatch_size < 1:
+            raise ValueError("ppo_minibatch_size must be at least 1")
 
     @property
     def total_satellites(self) -> int:
@@ -160,5 +180,8 @@ class ELARAConfig:
     def to_dict(self) -> dict:
         result = asdict(self)
         result["trace_csv"] = str(self.trace_csv)
+        result["request_template_file"] = (
+            str(self.request_template_file) if self.request_template_file else None
+        )
         result["output_dir"] = str(self.output_dir)
         return result

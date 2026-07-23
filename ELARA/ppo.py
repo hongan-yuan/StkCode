@@ -76,42 +76,56 @@ class PPOAgent:
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1.0e-8)
 
         indices = list(range(len(self.buffer)))
-        totals = {"policy_loss": 0.0, "value_loss": 0.0, "entropy": 0.0, "updates": 0}
+        totals = {"policy_loss": 0.0, "value_loss": 0.0, "entropy": 0.0, "samples": 0}
+        minibatch_size = min(self.config.ppo_minibatch_size, len(indices))
         for _ in range(self.config.ppo_epochs):
             random.shuffle(indices)
-            for index in indices:
-                transition = self.buffer[index]
-                observation = state_to_tensors(transition.state, self.device)
-                logits, value = self.network(observation)
-                distribution = torch.distributions.Categorical(logits=logits)
-                action = torch.tensor(transition.action, dtype=torch.long, device=self.device)
-                new_log_prob = distribution.log_prob(action)
-                ratio = torch.exp(new_log_prob - transition.old_log_prob)
-                advantage = torch.tensor(advantages[index], dtype=torch.float32, device=self.device)
-                unclipped = ratio * advantage
-                clipped = torch.clamp(
-                    ratio,
-                    1.0 - self.config.ppo_clip_epsilon,
-                    1.0 + self.config.ppo_clip_epsilon,
-                ) * advantage
-                policy_loss = -torch.min(unclipped, clipped)
-                target = torch.tensor(returns[index], dtype=torch.float32, device=self.device)
-                value_loss = F.mse_loss(value, target)
-                entropy = distribution.entropy()
-                loss = (
-                    policy_loss
-                    + self.config.ppo_value_coef * value_loss
-                    - self.config.ppo_entropy_coef * entropy
-                )
+            for start in range(0, len(indices), minibatch_size):
+                batch_indices = indices[start:start + minibatch_size]
+                policy_losses = []
+                value_losses = []
+                entropies = []
+                for index in batch_indices:
+                    transition = self.buffer[index]
+                    observation = state_to_tensors(transition.state, self.device)
+                    logits, value = self.network(observation)
+                    distribution = torch.distributions.Categorical(logits=logits)
+                    action = torch.as_tensor(
+                        transition.action, dtype=torch.long, device=self.device
+                    )
+                    new_log_prob = distribution.log_prob(action)
+                    ratio = torch.exp(new_log_prob - transition.old_log_prob)
+                    advantage = torch.as_tensor(
+                        advantages[index], dtype=torch.float32, device=self.device
+                    )
+                    unclipped = ratio * advantage
+                    clipped = torch.clamp(
+                        ratio,
+                        1.0 - self.config.ppo_clip_epsilon,
+                        1.0 + self.config.ppo_clip_epsilon,
+                    ) * advantage
+                    policy_losses.append(-torch.min(unclipped, clipped))
+                    target = torch.as_tensor(
+                        returns[index], dtype=torch.float32, device=self.device
+                    )
+                    value_losses.append(F.mse_loss(value, target))
+                    entropies.append(distribution.entropy())
+
+                policy_loss = torch.stack(policy_losses).mean()
+                value_loss = torch.stack(value_losses).mean()
+                entropy = torch.stack(entropies).mean()
+                loss = policy_loss + self.config.ppo_value_coef * value_loss
+                loss = loss - self.config.ppo_entropy_coef * entropy
                 self.optimizer.zero_grad()
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.network.parameters(), self.config.max_grad_norm)
                 self.optimizer.step()
-                totals["policy_loss"] += float(policy_loss.item())
-                totals["value_loss"] += float(value_loss.item())
-                totals["entropy"] += float(entropy.item())
-                totals["updates"] += 1
-        count = max(1, totals.pop("updates"))
+                sample_count = len(batch_indices)
+                totals["policy_loss"] += float(policy_loss.item()) * sample_count
+                totals["value_loss"] += float(value_loss.item()) * sample_count
+                totals["entropy"] += float(entropy.item()) * sample_count
+                totals["samples"] += sample_count
+        count = max(1, totals.pop("samples"))
         self.buffer.clear()
         return {key: value / count for key, value in totals.items()}
 

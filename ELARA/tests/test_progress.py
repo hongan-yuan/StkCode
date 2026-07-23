@@ -14,13 +14,14 @@ class ProgressTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "progress.json"
             reporter = ProgressReporter(path, total=10, unit="slots")
-            reporter.update(4, item_count=7)
+            reporter.update(4, item_count=7, phase="updating PPO")
             payload = json.loads(path.read_text(encoding="utf-8"))
             self.assertEqual(payload["completed"], 4)
             self.assertEqual(payload["total"], 10)
             self.assertAlmostEqual(payload["fraction"], 0.4)
             self.assertEqual(payload["unit"], "slots")
             self.assertEqual(payload["item_count"], 7)
+            self.assertEqual(payload["phase"], "updating PPO")
             self.assertIsNotNone(payload["eta_s"])
 
     def test_aggregate_progress_bar_and_eta(self):
@@ -37,6 +38,7 @@ class ProgressTests(unittest.TestCase):
                             "item_count": 8,
                             "elapsed_s": 5.0,
                             "eta_s": eta,
+                            "phase": "updating PPO" if index == 0 else "processing requests",
                         }
                     ),
                     encoding="utf-8",
@@ -47,6 +49,7 @@ class ProgressTests(unittest.TestCase):
             self.assertIn("slots 10/20", line)
             self.assertIn("requests 16", line)
             self.assertIn("ETA 00:00:09", line)
+            self.assertIn("PPO updating 1/2", line)
 
     def test_duration_format(self):
         self.assertEqual(format_duration(3661), "01:01:01")

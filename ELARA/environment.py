@@ -17,6 +17,7 @@ from .domain import (
     ServiceRequestTemplate,
 )
 from .routing import CrossSlotMinCostRouter
+from .request_templates import load_templates
 from .state import (
     CANDIDATE_FEATURES,
     EDGE_FEATURES,
@@ -52,6 +53,7 @@ class ELARAEnvironment:
     def __init__(self, config: ELARAConfig | None = None, topology: TemporalTopology | None = None):
         self.config = config or ELARAConfig()
         self.rng = random.Random(self.config.seed)
+        self.request_rng = random.Random(self.config.seed + 10_000)
         self.topology = topology or TemporalTopology.from_csv(
             self.config.trace_csv,
             self.config.sats_per_plane,
@@ -64,6 +66,10 @@ class ELARAEnvironment:
         self.replica_adapter = BanditReplicaAdapter(self.config)
         self.resources = self._generate_resources()
         self.services = self._generate_services()
+        self.initial_service_replicas = {
+            service_id: tuple(service.replicas)
+            for service_id, service in self.services.items()
+        }
         self.background = MarkovBackgroundProcess(
             self.topology, self.resources, self.config, self.config.seed + 20_000
         )
@@ -79,11 +85,16 @@ class ELARAEnvironment:
     def _generate_resources(self) -> dict[int, SatelliteResource]:
         resources = {}
         for node in range(self.config.total_satellites):
-            capacity = self.rng.choice(self.config.compute_capacity_choices_gflops)
+            nominal_capacity = self.rng.choice(
+                self.config.compute_capacity_choices_gflops
+            )
+            capacity = nominal_capacity * self.config.compute_capacity_scale
             resources[node] = SatelliteResource(
                 node_id=node,
                 capacity_gflops=capacity,
-                compute_power_w=self.config.compute_power_by_capacity_w[capacity],
+                compute_power_w=self.config.compute_power_by_capacity_w[
+                    nominal_capacity
+                ],
                 efficiency=1.0,
                 memory_capacity_gb=self.config.satellite_memory_capacity_gb,
             )
@@ -142,6 +153,12 @@ class ELARAEnvironment:
         )
 
     def _generate_request_templates(self) -> tuple[ServiceRequestTemplate, ...]:
+        if self.config.request_template_file is not None:
+            return load_templates(
+                self.config.request_template_file,
+                num_services=self.config.num_services,
+                data_scale=self.config.request_data_scale,
+            )
         lengths = (
             (self.config.chain_length,)
             if self.config.chain_length is not None
@@ -152,7 +169,10 @@ class ELARAEnvironment:
         for template_id, requested_length in enumerate(lengths, start=1):
             length = max(1, int(requested_length))
             services = tuple(self.rng.choices(service_ids, k=length))
-            volumes = tuple(self._sample_data_gb() for _ in range(length + 1))
+            volumes = tuple(
+                self._sample_data_gb() * self.config.request_data_scale
+                for _ in range(length + 1)
+            )
             templates.append(ServiceRequestTemplate(template_id, services, volumes))
         return tuple(templates)
 
@@ -175,18 +195,21 @@ class ELARAEnvironment:
         )
         rate_per_second = total_lambda / self.topology.slot_duration_s
         if rate_per_second > 0.0:
-            self.arrival_time_s += self.rng.expovariate(rate_per_second)
-        template = self.rng.choice(self.request_templates)
+            self.arrival_time_s += self.request_rng.expovariate(rate_per_second)
+        template = self.request_rng.choice(self.request_templates)
         graph = self.topology.graph_at_time(self.arrival_time_s)
-        first_replicas = self.services[template.services[0]].replicas
-        last_replicas = self.services[template.services[-1]].replicas
+        # Request endpoints are anchored to the initial deployment rather than
+        # the placement produced by a previous control action. This preserves
+        # a common exogenous request stream across sensitivity conditions.
+        first_replicas = self.initial_service_replicas[template.services[0]]
+        last_replicas = self.initial_service_replicas[template.services[-1]]
         source_pool = self._nearby_nodes(first_replicas, graph)
         destination_pool = self._nearby_nodes(last_replicas, graph)
-        source = self.rng.choice(source_pool)
+        source = self.request_rng.choice(source_pool)
         destination_choices = [node for node in destination_pool if node != source]
         if not destination_choices:
             destination_choices = [node for node in graph.nodes if node != source]
-        destination = self.rng.choice(destination_choices)
+        destination = self.request_rng.choice(destination_choices)
         request = ServiceRequest(
             request_id=self.request_counter,
             source=source,
@@ -285,13 +308,22 @@ class ELARAEnvironment:
         if path is None:
             return None, 0.0
         if len(path) == 1:
-            return path, self.config.compute_capacity_gflops_max * 1000.0
+            return (
+                path,
+                self.config.compute_capacity_gflops_max
+                * self.config.compute_capacity_scale
+                * 1000.0,
+            )
         slot = self.topology.absolute_slot(time_s)
         bottleneck = math.inf
         for u, v in zip(path[:-1], path[1:]):
             edge = graph.edge(u, v)
             assert edge is not None
-            rate = edge.rate_mbps * self._link_efficiency(edge, slot)
+            rate = (
+                edge.rate_mbps
+                * self.config.link_capacity_scale
+                * self._link_efficiency(edge, slot)
+            )
             bottleneck = min(bottleneck, rate)
         return path, float(bottleneck)
 
@@ -317,7 +349,12 @@ class ELARAEnvironment:
                 / max(self.topology.slot_duration_s * self.topology.slot_count, 1.0),
                 remaining / self.topology.slot_duration_s,
                 runtime.stage / max(1, len(request.services)),
-                request.data_volumes_gb[runtime.stage] / max(self.config.input_data_gb_max, 1.0e-9),
+                request.data_volumes_gb[runtime.stage]
+                / max(
+                    self.config.input_data_gb_max
+                    * self.config.request_data_scale,
+                    1.0e-9,
+                ),
                 runtime.accumulated_latency_s / max(self.config.latency_scale_s, 1.0e-9),
                 runtime.accumulated_energy_j / max(self.config.energy_scale_j, 1.0e-9),
             ],
@@ -335,7 +372,11 @@ class ELARAEnvironment:
                 math.cos(2 * math.pi * plane / self.config.num_planes),
                 math.sin(2 * math.pi * position / self.config.sats_per_plane),
                 math.cos(2 * math.pi * position / self.config.sats_per_plane),
-                resource.capacity_gflops / self.config.compute_capacity_gflops_max,
+                resource.capacity_gflops
+                / (
+                    self.config.compute_capacity_gflops_max
+                    * self.config.compute_capacity_scale
+                ),
                 self._compute_efficiency(node, slot),
                 min(1.0, self._compute_queue(node, runtime.current_time_s) / self.topology.slot_duration_s),
                 resource.compute_power_w / self.config.compute_power_w_max,
@@ -352,7 +393,10 @@ class ELARAEnvironment:
         for index, edge in enumerate(physical_edges):
             efficiency = self._link_efficiency(edge, slot)
             edge_features[index] = (
-                edge.rate_mbps * efficiency / 10_000.0,
+                edge.rate_mbps
+                * self.config.link_capacity_scale
+                * efficiency
+                / 10_000.0,
                 efficiency,
                 min(1.0, self._link_queue(edge, runtime.current_time_s) / self.topology.slot_duration_s),
                 min(1.0, edge.tx_power_w / 5.0),
@@ -421,7 +465,11 @@ class ELARAEnvironment:
         )
 
     def _effective_link_rate(self, edge: ISLEdge, absolute_slot: int) -> float:
-        return edge.rate_mbps * self._link_efficiency(edge, absolute_slot)
+        return (
+            edge.rate_mbps
+            * self.config.link_capacity_scale
+            * self._link_efficiency(edge, absolute_slot)
+        )
 
     def _reserve_link(
         self, edge: ISLEdge, start_time: float, data_gb: float, rate_mbps: float

@@ -91,6 +91,7 @@ def progress_line(jobs: list[dict], width: int = 28) -> str:
     elapsed = []
     finished_tasks = 0
     units = []
+    phases = []
     item_count = 0
     for job in jobs:
         state = {}
@@ -101,6 +102,7 @@ def progress_line(jobs: list[dict], width: int = 28) -> str:
         completed += int(state.get("completed", 0))
         total += int(state.get("total", job.get("total", 0)))
         units.append(str(state.get("unit", job.get("unit", "episodes"))))
+        phases.append(str(state.get("phase", "")))
         if state.get("item_count") is not None:
             item_count += int(state["item_count"])
         if state.get("eta_s") is not None:
@@ -116,10 +118,15 @@ def progress_line(jobs: list[dict], width: int = 28) -> str:
     eta = max(etas) if etas else None
     unit = units[0] if units and len(set(units)) == 1 else "items"
     item_text = f" | requests {item_count}" if unit == "slots" else ""
+    updating_count = sum(phase == "updating PPO" for phase in phases)
+    phase_text = (
+        f" | PPO updating {updating_count}/{len(jobs)}"
+        if updating_count else ""
+    )
     return (
         f"[{bar}] {fraction * 100:6.2f}% "
         f"{unit} {completed}/{total or '?'}{item_text} | "
-        f"tasks {finished_tasks}/{len(jobs)} | "
+        f"tasks {finished_tasks}/{len(jobs)}{phase_text} | "
         f"elapsed {format_duration(max(elapsed) if elapsed else 0.0)} | "
         f"ETA {format_duration(eta)}"
     )

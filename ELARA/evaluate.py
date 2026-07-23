@@ -11,11 +11,17 @@ import numpy as np
 from .config import ELARAConfig
 from .environment import ELARAEnvironment
 from .progress import ProgressReporter
+from .request_templates import DEFAULT_TEMPLATE_PATH
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Evaluate ELARA or lightweight baselines")
     parser.add_argument("--episodes", type=int, default=100)
+    parser.add_argument(
+        "--full-cycle",
+        action="store_true",
+        help="ignore --episodes and evaluate every Poisson arrival in one loaded constellation cycle",
+    )
     parser.add_argument("--seed", type=int, default=1000)
     parser.add_argument("--policy", choices=("random", "greedy", "ppo"), default="greedy")
     parser.add_argument("--checkpoint", type=Path)
@@ -25,8 +31,15 @@ def parse_args():
     parser.add_argument("--replica-min", type=int, default=5)
     parser.add_argument("--replica-max", type=int, default=10)
     parser.add_argument("--request-template-lengths", default="5,10,15")
+    parser.add_argument("--request-template-file", type=Path, default=DEFAULT_TEMPLATE_PATH)
+    parser.add_argument("--request-data-scale", type=float, default=1.0)
     parser.add_argument("--arrival-lambda", type=float, default=0.35,
                         help="Poisson lambda per request template per slot")
+    parser.add_argument("--delay-weight", type=float, default=0.5)
+    parser.add_argument("--energy-weight", type=float, default=0.5)
+    parser.add_argument("--compute-capacity-scale", type=float, default=1.0)
+    parser.add_argument("--link-capacity-scale", type=float, default=1.0)
+    parser.add_argument("--background-load-scale", type=float, default=1.0)
     parser.add_argument("--future-horizon", type=int, default=3)
     parser.add_argument("--route-horizon", type=int, default=3)
     parser.add_argument("--route-max-paths", type=int, default=3)
@@ -58,8 +71,6 @@ def greedy_action(state) -> int:
 
 def main() -> None:
     args = parse_args()
-    progress = ProgressReporter(args.progress_file, args.episodes)
-    progress.update(0)
     template_lengths = tuple(
         int(value.strip()) for value in args.request_template_lengths.split(",")
         if value.strip()
@@ -71,7 +82,14 @@ def main() -> None:
         replicas_per_service=args.replicas,
         replica_count_range=(args.replica_min, args.replica_max),
         request_template_chain_lengths=template_lengths,
+        request_template_file=args.request_template_file,
+        request_data_scale=args.request_data_scale,
         request_arrival_lambda_per_template_per_slot=args.arrival_lambda,
+        delay_weight=args.delay_weight,
+        energy_weight=args.energy_weight,
+        compute_capacity_scale=args.compute_capacity_scale,
+        link_capacity_scale=args.link_capacity_scale,
+        background_load_scale=args.background_load_scale,
         future_topology_horizon=args.future_horizon,
         route_horizon_slots=args.route_horizon,
         route_max_paths_per_slot=args.route_max_paths,
@@ -83,6 +101,14 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     rng = random.Random(args.seed)
     environment = ELARAEnvironment(config)
+    cycle_slots = environment.topology.slot_count
+    cycle_duration_s = cycle_slots * environment.topology.slot_duration_s
+    progress = ProgressReporter(
+        args.progress_file,
+        cycle_slots if args.full_cycle else args.episodes,
+        unit="slots" if args.full_cycle else "episodes",
+    )
+    progress.update(0, item_count=0)
     agent = None
     if args.policy == "ppo":
         if args.checkpoint is None:
@@ -95,12 +121,17 @@ def main() -> None:
             environment.load_control_state_dict(control_state)
 
     records = []
-    for episode in range(args.episodes):
-        state = environment.reset()
+    episode = 0
+    while args.full_cycle or episode < args.episodes:
+        request = environment.sample_request()
+        if args.full_cycle and request.arrival_time_s >= cycle_duration_s:
+            break
+        state = environment.reset(request)
         episode_return = 0.0
         final_info = {}
         route_slot_crossings = 0
         route_phase_count = 0
+        route_augmentation_count = 0
         while state is not None:
             if args.policy == "random":
                 valid = np.flatnonzero(state.action_mask)
@@ -116,6 +147,9 @@ def main() -> None:
                 route = info.get(route_key) or {}
                 route_slot_crossings += int(route.get("slot_crossings", 0))
                 route_phase_count += len(route.get("slot_phases", []))
+                route_augmentation_count += int(
+                    route.get("min_cost_flow_augmentations", 0)
+                )
         records.append(
             {
                 "episode": episode,
@@ -131,6 +165,7 @@ def main() -> None:
                 "subgraph_node_count": final_info.get("subgraph_node_count", 0),
                 "route_slot_crossings": route_slot_crossings,
                 "route_phase_count": route_phase_count,
+                "route_augmentation_count": route_augmentation_count,
                 "migration_action_count": len(final_info.get("migration_actions", [])),
                 "no_op_count": sum(
                     item.get("action") == "no_op"
@@ -150,7 +185,17 @@ def main() -> None:
                 ),
             }
         )
-        progress.update(episode + 1)
+        episode += 1
+        completed = (
+            min(
+                cycle_slots,
+                int(request.arrival_time_s // environment.topology.slot_duration_s)
+                + 1,
+            )
+            if args.full_cycle
+            else episode
+        )
+        progress.update(completed, item_count=episode)
     with (args.output_dir / "episode_metrics.csv").open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=records[0].keys())
         writer.writeheader()
@@ -159,6 +204,8 @@ def main() -> None:
     summary = {
         "policy": args.policy,
         "episodes": len(records),
+        "full_cycle": args.full_cycle,
+        "constellation_cycle_slots": cycle_slots if args.full_cycle else None,
         "success_rate": len(success) / max(1, len(records)),
         "mean_return": float(np.mean([row["return"] for row in records])),
         "mean_latency_s": float(np.mean([row["latency_s"] for row in success])) if success else None,
@@ -169,6 +216,9 @@ def main() -> None:
         ),
         "mean_route_phase_count": float(
             np.mean([row["route_phase_count"] for row in records])
+        ),
+        "mean_route_augmentation_count": float(
+            np.mean([row["route_augmentation_count"] for row in records])
         ),
         "migration_action_count": int(
             sum(row["migration_action_count"] for row in records)
@@ -181,7 +231,11 @@ def main() -> None:
     }
     with (args.output_dir / "summary.json").open("w", encoding="utf-8") as handle:
         json.dump(summary, handle, indent=2)
-    progress.update(args.episodes, status="succeeded")
+    progress.update(
+        cycle_slots if args.full_cycle else args.episodes,
+        status="succeeded",
+        item_count=len(records),
+    )
     print(json.dumps(summary, indent=2))
 
 

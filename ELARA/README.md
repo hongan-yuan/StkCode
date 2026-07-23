@@ -101,6 +101,7 @@ ELARA/scripts/train.sh \
   --replica-min 5 \
   --replica-max 10 \
   --future-horizon 3 \
+  --ppo-minibatch-size 16 \
   --route-horizon 3 \
   --route-max-paths 3 \
   --adaptation-window-slots 10 \
@@ -120,6 +121,31 @@ many requests arrive before the cycle boundary, so training has no
 `--episodes` argument. `training_metrics.csv` contains one row for every
 admitted request in that cycle.
 
+PPO updates use logical mini batches. Variable sized sparse request graphs are
+encoded independently inside each mini batch, then their losses are averaged
+before one backward pass and optimizer step. The default mini batch size is 16.
+During an update, the parallel launcher reports `PPO updating` in the progress
+line and returns to request processing when the update finishes.
+
+### Plot PPO reward and loss curves
+
+The plotting utility accepts one `training_metrics.csv`, a single task
+directory, or a parallel training root containing multiple tasks. For multiple
+seeds, it plots the mean and 95% confidence interval. Reward points are aligned
+by episode, while sparse loss records are aligned by PPO update index.
+
+```bash
+ELARA/scripts/plot_ppo_curves.sh \
+  ELARA/outputs/parallel-train/20260723-081334 \
+  --reward-window 25 \
+  --loss-window 1 \
+  --show-runs
+```
+
+On Windows, use `ELARA\scripts\plot_ppo_curves.ps1` with the same arguments.
+The script generates combined reward and total-loss curves, a standalone reward
+curve, and policy, value, total-loss, and entropy panels in both PNG and PDF.
+
 ## PPO evaluation
 
 ```bash
@@ -130,6 +156,147 @@ ELARA/scripts/evaluate.sh \
   --episodes 100 \
   --output-dir ELARA/outputs/test-seed42
 ```
+
+## All-baseline testing
+
+The cross-platform baseline runner evaluates `ELARA`, `ELARA-NB`, `ELARA-NR`,
+`ELARA-SH`, `SECO`, `SP-Routing`, and `SC-NFV` through the common Simulation
+evaluation environment. Each baseline and seed pair is an independent task.
+The default concurrency is four, and CUDA tasks are assigned round robin over
+all visible GPUs. CPU and MPS are also supported. All metrics, logs, manifests,
+and merged CSV files are written below `ELARA`.
+
+```bash
+ELARA/scripts/test_baselines.sh \
+  --device auto \
+  --tasks 4 \
+  --seeds 42,43,44,45 \
+  --model-root Simulation/multi_seed_runs
+```
+
+On Windows:
+
+```powershell
+ELARA\scripts\test_baselines.ps1 `
+  --device auto `
+  --tasks 4 `
+  --seeds 42,43,44,45 `
+  --model-root Simulation\multi_seed_runs
+```
+
+Use `--max-slots 5` for a short smoke test. The default output directory is
+`ELARA/outputs/baseline-tests/<timestamp>`. PPO checkpoints are required for
+`ELARA`, `ELARA-NB`, and `ELARA-SH`; an intentionally untrained smoke test must
+explicitly pass `--no-load-checkpoint`.
+
+## Baseline contribution plots
+
+The contribution plotter automatically selects the latest complete baseline
+run, aggregates the random seeds with 95% confidence intervals, and writes
+ablation and comparison figures into separate directories. It covers overall
+latency and energy, relative improvement, routing and reliability, service
+chain length, temporal behavior across all 606 slots, request tail
+distributions, and communication/computation cost decomposition.
+
+```bash
+ELARA/scripts/plot_baseline_contributions.sh \
+  ELARA/outputs/baseline-tests \
+  --rolling-window 25
+```
+
+On Windows:
+
+```powershell
+ELARA\scripts\plot_baseline_contributions.ps1 `
+  ELARA\outputs\baseline-tests `
+  --rolling-window 25
+```
+
+By default, both PNG and PDF figures are produced below
+`<run>/contribution_plots/ablation` and
+`<run>/contribution_plots/comparison`. The parent directory also receives
+machine-readable CSV and JSON summaries and a short Markdown interpretation.
+Use `--formats png,pdf,svg` to change the output formats.
+
+## Parameter sensitivity experiments
+
+All parameter sensitivity runs use the fixed catalog at
+`ELARA/data/request_templates_seed2026.json`. The catalog contains fourteen
+templates with chain lengths 5, 10, and 15 in an 8:4:2 ratio. The Poisson
+process controls how often a catalog entry is sampled. Training and full-cycle
+testing derive the request count from all arrivals within 606 slots.
+
+Regenerate the catalog, if required, with a different catalog seed:
+
+```bash
+ELARA/scripts/generate_request_templates.sh \
+  --output ELARA/data/request_templates_seed2026.json \
+  --seed 2026
+```
+
+Before final testing, tune only on validation seeds that are not used in the
+reported experiments:
+
+```bash
+ELARA/scripts/tune_hyperparameters.sh \
+  --validation-seeds 202,203 \
+  --tasks 4 \
+  --device auto \
+  --max-trace-slots 606 \
+  --output-root ELARA/outputs/tuning/validation
+```
+
+The tuner searches the auditable profiles in
+`ELARA/configs/hyperparameter_search.json` and writes `best_profile.json`.
+Its score balances normalized latency and energy and penalizes failed
+requests. Freeze the selected profile before running seeds 42 through 45.
+Compute capacity, link capacity, background load, and request data scale are
+scenario parameters. The same selected scenario must be applied to every
+compared method.
+
+Run all final sensitivity training and testing:
+
+```bash
+ELARA/scripts/run_sensitivity.sh \
+  --seeds 42,43,44,45 \
+  --weights 0.5:0.5,0.35:0.65,0.65:0.35 \
+  --route-max-paths 3,5,7 \
+  --tasks 4 \
+  --device auto \
+  --max-trace-slots 606 \
+  --profile-json ELARA/outputs/tuning/validation/best_profile.json \
+  --output-root ELARA/outputs/sensitivity/final
+```
+
+The weight experiment fixes the maximum augmenting-path count at three. The
+routing experiment fixes the latency and energy weights at 0.5:0.5. Therefore
+the two categories each contain three conditions and four seeds, rather than
+an unnecessary nine-condition Cartesian product.
+
+Training and testing can also be launched separately by passing the same
+output root:
+
+```bash
+ELARA/scripts/train_sensitivity.sh \
+  --output-root ELARA/outputs/sensitivity/final \
+  --profile-json ELARA/outputs/tuning/validation/best_profile.json
+
+ELARA/scripts/test_sensitivity.sh \
+  --output-root ELARA/outputs/sensitivity/final \
+  --profile-json ELARA/outputs/tuning/validation/best_profile.json
+```
+
+After testing, draw the two experiment categories in separate directories:
+
+```bash
+ELARA/scripts/plot_sensitivity.sh \
+  ELARA/outputs/sensitivity/final
+```
+
+The output includes latency, energy, success rate, the latency-energy
+tradeoff, actual augmenting-path use, and cross-slot routing. PNG and PDF are
+generated by default. Equivalent PowerShell scripts with `.ps1` suffixes are
+provided for Windows.
 
 ## Parallel training and evaluation
 

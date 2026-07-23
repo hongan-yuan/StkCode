@@ -13,6 +13,7 @@ from .environment import ELARAEnvironment
 from .model import require_torch, torch
 from .ppo import PPOAgent, PPOTransition
 from .progress import ProgressReporter
+from .request_templates import DEFAULT_TEMPLATE_PATH
 
 
 def parse_args():
@@ -29,9 +30,21 @@ def parse_args():
     parser.add_argument("--replica-min", type=int, default=5)
     parser.add_argument("--replica-max", type=int, default=10)
     parser.add_argument("--request-template-lengths", default="5,10,15")
+    parser.add_argument("--request-template-file", type=Path, default=DEFAULT_TEMPLATE_PATH)
+    parser.add_argument("--request-data-scale", type=float, default=1.0)
     parser.add_argument("--arrival-lambda", type=float, default=0.35,
                         help="Poisson lambda per request template per slot")
+    parser.add_argument("--delay-weight", type=float, default=0.5)
+    parser.add_argument("--energy-weight", type=float, default=0.5)
+    parser.add_argument("--compute-capacity-scale", type=float, default=1.0)
+    parser.add_argument("--link-capacity-scale", type=float, default=1.0)
+    parser.add_argument("--background-load-scale", type=float, default=1.0)
     parser.add_argument("--future-horizon", type=int, default=3)
+    parser.add_argument("--ppo-minibatch-size", type=int, default=16)
+    parser.add_argument("--ppo-learning-rate", type=float, default=3.0e-4)
+    parser.add_argument("--ppo-entropy-coef", type=float, default=0.01)
+    parser.add_argument("--ppo-epochs", type=int, default=4)
+    parser.add_argument("--rollout-steps", type=int, default=128)
     parser.add_argument("--route-horizon", type=int, default=3)
     parser.add_argument("--route-max-paths", type=int, default=3)
     parser.add_argument("--adaptation-window-slots", "--deployment-window", type=int, default=10)
@@ -66,8 +79,20 @@ def main() -> None:
         replicas_per_service=args.replicas,
         replica_count_range=(args.replica_min, args.replica_max),
         request_template_chain_lengths=template_lengths,
+        request_template_file=args.request_template_file,
+        request_data_scale=args.request_data_scale,
         request_arrival_lambda_per_template_per_slot=args.arrival_lambda,
+        delay_weight=args.delay_weight,
+        energy_weight=args.energy_weight,
+        compute_capacity_scale=args.compute_capacity_scale,
+        link_capacity_scale=args.link_capacity_scale,
+        background_load_scale=args.background_load_scale,
         future_topology_horizon=args.future_horizon,
+        ppo_minibatch_size=args.ppo_minibatch_size,
+        ppo_learning_rate=args.ppo_learning_rate,
+        ppo_entropy_coef=args.ppo_entropy_coef,
+        ppo_epochs=args.ppo_epochs,
+        rollout_steps=args.rollout_steps,
         route_horizon_slots=args.route_horizon,
         route_max_paths_per_slot=args.route_max_paths,
         adaptation_window_slots=args.adaptation_window_slots,
@@ -103,6 +128,10 @@ def main() -> None:
             request = environment.sample_request()
             if request.arrival_time_s >= cycle_duration_s:
                 break
+            completed_slots = min(
+                cycle_slots,
+                int(request.arrival_time_s // environment.topology.slot_duration_s) + 1,
+            )
             episode = processed_requests
             state = environment.reset(request)
             episode_return = 0.0
@@ -127,7 +156,17 @@ def main() -> None:
                     route_phase_count += len(route.get("slot_phases", []))
                 state = next_state
                 if len(agent.buffer) >= config.rollout_steps:
+                    progress.update(
+                        completed_slots,
+                        item_count=processed_requests,
+                        phase="updating PPO",
+                    )
                     losses = agent.update(state)
+                    progress.update(
+                        completed_slots,
+                        item_count=processed_requests,
+                        phase="processing requests",
+                    )
             row = {
                 "episode": episode,
                 "request_id": final_info.get("request_id", ""),
@@ -154,10 +193,6 @@ def main() -> None:
             handle.flush()
             processed_requests += 1
             last_arrival_time_s = request.arrival_time_s
-            completed_slots = min(
-                cycle_slots,
-                int(request.arrival_time_s // environment.topology.slot_duration_s) + 1,
-            )
             progress.update(completed_slots, item_count=processed_requests)
             if processed_requests % 10 == 0:
                 print(
@@ -171,7 +206,17 @@ def main() -> None:
                     environment.control_state_dict(),
                 )
     if agent.buffer:
+        progress.update(
+            cycle_slots,
+            item_count=processed_requests,
+            phase="updating PPO",
+        )
         agent.update(None)
+        progress.update(
+            cycle_slots,
+            item_count=processed_requests,
+            phase="processing requests",
+        )
     agent.save(args.output_dir / "ppo_final.pt", environment.control_state_dict())
     with (args.output_dir / "orchestration_summary.json").open(
         "w", encoding="utf-8"

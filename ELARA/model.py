@@ -67,14 +67,29 @@ if nn is not None:
             scores = (query[target] * key[source]).sum(dim=-1) / self.hidden_dim**0.5
             scores = scores + self.edge_bias(edge_features).squeeze(-1)
             edge_messages = value[source] + self.edge_value(edge_features)
+
+            # Stable segment softmax over all incoming edges of each target.
+            # scatter_reduce and index_add keep the entire operation on-device,
+            # avoiding one Python loop and one host synchronization per node.
+            target_max = torch.full(
+                (node_count,),
+                -torch.inf,
+                dtype=scores.dtype,
+                device=scores.device,
+            )
+            target_max.scatter_reduce_(
+                0, target, scores, reduce="amax", include_self=True
+            )
+            exp_scores = torch.exp(scores - target_max[target])
+            target_sum = torch.zeros(
+                node_count, dtype=scores.dtype, device=scores.device
+            )
+            target_sum.scatter_add_(0, target, exp_scores)
+            weights = exp_scores / target_sum[target].clamp_min(
+                torch.finfo(scores.dtype).tiny
+            )
             aggregated = torch.zeros_like(node_state)
-            # Request graphs are small and degree <= 4; this explicit segmented
-            # softmax keeps the implementation dependency-free and transparent.
-            for node in range(node_count):
-                mask = target == node
-                if bool(mask.any()):
-                    weights = torch.softmax(scores[mask], dim=0)
-                    aggregated[node] = (weights.unsqueeze(-1) * edge_messages[mask]).sum(dim=0)
+            aggregated.index_add_(0, target, weights.unsqueeze(-1) * edge_messages)
             return self.norm(node_state + F.relu(self.output(aggregated)))
 
 
@@ -205,4 +220,3 @@ else:
     class ELARANetwork:  # pragma: no cover - exercised only without torch
         def __init__(self, *args, **kwargs):
             require_torch()
-
