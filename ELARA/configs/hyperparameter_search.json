@@ -1,0 +1,69 @@
+{
+  "selection_protocol": {
+    "validation_seeds": [202, 203],
+    "final_test_seeds": [42, 43, 44, 45],
+    "note": "Select on validation seeds only. Freeze the chosen profile before final sensitivity and baseline tests."
+  },
+  "profiles": [
+    {
+      "name": "reference",
+      "compute_capacity_scale": 1.0,
+      "link_capacity_scale": 1.0,
+      "background_load_scale": 1.0,
+      "request_data_scale": 1.0,
+      "ppo_learning_rate": 0.0003,
+      "ppo_entropy_coef": 0.01,
+      "ppo_epochs": 4,
+      "ppo_minibatch_size": 16,
+      "rollout_steps": 128
+    },
+    {
+      "name": "stable_policy",
+      "compute_capacity_scale": 1.0,
+      "link_capacity_scale": 1.0,
+      "background_load_scale": 1.0,
+      "request_data_scale": 1.0,
+      "ppo_learning_rate": 0.00015,
+      "ppo_entropy_coef": 0.005,
+      "ppo_epochs": 6,
+      "ppo_minibatch_size": 32,
+      "rollout_steps": 256
+    },
+    {
+      "name": "moderate_compute",
+      "compute_capacity_scale": 1.1,
+      "link_capacity_scale": 1.0,
+      "background_load_scale": 0.9,
+      "request_data_scale": 1.0,
+      "ppo_learning_rate": 0.0002,
+      "ppo_entropy_coef": 0.0075,
+      "ppo_epochs": 5,
+      "ppo_minibatch_size": 32,
+      "rollout_steps": 128
+    },
+    {
+      "name": "moderate_communication",
+      "compute_capacity_scale": 1.0,
+      "link_capacity_scale": 1.1,
+      "background_load_scale": 0.9,
+      "request_data_scale": 0.95,
+      "ppo_learning_rate": 0.0002,
+      "ppo_entropy_coef": 0.0075,
+      "ppo_epochs": 5,
+      "ppo_minibatch_size": 32,
+      "rollout_steps": 128
+    },
+    {
+      "name": "balanced_moderate_load",
+      "compute_capacity_scale": 1.05,
+      "link_capacity_scale": 1.05,
+      "background_load_scale": 0.9,
+      "request_data_scale": 0.95,
+      "ppo_learning_rate": 0.0002,
+      "ppo_entropy_coef": 0.005,
+      "ppo_epochs": 6,
+      "ppo_minibatch_size": 32,
+      "rollout_steps": 256
+    }
+  ]
+}
