@@ -37,17 +37,24 @@ class ELARAConfig:
     )
     compute_power_w_min: float = 50.0
     compute_power_w_max: float = 80.0
-    service_cycles_min: float = 1.0e9
-    service_cycles_max: float = 1.0e10
+    # A request stage consumes 0.1--1.0 GFLOP.  The previous 1--10 GFLOP
+    # range regularly occupied a low-capacity satellite for several slots and
+    # made communication failures dominate before PPO could observe a complete
+    # service chain.
+    service_cycles_min: float = 1.0e8
+    service_cycles_max: float = 1.0e9
     service_memory_gb_min: float = 2.4
     service_memory_gb_max: float = 4.0
     satellite_memory_capacity_gb: float = 12.0
     replica_activation_delay_s_min: float = 0.2
     replica_activation_delay_s_max: float = 2.0
-    input_data_gb_min: float = 0.5
-    input_data_gb_max: float = 4.0
-    request_data_mean_gb: float = 2.0
-    request_data_variance_gb: float = 0.5
+    # Intermediate payloads are 20--200 MB with an 80 MB mean.  This keeps
+    # multi-hop transfers feasible within the three-slot routing horizon while
+    # retaining meaningful communication contention.
+    input_data_gb_min: float = 0.02
+    input_data_gb_max: float = 0.20
+    request_data_mean_gb: float = 0.08
+    request_data_variance_gb: float = 0.0016
     request_arrival_lambda_per_template_per_slot: float = 0.35
     request_endpoint_near_hops: int = 2
     preserve_inter_request_reservations: bool = True
@@ -79,8 +86,8 @@ class ELARAConfig:
             "Medium": (0.40, 0.60), "Heavy": (0.20, 0.40),
         }
     )
-    background_compute_cycles_mean: float = 2.0e9
-    background_compute_cycles_min: float = 1.0e8
+    background_compute_cycles_mean: float = 5.0e8
+    background_compute_cycles_min: float = 5.0e7
     background_compute_rho_max: float = 0.95
     background_compute_queue_base_s: float = 0.05
 
@@ -99,15 +106,15 @@ class ELARAConfig:
     background_link_lambda_per_slot_by_state: dict[str, float] = field(
         default_factory=lambda: {"Idle": 0.05, "Light": 0.20, "Medium": 0.55, "Heavy": 1.20}
     )
-    background_link_data_mean_gb: float = 0.15
-    background_link_data_min_gb: float = 0.01
+    background_link_data_mean_gb: float = 0.04
+    background_link_data_min_gb: float = 0.005
     background_link_rho_max: float = 0.95
     background_link_eta_min: float = 0.35
     background_link_kappa: float = 1.0
     background_link_queue_base_s: float = 0.02
     background_epsilon: float = 1.0e-6
     link_capacity_scale: float = 1.0
-    background_load_scale: float = 1.0
+    background_load_scale: float = 0.5
 
     delay_weight: float = 0.5
     energy_weight: float = 0.5
@@ -146,6 +153,9 @@ class ELARAConfig:
     ppo_epochs: int = 4
     rollout_steps: int = 128
     ppo_minibatch_size: int = 16
+    ppo_update_interval_slots: int = 5
+    ppo_pretrain_cycles: int = 1
+    ppo_joint_training_cycles: int = 1
     max_grad_norm: float = 0.5
 
     output_dir: Path = PROJECT_ROOT / "ELARA" / "outputs"
@@ -172,6 +182,12 @@ class ELARAConfig:
                 raise ValueError(f"{name} must be positive")
         if self.ppo_minibatch_size < 1:
             raise ValueError("ppo_minibatch_size must be at least 1")
+        if self.ppo_update_interval_slots < 1:
+            raise ValueError("ppo_update_interval_slots must be at least 1")
+        if self.ppo_pretrain_cycles < 0 or self.ppo_joint_training_cycles < 0:
+            raise ValueError("PPO training cycle counts must be nonnegative")
+        if self.ppo_pretrain_cycles + self.ppo_joint_training_cycles < 1:
+            raise ValueError("at least one PPO training cycle is required")
 
     @property
     def total_satellites(self) -> int:

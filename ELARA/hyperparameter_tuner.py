@@ -27,13 +27,12 @@ DEFAULT_SEARCH = ELARA_ROOT / "configs" / "hyperparameter_search.json"
 def parse_args(argv: list[str] | None = None):
     parser = argparse.ArgumentParser(
         description=(
-            "Tune ELARA on validation seeds and export a frozen profile for "
-            "final sensitivity experiments."
+            "Compare ELARA hyperparameter profiles on validation seeds."
         )
     )
     parser.add_argument("--search-config", type=Path, default=DEFAULT_SEARCH)
     parser.add_argument("--validation-seeds", type=_split_ints, default=(202, 203))
-    parser.add_argument("--tasks", type=int, default=4)
+    parser.add_argument("--tasks", type=int, default=2)
     parser.add_argument("--device", choices=("auto", "cuda", "mps", "cpu"), default="auto")
     parser.add_argument("--output-root", type=Path)
     parser.add_argument("--request-template-file", type=Path, default=DEFAULT_TEMPLATE_FILE)
@@ -43,6 +42,9 @@ def parse_args(argv: list[str] | None = None):
     parser.add_argument("--delay-weight", type=float, default=0.5)
     parser.add_argument("--energy-weight", type=float, default=0.5)
     parser.add_argument("--route-max-paths", type=int, default=3)
+    parser.add_argument("--ppo-update-interval-slots", type=int, default=5)
+    parser.add_argument("--pretrain-cycles", type=int, default=1)
+    parser.add_argument("--joint-training-cycles", type=int, default=1)
     parser.add_argument("--failure-penalty", type=float, default=10.0)
     parser.add_argument(
         "--minimum-success-rate",
@@ -56,6 +58,12 @@ def parse_args(argv: list[str] | None = None):
         parser.error("--tasks must be at least one")
     if abs(args.delay_weight + args.energy_weight - 1.0) > 1.0e-9:
         parser.error("--delay-weight and --energy-weight must sum to one")
+    if args.ppo_update_interval_slots < 1:
+        parser.error("--ppo-update-interval-slots must be at least one")
+    if args.pretrain_cycles < 0 or args.joint_training_cycles < 0:
+        parser.error("training cycle counts must be nonnegative")
+    if args.pretrain_cycles + args.joint_training_cycles < 1:
+        parser.error("at least one training cycle is required")
     if not 0.0 <= args.minimum_success_rate <= 1.0:
         parser.error("--minimum-success-rate must be in [0, 1]")
     if args.output_root is None:
@@ -126,6 +134,11 @@ def build_jobs(args, profiles, phase, accelerator, gpu_ids):
                         "--ppo-epochs", str(profile["ppo_epochs"]),
                         "--ppo-minibatch-size", str(profile["ppo_minibatch_size"]),
                         "--rollout-steps", str(profile["rollout_steps"]),
+                        "--ppo-update-interval-slots",
+                        str(args.ppo_update_interval_slots),
+                        "--pretrain-cycles", str(args.pretrain_cycles),
+                        "--joint-training-cycles",
+                        str(args.joint_training_cycles),
                     )
                 )
             else:
@@ -150,7 +163,12 @@ def build_jobs(args, profiles, phase, accelerator, gpu_ids):
                     "accelerator": accelerator,
                     "gpu": gpu_for_task(index, gpu_ids) if accelerator == "cuda" else None,
                     "output_dir": str(output_dir),
-                    "expected_total": args.max_trace_slots,
+                    "expected_total": (
+                        args.max_trace_slots
+                        * (args.pretrain_cycles + args.joint_training_cycles)
+                        if phase == "train"
+                        else args.max_trace_slots
+                    ),
                     "progress_file": str(progress),
                     "log_file": str(progress.with_suffix(".log")),
                     "command": command,
@@ -160,7 +178,7 @@ def build_jobs(args, profiles, phase, accelerator, gpu_ids):
     return jobs
 
 
-def aggregate(args, protocol, profiles, jobs):
+def aggregate(args, profiles, jobs):
     by_profile = {profile["name"]: [] for profile in profiles}
     for job in jobs:
         if job["phase"] != "test":
@@ -184,7 +202,6 @@ def aggregate(args, protocol, profiles, jobs):
     latency_reference = float(np.median(raw_latency)) if raw_latency else 1.0
     energy_reference = float(np.median(raw_energy)) if raw_energy else 1.0
     records = []
-    profile_by_name = {profile["name"]: profile for profile in profiles}
     for name, rows in valid.items():
         latency_values = [
             row["mean_latency_s"] for row in rows if row["mean_latency_s"] is not None
@@ -223,34 +240,7 @@ def aggregate(args, protocol, profiles, jobs):
         writer = csv.DictWriter(handle, fieldnames=list(records[0]))
         writer.writeheader()
         writer.writerows(records)
-    selectable_records = [row for row in records if row["selectable"]]
-    if not selectable_records:
-        return results_path, None
-    winner = selectable_records[0]
-    best_path = args.output_root / "best_profile.json"
-    best_path.write_text(
-        json.dumps(
-            {
-                "selected_profile": winner["profile"],
-                "profile": profile_by_name[winner["profile"]],
-                "validation_metrics": winner,
-                "validation_seeds": list(args.validation_seeds),
-                "request_template_file": str(args.request_template_file),
-                "selection_protocol": protocol,
-                "selection_score": (
-                    "weighted latency and energy normalized by validation medians, "
-                    "plus failure penalty"
-                ),
-                "warning": (
-                    "Freeze this profile before running final seeds. Apply scenario "
-                    "parameters to every compared method."
-                ),
-            },
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
-    return results_path, best_path
+    return results_path
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -269,30 +259,22 @@ def main(argv: list[str] | None = None) -> int:
             return 1
     if args.dry_run:
         return 0
-    outputs = aggregate(args, protocol, profiles, all_jobs)
+    results_path = aggregate(args, profiles, all_jobs)
     (args.output_root / "tuning_manifest.json").write_text(
         json.dumps(
             {
                 "search_config": str(args.search_config),
                 "request_template_file": str(args.request_template_file),
                 "validation_seeds": list(args.validation_seeds),
+                "selection_protocol": protocol,
                 "jobs": all_jobs,
             },
             indent=2,
         ),
         encoding="utf-8",
     )
-    if outputs:
-        print(f"tuning results: {outputs[0]}")
-        if outputs[1] is not None:
-            print(f"best frozen profile: {outputs[1]}")
-        else:
-            print(
-                "no profile met the minimum validation success rate; "
-                "best_profile.json was not written",
-                file=sys.stderr,
-            )
-            return 1
+    if results_path:
+        print(f"tuning results: {results_path}")
     return 0
 
 

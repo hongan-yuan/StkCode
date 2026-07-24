@@ -36,6 +36,23 @@ class WorkloadTests(unittest.TestCase):
             all(usage[node] <= resource.memory_capacity_gb for node, resource in environment.resources.items())
         )
 
+    def test_default_request_and_background_loads_are_feasible(self):
+        config = ELARAConfig()
+        self.assertEqual(
+            (config.service_cycles_min, config.service_cycles_max),
+            (1.0e8, 1.0e9),
+        )
+        self.assertEqual(
+            (config.input_data_gb_min, config.input_data_gb_max),
+            (0.02, 0.20),
+        )
+        self.assertEqual(config.background_load_scale, 0.5)
+        self.assertEqual(config.ppo_update_interval_slots, 5)
+        self.assertEqual(
+            (config.ppo_pretrain_cycles, config.ppo_joint_training_cycles),
+            (1, 1),
+        )
+
     def test_three_templates_and_poisson_arrival_clock(self):
         environment = self.make_environment()
         self.assertEqual(

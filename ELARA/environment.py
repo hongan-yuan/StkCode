@@ -580,6 +580,8 @@ class ELARAEnvironment:
         selected_node: int,
         reason: str,
     ) -> None:
+        if not self.config.adaptation_enabled:
+            return
         self.replica_adapter.observe_stage(
             StageExecutionRecord(
                 request_id=runtime.request.request_id,
@@ -708,31 +710,32 @@ class ELARAEnvironment:
             * (observed_route_energy + computation["energy_j"])
             / max(self.config.energy_scale_j, 1.0e-9)
         )
-        self.replica_adapter.observe_stage(
-            StageExecutionRecord(
-                request_id=runtime.request.request_id,
-                service_id=service_id,
-                source_node=route["source"],
-                serving_node=selected_node,
-                data_gb=data_gb,
-                route_delay_s=observed_route_delay,
-                route_energy_j=observed_route_energy,
-                compute_queue_s=computation["queue_s"],
-                compute_delay_s=computation["compute_s"],
-                compute_energy_j=computation["energy_j"],
-                normalized_cost=normalized_stage_cost,
-                template_id=runtime.request.template_id,
-                request_arrival_time_s=runtime.request.arrival_time_s,
-                stage_index=stage_index,
-                chain_length=len(runtime.request.services),
-                stage_start_time_s=stage_start,
-                stage_finish_time_s=runtime.current_time_s,
-                topology_slot=self.topology.absolute_slot(stage_start),
-                destination_node=runtime.request.destination,
-                route_slot_crossings=int(route.get("slot_crossings", 0)),
-                **self._trace_candidates(),
+        if self.config.adaptation_enabled:
+            self.replica_adapter.observe_stage(
+                StageExecutionRecord(
+                    request_id=runtime.request.request_id,
+                    service_id=service_id,
+                    source_node=route["source"],
+                    serving_node=selected_node,
+                    data_gb=data_gb,
+                    route_delay_s=observed_route_delay,
+                    route_energy_j=observed_route_energy,
+                    compute_queue_s=computation["queue_s"],
+                    compute_delay_s=computation["compute_s"],
+                    compute_energy_j=computation["energy_j"],
+                    normalized_cost=normalized_stage_cost,
+                    template_id=runtime.request.template_id,
+                    request_arrival_time_s=runtime.request.arrival_time_s,
+                    stage_index=stage_index,
+                    chain_length=len(runtime.request.services),
+                    stage_start_time_s=stage_start,
+                    stage_finish_time_s=runtime.current_time_s,
+                    topology_slot=self.topology.absolute_slot(stage_start),
+                    destination_node=runtime.request.destination,
+                    route_slot_crossings=int(route.get("slot_crossings", 0)),
+                    **self._trace_candidates(),
+                )
             )
-        )
         reward = -(
             self.config.delay_weight * stage_latency / self.config.latency_scale_s
             + self.config.energy_weight * energy / self.config.energy_scale_j

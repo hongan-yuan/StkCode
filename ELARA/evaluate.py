@@ -39,7 +39,7 @@ def parse_args():
     parser.add_argument("--energy-weight", type=float, default=0.5)
     parser.add_argument("--compute-capacity-scale", type=float, default=1.0)
     parser.add_argument("--link-capacity-scale", type=float, default=1.0)
-    parser.add_argument("--background-load-scale", type=float, default=1.0)
+    parser.add_argument("--background-load-scale", type=float, default=0.5)
     parser.add_argument("--future-horizon", type=int, default=3)
     parser.add_argument("--route-horizon", type=int, default=3)
     parser.add_argument("--route-max-paths", type=int, default=3)
@@ -119,6 +119,10 @@ def main() -> None:
         control_state = agent.load(args.checkpoint)
         if control_state:
             environment.load_control_state_dict(control_state)
+            # Evaluation restarts its own cycle at time zero.  Preserve the
+            # learned LinUCB parameters and final placement, but do not carry a
+            # partially collected training window or its absolute slot clock.
+            environment.replica_adapter.start_fresh_window(0.0)
 
     records = []
     episode = 0

@@ -45,10 +45,10 @@ def generate_templates(
     seed: int,
     num_services: int,
     chain_plan: tuple[tuple[int, int], ...] = DEFAULT_CHAIN_PLAN,
-    data_mean_gb: float = 2.0,
-    data_variance_gb: float = 0.5,
-    data_min_gb: float = 0.5,
-    data_max_gb: float = 4.0,
+    data_mean_gb: float = 0.08,
+    data_variance_gb: float = 0.0016,
+    data_min_gb: float = 0.02,
+    data_max_gb: float = 0.20,
 ) -> tuple[ServiceRequestTemplate, ...]:
     if num_services < 1:
         raise ValueError("num_services must be positive")
@@ -186,10 +186,10 @@ def parse_args(argv: list[str] | None = None):
     parser.add_argument("--seed", type=int, default=2026)
     parser.add_argument("--num-services", type=int, default=30)
     parser.add_argument("--chain-plan", default="5:8,10:4,15:2")
-    parser.add_argument("--data-mean-gb", type=float, default=2.0)
-    parser.add_argument("--data-variance-gb", type=float, default=0.5)
-    parser.add_argument("--data-min-gb", type=float, default=0.5)
-    parser.add_argument("--data-max-gb", type=float, default=4.0)
+    parser.add_argument("--data-mean-gb", type=float, default=0.08)
+    parser.add_argument("--data-variance-gb", type=float, default=0.0016)
+    parser.add_argument("--data-min-gb", type=float, default=0.02)
+    parser.add_argument("--data-max-gb", type=float, default=0.20)
     parser.add_argument(
         "--also-csv",
         action="store_true",

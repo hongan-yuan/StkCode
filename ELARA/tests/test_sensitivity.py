@@ -59,6 +59,8 @@ class SensitivityTests(unittest.TestCase):
             ]
         )
         specs = experiment_specs(args)
+        self.assertEqual(args.train_tasks, 2)
+        self.assertEqual(args.test_tasks, 4)
         self.assertEqual(len(specs), 6)
         self.assertEqual(
             Counter(spec["category"] for spec in specs),
@@ -67,6 +69,10 @@ class SensitivityTests(unittest.TestCase):
         jobs = build_jobs(args, "train", "cpu", [])
         self.assertEqual(len(jobs), 24)
         self.assertTrue(all("--request-template-file" in job["command"] for job in jobs))
+        self.assertTrue(
+            all("--ppo-update-interval-slots" in job["command"] for job in jobs)
+        )
+        self.assertTrue(all(job["expected_total"] == 1212 for job in jobs))
 
     def test_config_rejects_invalid_objective_weights(self):
         with self.assertRaises(ValueError):

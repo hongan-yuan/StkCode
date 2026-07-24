@@ -137,6 +137,30 @@ def load_run(metrics_path: Path) -> RunCurves:
                 policy_losses.append(policy)
                 value_losses.append(value)
                 entropies.append(entropy)
+    update_metrics_path = metrics_path.parent / "ppo_update_metrics.csv"
+    if update_metrics_path.is_file():
+        policy_losses.clear()
+        value_losses.clear()
+        entropies.clear()
+        with update_metrics_path.open(
+            "r", encoding="utf-8-sig", newline=""
+        ) as handle:
+            reader = csv.DictReader(handle)
+            required = {"policy_loss", "value_loss", "entropy"}
+            missing = required - set(reader.fieldnames or ())
+            if missing:
+                raise ValueError(
+                    f"{update_metrics_path} is missing columns: "
+                    f"{', '.join(sorted(missing))}"
+                )
+            for row in reader:
+                policy = _finite(row.get("policy_loss"))
+                value = _finite(row.get("value_loss"))
+                entropy = _finite(row.get("entropy"))
+                if policy is not None and value is not None and entropy is not None:
+                    policy_losses.append(policy)
+                    value_losses.append(value)
+                    entropies.append(entropy)
     if not rewards:
         raise ValueError(f"{metrics_path} contains no finite reward values")
     policy_array = np.asarray(policy_losses, dtype=float)

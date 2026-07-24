@@ -27,7 +27,7 @@ selection design.  It does not import code or scripts from `Simulation/`.
   costly services and a shared contextual-UCB policy selects one fully
   specified `no_op`, `relocate`, `scale_out`, or `scale_in` action. Scale
   actions change the count by exactly one; relocation preserves it.
-- Three fixed service-chain templates (lengths 5, 10, and 15 by default) feed a
+- A fixed service-chain catalog (lengths 5, 10, and 15 by default) feeds a
   chronological Poisson arrival process. Compute and ISL background load evolve
   through slot-correlated Markov states, and reservations persist across
   overlapping requests.
@@ -102,6 +102,10 @@ ELARA/scripts/train.sh \
   --replica-max 10 \
   --future-horizon 3 \
   --ppo-minibatch-size 16 \
+  --ppo-update-interval-slots 5 \
+  --pretrain-cycles 1 \
+  --joint-training-cycles 1 \
+  --background-load-scale 0.5 \
   --route-horizon 3 \
   --route-max-paths 3 \
   --adaptation-window-slots 10 \
@@ -109,19 +113,25 @@ ELARA/scripts/train.sh \
   --output-dir ELARA/outputs/train-seed42
 ```
 
-Outputs include `config.json`, `training_metrics.csv`, periodic
-`ppo_latest.pt`, and final `ppo_final.pt`. Checkpoints contain the PPO model,
-optimizer, shared LinUCB state, partially collected deployment window, and the
-current replica placement. `orchestration_summary.json` records final bandit
-statistics and deployment.
+Outputs include `config.json`, `training_metrics.csv`,
+`ppo_update_metrics.csv`, periodic `ppo_latest.pt`, the PPO-only
+`ppo_pretrained.pt`, and final joint-training `ppo_final.pt`. Checkpoints
+contain the PPO model, optimizer, shared LinUCB state, partially collected
+deployment window, and the current replica placement.
+`orchestration_summary.json` records both phase counts, PPO update count,
+final bandit statistics, and deployment.
 
-Training always covers one loaded constellation cycle. With the default trace,
-this cycle contains 606 time slots. The Poisson arrival process determines how
-many requests arrive before the cycle boundary, so training has no
-`--episodes` argument. `training_metrics.csv` contains one row for every
-admitted request in that cycle.
+Default training covers two consecutive uses of the loaded constellation
+cycle. With the default trace, each cycle contains 606 time slots. Replica
+adaptation is disabled during the first cycle so that PPO receives a stable
+pretraining environment. PPO then continues training for a second cycle with
+replica adaptation enabled. The Poisson arrival process determines how many
+requests arrive in each phase, so training has no `--episodes` argument.
+`training_metrics.csv` identifies the phase and contains one row per admitted
+request.
 
-PPO updates use logical mini batches. Variable sized sparse request graphs are
+PPO is updated after every five time slots that contain collected transitions.
+Updates use logical mini batches. Variable sized sparse request graphs are
 encoded independently inside each mini batch, then their losses are averaged
 before one backward pass and optimizer step. The default mini batch size is 16.
 During an update, the parallel launcher reports `PPO updating` in the progress
@@ -223,8 +233,11 @@ Use `--formats png,pdf,svg` to change the output formats.
 All parameter sensitivity runs use the fixed catalog at
 `ELARA/data/request_templates_seed2026.json`. The catalog contains fourteen
 templates with chain lengths 5, 10, and 15 in an 8:4:2 ratio. The Poisson
-process controls how often a catalog entry is sampled. Training and full-cycle
-testing derive the request count from all arrivals within 606 slots.
+process controls how often a catalog entry is sampled. Communication volumes
+are 20--200 MB with an approximately 80 MB mean. Sensitivity training uses one
+606-slot PPO-only cycle followed by one 606-slot joint-training cycle.
+Full-cycle testing derives the request count from all arrivals within one
+606-slot cycle.
 
 Regenerate the catalog, if required, with a different catalog seed:
 
@@ -240,19 +253,17 @@ reported experiments:
 ```bash
 ELARA/scripts/tune_hyperparameters.sh \
   --validation-seeds 202,203 \
-  --tasks 4 \
+  --tasks 2 \
   --device auto \
   --max-trace-slots 606 \
   --output-root ELARA/outputs/tuning/validation
 ```
 
-The tuner searches the auditable profiles in
-`ELARA/configs/hyperparameter_search.json` and writes `best_profile.json`.
-Its score balances normalized latency and energy and penalizes failed
-requests. Freeze the selected profile before running seeds 42 through 45.
-Compute capacity, link capacity, background load, and request data scale are
-scenario parameters. The same selected scenario must be applied to every
-compared method.
+The optional tuner compares the auditable profiles in
+`ELARA/configs/hyperparameter_search.json` and writes
+`tuning_results.csv`. It does not generate or consume a frozen profile file.
+Final sensitivity experiments use the explicit scenario parameters supplied
+to the sensitivity runner.
 
 Run all final sensitivity training and testing:
 
@@ -261,10 +272,10 @@ ELARA/scripts/run_sensitivity.sh \
   --seeds 42,43,44,45 \
   --weights 0.5:0.5,0.35:0.65,0.65:0.35 \
   --route-max-paths 3,5,7 \
-  --tasks 4 \
+  --train-tasks 2 \
+  --test-tasks 4 \
   --device auto \
   --max-trace-slots 606 \
-  --profile-json ELARA/outputs/tuning/validation/best_profile.json \
   --output-root ELARA/outputs/sensitivity/final
 ```
 
@@ -278,12 +289,12 @@ output root:
 
 ```bash
 ELARA/scripts/train_sensitivity.sh \
-  --output-root ELARA/outputs/sensitivity/final \
-  --profile-json ELARA/outputs/tuning/validation/best_profile.json
+  --train-tasks 2 \
+  --output-root ELARA/outputs/sensitivity/final
 
 ELARA/scripts/test_sensitivity.sh \
-  --output-root ELARA/outputs/sensitivity/final \
-  --profile-json ELARA/outputs/tuning/validation/best_profile.json
+  --test-tasks 4 \
+  --output-root ELARA/outputs/sensitivity/final
 ```
 
 After testing, draw the two experiment categories in separate directories:
@@ -304,13 +315,14 @@ The parallel launchers detect visible CUDA GPUs and Apple Metal Performance
 Shaders (MPS) automatically. `--device auto` prefers CUDA, then MPS, then CPU.
 CUDA jobs are assigned round-robin, so when the task count exceeds the GPU
 count, each GPU receives nearly the same number of processes. MPS is treated as
-one shared accelerator, and with no accelerator all jobs run on CPU. The
-default task count is four. Explicit `--device cuda`, `--device mps`, and
-`--device cpu` selections are also supported.
+one shared accelerator, and with no accelerator all jobs run on CPU. Parallel
+training defaults to two tasks, while parallel evaluation defaults to four.
+Explicit `--device cuda`, `--device mps`, and `--device cpu` selections are
+also supported.
 
 ```bash
-# Apple Silicon: four independent jobs share the MPS accelerator.
-ELARA/scripts/train_parallel.sh --device mps --tasks 4 --max-trace-slots 606
+# Apple Silicon: two independent jobs share the MPS accelerator.
+ELARA/scripts/train_parallel.sh --device mps --tasks 2 --max-trace-slots 606
 
 # Single-process training and PPO evaluation can select MPS directly.
 ELARA/scripts/train.sh --device mps --max-trace-slots 606
@@ -318,9 +330,9 @@ ELARA/scripts/evaluate.sh --device mps --policy ppo --checkpoint MODEL.pt
 ```
 
 ```bash
-# Four concurrent training jobs with seeds 42, 43, 44, and 45.
+# Two concurrent training jobs with seeds 42 and 43.
 ELARA/scripts/train_parallel.sh \
-  --tasks 4 \
+  --tasks 2 \
   --base-seed 42 \
   --output-root ELARA/outputs/train-batch \
   --max-trace-slots 606
@@ -350,10 +362,10 @@ Terminal. They use the active environment's `python` first and fall back to
 `py -3` automatically. The scripts can be launched from any working directory.
 
 ```bat
-REM Four parallel CUDA training jobs. Use --device auto for CUDA/CPU fallback.
+REM Two parallel CUDA training jobs. Use --device auto for CUDA/CPU fallback.
 ELARA\scripts\train_parallel.cmd ^
   --device auto ^
-  --tasks 4 ^
+  --tasks 2 ^
   --base-seed 42 ^
   --output-root ELARA\outputs\train-batch ^
   --max-trace-slots 606

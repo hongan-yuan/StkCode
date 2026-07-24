@@ -100,6 +100,14 @@ class BanditReplicaAdapter:
     def observe_stage(self, record: StageExecutionRecord) -> None:
         self.window_records.append(record)
 
+    def start_fresh_window(self, current_time: float) -> None:
+        """Start joint training without treating PPO pretraining as one window."""
+        self.window_records.clear()
+        self.requests_in_window = 0
+        self.window_start_slot = int(current_time // self.config.slot_duration_s)
+        self.pending_actions.clear()
+        self.last_pressures.clear()
+
     @staticmethod
     def _percentile(values: list[float], q: float) -> float:
         return float(np.quantile(np.asarray(values, dtype=float), q)) if values else 0.0

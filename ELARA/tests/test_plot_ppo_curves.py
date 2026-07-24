@@ -43,6 +43,29 @@ class PlotPPOCurvesTests(unittest.TestCase):
         np.testing.assert_allclose(mean, [-1.0, -2.0])
         np.testing.assert_allclose(lower, upper)
 
+    def test_prefers_complete_dedicated_ppo_update_log(self):
+        with tempfile.TemporaryDirectory() as directory:
+            run_dir = Path(directory)
+            self._write_metrics(run_dir / "training_metrics.csv")
+            with (run_dir / "ppo_update_metrics.csv").open(
+                "w", encoding="utf-8", newline=""
+            ) as handle:
+                writer = csv.DictWriter(
+                    handle,
+                    fieldnames=("policy_loss", "value_loss", "entropy"),
+                )
+                writer.writeheader()
+                writer.writerows(
+                    (
+                        {"policy_loss": 0.3, "value_loss": 3.0, "entropy": 0.8},
+                        {"policy_loss": 0.2, "value_loss": 2.0, "entropy": 0.7},
+                        {"policy_loss": 0.1, "value_loss": 1.0, "entropy": 0.6},
+                    )
+                )
+            run = load_run(run_dir / "training_metrics.csv")
+        self.assertEqual(len(run.policy_loss), 3)
+        self.assertAlmostEqual(run.policy_loss[0], 0.3)
+
     def test_causal_moving_average_preserves_length(self):
         values = moving_average(np.asarray([1.0, 3.0, 5.0, 7.0]), 3)
         np.testing.assert_allclose(values, [1.0, 2.0, 3.0, 5.0])

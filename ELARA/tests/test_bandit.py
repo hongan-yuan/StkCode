@@ -107,6 +107,16 @@ class BanditTests(unittest.TestCase):
         )
         self.assertAlmostEqual(applied.feedback_reward, 0.0)
 
+    def test_joint_training_starts_with_a_fresh_trace_window(self):
+        adapter = BanditReplicaAdapter(self.make_config())
+        adapter.observe_stage(record(0, 2.0))
+        adapter.requests_in_window = 7
+        adapter.window_start_slot = 1
+        adapter.start_fresh_window(50.0)
+        self.assertEqual(adapter.window_records, [])
+        self.assertEqual(adapter.requests_in_window, 0)
+        self.assertEqual(adapter.window_start_slot, 5)
+
 
 if __name__ == "__main__":
     unittest.main()

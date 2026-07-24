@@ -70,33 +70,46 @@ def parse_args(argv: list[str] | None = None):
     parser.add_argument("--seeds", type=_split_ints, default=(42, 43, 44, 45))
     parser.add_argument("--weights", type=_split_weights, default=((0.5, 0.5), (0.35, 0.65), (0.65, 0.35)))
     parser.add_argument("--route-max-paths", type=_split_ints, default=(3, 5, 7))
-    parser.add_argument("--tasks", type=int, default=4)
+    parser.add_argument(
+        "--tasks",
+        type=int,
+        help="compatibility override that sets both training and testing concurrency",
+    )
+    parser.add_argument("--train-tasks", type=int, default=4)
+    parser.add_argument("--test-tasks", type=int, default=4)
     parser.add_argument("--device", choices=("auto", "cuda", "mps", "cpu"), default="auto")
     parser.add_argument("--output-root", type=Path)
     parser.add_argument("--request-template-file", type=Path, default=DEFAULT_TEMPLATE_FILE)
-    parser.add_argument(
-        "--profile-json",
-        type=Path,
-        help="best_profile.json produced by ELARA.hyperparameter_tuner",
-    )
     parser.add_argument("--template-seed", type=int, default=2026)
     parser.add_argument("--max-trace-slots", type=int, default=606)
     parser.add_argument("--arrival-lambda", type=float, default=0.35)
     parser.add_argument("--compute-capacity-scale", type=float, default=1.0)
     parser.add_argument("--link-capacity-scale", type=float, default=1.0)
-    parser.add_argument("--background-load-scale", type=float, default=1.0)
+    parser.add_argument("--background-load-scale", type=float, default=0.5)
     parser.add_argument("--request-data-scale", type=float, default=1.0)
     parser.add_argument("--ppo-learning-rate", type=float, default=3.0e-4)
     parser.add_argument("--ppo-entropy-coef", type=float, default=0.01)
     parser.add_argument("--ppo-epochs", type=int, default=4)
     parser.add_argument("--ppo-minibatch-size", type=int, default=16)
     parser.add_argument("--rollout-steps", type=int, default=128)
+    parser.add_argument("--ppo-update-interval-slots", type=int, default=5)
+    parser.add_argument("--pretrain-cycles", type=int, default=1)
+    parser.add_argument("--joint-training-cycles", type=int, default=1)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
-    if args.tasks < 1:
-        parser.error("--tasks must be at least one")
+    if args.tasks is not None:
+        args.train_tasks = args.tasks
+        args.test_tasks = args.tasks
+    if args.train_tasks < 1 or args.test_tasks < 1:
+        parser.error("training and testing task limits must be at least one")
     if args.max_trace_slots < 1:
         parser.error("--max-trace-slots must be at least one")
+    if args.ppo_update_interval_slots < 1:
+        parser.error("--ppo-update-interval-slots must be at least one")
+    if args.pretrain_cycles < 0 or args.joint_training_cycles < 0:
+        parser.error("training cycle counts must be nonnegative")
+    if args.pretrain_cycles + args.joint_training_cycles < 1:
+        parser.error("at least one training cycle is required")
     if args.output_root is None:
         args.output_root = _timestamped_root()
     if not args.output_root.is_absolute():
@@ -105,23 +118,6 @@ def parse_args(argv: list[str] | None = None):
         parser.error("--output-root must be located below ELARA")
     if not args.request_template_file.is_absolute():
         args.request_template_file = (PROJECT_ROOT / args.request_template_file).resolve()
-    if args.profile_json is not None:
-        profile_path = (
-            args.profile_json
-            if args.profile_json.is_absolute()
-            else (PROJECT_ROOT / args.profile_json).resolve()
-        )
-        payload = json.loads(profile_path.read_text(encoding="utf-8"))
-        profile = payload.get("profile", payload)
-        for key in (
-            "compute_capacity_scale", "link_capacity_scale",
-            "background_load_scale", "request_data_scale",
-            "ppo_learning_rate", "ppo_entropy_coef", "ppo_epochs",
-            "ppo_minibatch_size", "rollout_steps",
-        ):
-            if key in profile:
-                setattr(args, key, profile[key])
-        args.profile_json = profile_path
     return args
 
 
@@ -209,6 +205,11 @@ def build_jobs(args, phase: str, accelerator: str, gpu_ids: list[str]) -> list[d
                         "--ppo-epochs", str(args.ppo_epochs),
                         "--ppo-minibatch-size", str(args.ppo_minibatch_size),
                         "--rollout-steps", str(args.rollout_steps),
+                        "--ppo-update-interval-slots",
+                        str(args.ppo_update_interval_slots),
+                        "--pretrain-cycles", str(args.pretrain_cycles),
+                        "--joint-training-cycles",
+                        str(args.joint_training_cycles),
                     )
                 )
             else:
@@ -238,7 +239,12 @@ def build_jobs(args, phase: str, accelerator: str, gpu_ids: list[str]) -> list[d
                     "accelerator": accelerator,
                     "gpu": gpu_for_task(index, gpu_ids) if accelerator == "cuda" else None,
                     "output_dir": str(output_dir),
-                    "expected_total": args.max_trace_slots,
+                    "expected_total": (
+                        args.max_trace_slots
+                        * (args.pretrain_cycles + args.joint_training_cycles)
+                        if phase == "train"
+                        else args.max_trace_slots
+                    ),
                     "progress_file": str(progress_file),
                     "log_file": str(log_file),
                     "command": command,
@@ -273,7 +279,10 @@ def _progress(jobs, started_at: float) -> str:
     )
 
 
-def run_jobs(args, jobs: list[dict]) -> bool:
+def run_jobs(args, jobs: list[dict], task_limit: int | None = None) -> bool:
+    task_limit = int(task_limit if task_limit is not None else args.tasks)
+    if task_limit < 1:
+        raise ValueError("task_limit must be at least one")
     if args.dry_run:
         for job in jobs:
             print(shlex.join(job["command"]))
@@ -286,7 +295,7 @@ def run_jobs(args, jobs: list[dict]) -> bool:
     last_render = 0.0
     try:
         while pending or active:
-            while pending and len(active) < args.tasks:
+            while pending and len(active) < task_limit:
                 job = pending.pop(0)
                 if job["phase"] == "test":
                     checkpoint = (
@@ -359,6 +368,11 @@ def write_summary(args, jobs: list[dict]) -> Path | None:
                 "energy_weight": job["energy_weight"],
                 "route_max_paths": job["route_max_paths"],
                 "request_template_file": str(args.request_template_file),
+                "request_data_scale": args.request_data_scale,
+                "background_load_scale": args.background_load_scale,
+                "ppo_update_interval_slots": args.ppo_update_interval_slots,
+                "pretrain_cycles": args.pretrain_cycles,
+                "joint_training_cycles": args.joint_training_cycles,
                 "request_count": summary["episodes"],
                 "success_rate": summary["success_rate"],
                 "mean_return": summary["mean_return"],
@@ -396,8 +410,12 @@ def main(argv: list[str] | None = None) -> int:
     for phase in phases:
         jobs = build_jobs(args, phase, accelerator, gpu_ids)
         all_jobs.extend(jobs)
-        print(f"{phase}: {len(jobs)} jobs, concurrency={args.tasks}, device={accelerator}")
-        if not run_jobs(args, jobs):
+        task_limit = args.train_tasks if phase == "train" else args.test_tasks
+        print(
+            f"{phase}: {len(jobs)} jobs, concurrency={task_limit}, "
+            f"device={accelerator}"
+        )
+        if not run_jobs(args, jobs, task_limit):
             success = False
             if phase == "train":
                 break
@@ -406,9 +424,13 @@ def main(argv: list[str] | None = None) -> int:
         "seeds": list(args.seeds),
         "weights": list(args.weights),
         "route_max_paths": list(args.route_max_paths),
+        "ppo_update_interval_slots": args.ppo_update_interval_slots,
+        "pretrain_cycles": args.pretrain_cycles,
+        "joint_training_cycles": args.joint_training_cycles,
+        "train_tasks": args.train_tasks,
+        "test_tasks": args.test_tasks,
         "accelerator": accelerator,
         "gpu_ids": gpu_ids,
-        "profile_json": str(args.profile_json) if args.profile_json else None,
         "jobs": all_jobs,
     }
     (args.output_root / "sensitivity_manifest.json").write_text(

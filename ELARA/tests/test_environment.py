@@ -46,6 +46,13 @@ class EnvironmentTests(unittest.TestCase):
         self.assertEqual(len(trace.candidate_hop_distances), len(trace.candidate_nodes))
         self.assertGreaterEqual(trace.stage_finish_time_s, trace.stage_start_time_s)
 
+    def test_ppo_pretraining_does_not_collect_replica_adaptation_traces(self):
+        environment = self.make_environment()
+        environment.config.adaptation_enabled = False
+        environment.reset()
+        environment.step(0)
+        self.assertEqual(environment.replica_adapter.window_records, [])
+
     def test_full_random_episode(self):
         environment = self.make_environment()
         state = environment.reset()
