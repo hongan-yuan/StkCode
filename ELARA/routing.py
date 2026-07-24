@@ -41,11 +41,18 @@ class CrossSlotMinCostRouter:
         current_time: float,
         rate_provider: RateProvider,
         queue_provider: QueueProvider,
+        rate: float | None = None,
+        queue: float | None = None,
     ) -> float:
-        rate = max(1.0e-9, rate_provider(edge, absolute_slot))
+        rate = max(
+            1.0e-9,
+            rate_provider(edge, absolute_slot) if rate is None else rate,
+        )
         tx_per_gb = 8_000.0 / rate
         propagation = edge.distance_km / self.config.speed_of_light_km_s
-        queue = queue_provider(edge, current_time)
+        queue = (
+            queue_provider(edge, current_time) if queue is None else queue
+        )
         energy_per_gb = edge.tx_power_w * tx_per_gb
         risk_cost = 0.0
         if self.config.route_failure_risk_weight > 0.0:
@@ -131,7 +138,13 @@ class CrossSlotMinCostRouter:
                 continue
             capacities[key] = capacity
             costs[key] = self._edge_unit_cost(
-                edge, absolute_slot, current_time, rate_provider, queue_provider
+                edge,
+                absolute_slot,
+                current_time,
+                rate_provider,
+                queue_provider,
+                rate=rate,
+                queue=queue,
             )
             rates[key] = rate
             queues[key] = queue

@@ -191,10 +191,17 @@ class BanditReplicaAdapter:
             self.vector_b += reward * features
             self.total_feedback_updates += 1
 
-    def _ucb(self, features: tuple[float, ...]) -> float:
+    def _ucb(
+        self,
+        features: tuple[float, ...],
+        inverse: np.ndarray | None = None,
+        theta: np.ndarray | None = None,
+    ) -> float:
         x = np.asarray(features, dtype=float)
-        inverse = np.linalg.inv(self.matrix_a)
-        theta = inverse @ self.vector_b
+        if inverse is None:
+            inverse = np.linalg.inv(self.matrix_a)
+        if theta is None:
+            theta = inverse @ self.vector_b
         uncertainty = math.sqrt(max(0.0, float(x @ inverse @ x)))
         return float(theta @ x + self.config.bandit_exploration * uncertainty)
 
@@ -206,8 +213,11 @@ class BanditReplicaAdapter:
                 usage[node] += service.memory_requirement_gb
         return usage
 
-    def _window_due(self, current_time: float) -> bool:
+    def record_request(self) -> None:
+        """Count one independent target request in the current trace window."""
         self.requests_in_window += 1
+
+    def _window_due(self, current_time: float) -> bool:
         if self.config.deployment_window_requests is not None:
             return self.requests_in_window >= self.config.deployment_window_requests
         slot = int(current_time // self.config.slot_duration_s)
@@ -258,13 +268,21 @@ class BanditReplicaAdapter:
         target: int,
         route_cost: Callable[[int, int, float, float], float],
         compute_load: Callable[[int, float], float],
+        replay_cache: dict[tuple[int, int], float] | None = None,
     ) -> float:
+        key = (id(record), int(target))
+        if replay_cache is not None and key in replay_cache:
+            return replay_cache[key]
         network = route_cost(
             record.source_node, target, record.data_gb, record.stage_start_time_s
         )
         if not math.isfinite(network):
-            return math.inf
-        return network + compute_load(target, record.stage_start_time_s)
+            result = math.inf
+        else:
+            result = network + compute_load(target, record.stage_start_time_s)
+        if replay_cache is not None:
+            replay_cache[key] = result
+        return result
 
     def _best_target_action(
         self,
@@ -275,13 +293,20 @@ class BanditReplicaAdapter:
         targets: list[int],
         route_cost,
         compute_load,
+        replay_cache,
     ) -> tuple[int, float, float] | None:
         records = signal.records[: self.config.adaptation_trace_sample_limit]
         best = None
         for target in targets:
             costs = []
             for record in records:
-                candidate = self._target_cost(record, target, route_cost, compute_load)
+                candidate = self._target_cost(
+                    record,
+                    target,
+                    route_cost,
+                    compute_load,
+                    replay_cache,
+                )
                 if action == "scale_out":
                     costs.append(min(record.normalized_cost, candidate))
                 elif record.serving_node == source:
@@ -302,7 +327,15 @@ class BanditReplicaAdapter:
         expected, load, target = best
         return target, expected, load
 
-    def _scale_in_cost(self, source, service, signal, route_cost, compute_load) -> float:
+    def _scale_in_cost(
+        self,
+        source,
+        service,
+        signal,
+        route_cost,
+        compute_load,
+        replay_cache,
+    ) -> float:
         remaining = [node for node in service.replicas if node != source]
         records = signal.records[: self.config.adaptation_trace_sample_limit]
         values = []
@@ -311,7 +344,13 @@ class BanditReplicaAdapter:
                 values.append(record.normalized_cost)
                 continue
             alternatives = [
-                self._target_cost(record, target, route_cost, compute_load)
+                self._target_cost(
+                    record,
+                    target,
+                    route_cost,
+                    compute_load,
+                    replay_cache,
+                )
                 for target in remaining
             ]
             finite = [value for value in alternatives if math.isfinite(value)]
@@ -320,7 +359,7 @@ class BanditReplicaAdapter:
             values.append(min(finite))
         return sum(values) / max(1, len(values))
 
-    def close_request(
+    def adapt_if_due(
         self,
         services: dict[int, Microservice],
         resources: dict[int, SatelliteResource],
@@ -342,6 +381,17 @@ class BanditReplicaAdapter:
         decisions = []
         pressure_max = max((item.pressure for item in ranked), default=1.0)
         min_replicas, max_replicas = self.config.replica_count_range
+        replay_cache: dict[tuple[int, int], float] = {}
+        compute_cache: dict[tuple[int, float], float] = {}
+
+        def cached_compute_load(node: int, time_s: float) -> float:
+            key = (int(node), float(time_s))
+            if key not in compute_cache:
+                compute_cache[key] = compute_load(node, time_s)
+            return compute_cache[key]
+
+        inverse = np.linalg.inv(self.matrix_a)
+        theta = inverse @ self.vector_b
 
         for signal in ranked:
             service = services[signal.service_id]
@@ -357,13 +407,20 @@ class BanditReplicaAdapter:
                 key=lambda node: (signal.replica_cost_contribution.get(node, 0.0), node),
             )
             targets = self._representative_targets(
-                service, signal, services, resources, compute_load
+                service, signal, services, resources, cached_compute_load
             )
             candidates = [
                 ("no_op", None, None, baseline_mean, 0.0, count_before)
             ]
             relocate = self._best_target_action(
-                "relocate", bottleneck, service, signal, targets, route_cost, compute_load
+                "relocate",
+                bottleneck,
+                service,
+                signal,
+                targets,
+                route_cost,
+                cached_compute_load,
+                replay_cache,
             )
             if relocate is not None:
                 target, expected, load = relocate
@@ -372,7 +429,14 @@ class BanditReplicaAdapter:
                 )
             if count_before < max_replicas:
                 scale_out = self._best_target_action(
-                    "scale_out", None, service, signal, targets, route_cost, compute_load
+                    "scale_out",
+                    None,
+                    service,
+                    signal,
+                    targets,
+                    route_cost,
+                    cached_compute_load,
+                    replay_cache,
                 )
                 if scale_out is not None:
                     target, expected, load = scale_out
@@ -381,7 +445,12 @@ class BanditReplicaAdapter:
                     )
             if count_before > min_replicas:
                 expected = self._scale_in_cost(
-                    redundant, service, signal, route_cost, compute_load
+                    redundant,
+                    service,
+                    signal,
+                    route_cost,
+                    cached_compute_load,
+                    replay_cache,
                 )
                 if math.isfinite(expected):
                     candidates.append(
@@ -400,7 +469,7 @@ class BanditReplicaAdapter:
                     min(1.0, max(0.0, load)),
                     *one_hot,
                 )
-                score = self._ucb(features)
+                score = self._ucb(features, inverse, theta)
                 scored.append(
                     (score, action == "no_op", action, source, target, expected_total,
                      load, gain, features, count_after)
@@ -444,6 +513,20 @@ class BanditReplicaAdapter:
         self.pending_actions = decisions
         self.window_records.clear()
         return decisions
+
+    def close_request(
+        self,
+        services: dict[int, Microservice],
+        resources: dict[int, SatelliteResource],
+        current_time: float,
+        route_cost: Callable[[int, int, float, float], float],
+        compute_load: Callable[[int, float], float],
+    ) -> list[MigrationAction]:
+        """Compatibility wrapper for request-count based callers and tests."""
+        self.record_request()
+        return self.adapt_if_due(
+            services, resources, current_time, route_cost, compute_load
+        )
 
     def summary(self) -> dict:
         return {

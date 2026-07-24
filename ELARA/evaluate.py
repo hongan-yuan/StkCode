@@ -102,7 +102,6 @@ def main() -> None:
     rng = random.Random(args.seed)
     environment = ELARAEnvironment(config)
     cycle_slots = environment.topology.slot_count
-    cycle_duration_s = cycle_slots * environment.topology.slot_duration_s
     progress = ProgressReporter(
         args.progress_file,
         cycle_slots if args.full_cycle else args.episodes,
@@ -126,76 +125,113 @@ def main() -> None:
 
     records = []
     episode = 0
-    while args.full_cycle or episode < args.episodes:
-        request = environment.sample_request()
-        if args.full_cycle and request.arrival_time_s >= cycle_duration_s:
-            break
-        state = environment.reset(request)
-        episode_return = 0.0
-        final_info = {}
-        route_slot_crossings = 0
-        route_phase_count = 0
-        route_augmentation_count = 0
-        while state is not None:
-            if args.policy == "random":
-                valid = np.flatnonzero(state.action_mask)
-                action = int(rng.choice(valid.tolist()))
-            elif args.policy == "greedy":
-                action = greedy_action(state)
-            else:
-                action, _, _ = agent.act(state, deterministic=True)
-            state, reward, terminated, truncated, info = environment.step(action)
-            episode_return += reward
-            final_info = info
-            for route_key in ("route", "final_route"):
-                route = info.get(route_key) or {}
-                route_slot_crossings += int(route.get("slot_crossings", 0))
-                route_phase_count += len(route.get("slot_phases", []))
-                route_augmentation_count += int(
-                    route.get("min_cost_flow_augmentations", 0)
-                )
-        records.append(
+    batches = environment.iter_request_batches(
+        slot_count=cycle_slots if args.full_cycle else None,
+        request_count=None if args.full_cycle else args.episodes,
+    )
+    for absolute_slot, slot_requests in batches:
+        slot_records = []
+        sessions = environment.start_request_sessions(slot_requests)
+        trackers = [
             {
-                "episode": episode,
-                "request_id": final_info.get("request_id", ""),
-                "template_id": final_info.get("template_id", ""),
-                "arrival_time_s": final_info.get("arrival_time_s", ""),
-                "chain_length": final_info.get("chain_length", ""),
-                "success": int(bool(final_info.get("success"))),
-                "return": episode_return,
-                "latency_s": final_info.get("total_latency_s", float("nan")),
-                "energy_j": final_info.get("total_energy_j", float("nan")),
-                "relay_count": final_info.get("relay_count", 0),
-                "subgraph_node_count": final_info.get("subgraph_node_count", 0),
-                "route_slot_crossings": route_slot_crossings,
-                "route_phase_count": route_phase_count,
-                "route_augmentation_count": route_augmentation_count,
-                "migration_action_count": len(final_info.get("migration_actions", [])),
-                "no_op_count": sum(
-                    item.get("action") == "no_op"
-                    for item in final_info.get("migration_actions", [])
-                ),
-                "relocation_count": sum(
-                    item.get("action") == "relocate"
-                    for item in final_info.get("migration_actions", [])
-                ),
-                "scale_out_count": sum(
-                    item.get("action") == "scale_out"
-                    for item in final_info.get("migration_actions", [])
-                ),
-                "scale_in_count": sum(
-                    item.get("action") == "scale_in"
-                    for item in final_info.get("migration_actions", [])
-                ),
+                "return": 0.0,
+                "final_info": {},
+                "route_slot_crossings": 0,
+                "route_phase_count": 0,
+                "route_augmentation_count": 0,
             }
-        )
-        episode += 1
-        completed = (
-            min(
-                cycle_slots,
-                int(request.arrival_time_s // environment.topology.slot_duration_s)
-                + 1,
+            for _ in sessions
+        ]
+        active = list(range(len(sessions)))
+        while active:
+            states = [sessions[index].last_state for index in active]
+            if args.policy == "ppo":
+                decisions = agent.act_batch(states, deterministic=True)
+            else:
+                decisions = []
+                for state in states:
+                    if args.policy == "random":
+                        valid = np.flatnonzero(state.action_mask)
+                        action = int(rng.choice(valid.tolist()))
+                    else:
+                        action = greedy_action(state)
+                    decisions.append((action, 0.0, 0.0))
+
+            next_active = []
+            for index, (action, _, _) in zip(active, decisions):
+                environment.restore_request_session(sessions[index])
+                state, reward, terminated, truncated, info = environment.step(
+                    action
+                )
+                tracker = trackers[index]
+                tracker["return"] += reward
+                tracker["final_info"] = info
+                for route_key in ("route", "final_route"):
+                    route = info.get(route_key) or {}
+                    tracker["route_slot_crossings"] += int(
+                        route.get("slot_crossings", 0)
+                    )
+                    tracker["route_phase_count"] += len(
+                        route.get("slot_phases", [])
+                    )
+                    tracker["route_augmentation_count"] += int(
+                        route.get("min_cost_flow_augmentations", 0)
+                    )
+                sessions[index] = environment.capture_request_session()
+                if state is not None:
+                    next_active.append(index)
+            active = next_active
+
+        for request, tracker in zip(slot_requests, trackers):
+            final_info = tracker["final_info"]
+            slot_records.append(
+                {
+                    "episode": episode,
+                    "request_id": final_info.get("request_id", ""),
+                    "template_id": final_info.get("template_id", ""),
+                    "arrival_time_s": final_info.get("arrival_time_s", ""),
+                    "chain_length": final_info.get("chain_length", ""),
+                    "success": int(bool(final_info.get("success"))),
+                    "return": tracker["return"],
+                    "latency_s": final_info.get("total_latency_s", float("nan")),
+                    "energy_j": final_info.get("total_energy_j", float("nan")),
+                    "relay_count": final_info.get("relay_count", 0),
+                    "subgraph_node_count": final_info.get("subgraph_node_count", 0),
+                    "route_slot_crossings": tracker["route_slot_crossings"],
+                    "route_phase_count": tracker["route_phase_count"],
+                    "route_augmentation_count": tracker[
+                        "route_augmentation_count"
+                    ],
+                    "migration_action_count": 0,
+                    "no_op_count": 0,
+                    "relocation_count": 0,
+                    "scale_out_count": 0,
+                    "scale_in_count": 0,
+                }
             )
+            episode += 1
+
+        environment.finalize_request_sessions()
+        migration_actions = environment.finish_time_slot(absolute_slot)
+        if slot_records:
+            slot_records[-1].update(
+                migration_action_count=len(migration_actions),
+                no_op_count=sum(
+                    item.action == "no_op" for item in migration_actions
+                ),
+                relocation_count=sum(
+                    item.action == "relocate" for item in migration_actions
+                ),
+                scale_out_count=sum(
+                    item.action == "scale_out" for item in migration_actions
+                ),
+                scale_in_count=sum(
+                    item.action == "scale_in" for item in migration_actions
+                ),
+            )
+            records.extend(slot_records)
+        completed = (
+            absolute_slot + 1
             if args.full_cycle
             else episode
         )

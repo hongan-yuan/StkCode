@@ -103,6 +103,8 @@ ELARA/scripts/train.sh \
   --future-horizon 3 \
   --ppo-minibatch-size 16 \
   --ppo-update-interval-slots 5 \
+  --ppo-transaction-history-slots 10 \
+  --ppo-transaction-max-reuse 2 \
   --pretrain-cycles 1 \
   --joint-training-cycles 1 \
   --background-load-scale 0.5 \
@@ -120,6 +122,12 @@ contain the PPO model, optimizer, shared LinUCB state, partially collected
 deployment window, and the current replica placement.
 `orchestration_summary.json` records both phase counts, PPO update count,
 final bandit statistics, and deployment.
+
+PPO keeps complete request trajectories from the latest ten time slots by
+default. A transition can participate in at most two adjacent PPO updates.
+This permits the update at a later time slot to reuse recent data while
+bounding policy staleness and replay memory. The training loop restores
+request-contiguous trajectory order before computing GAE.
 
 Default training covers two consecutive uses of the loaded constellation
 cycle. With the default trace, each cycle contains 606 time slots. Replica

@@ -57,7 +57,6 @@ class ELARAConfig:
     request_data_variance_gb: float = 0.0016
     request_arrival_lambda_per_template_per_slot: float = 0.35
     request_endpoint_near_hops: int = 2
-    preserve_inter_request_reservations: bool = True
 
     compute_load_states: tuple[str, ...] = ("Idle", "Light", "Medium", "Heavy")
     compute_load_initial_distribution: dict[str, float] = field(
@@ -154,6 +153,11 @@ class ELARAConfig:
     rollout_steps: int = 128
     ppo_minibatch_size: int = 16
     ppo_update_interval_slots: int = 5
+    # Keep complete request trajectories for two adjacent PPO updates. This
+    # allows the next time-slot update to reuse recent transitions while
+    # bounding policy staleness and memory use.
+    ppo_transaction_history_slots: int = 10
+    ppo_transaction_max_reuse: int = 2
     ppo_pretrain_cycles: int = 1
     ppo_joint_training_cycles: int = 1
     max_grad_norm: float = 0.5
@@ -184,6 +188,12 @@ class ELARAConfig:
             raise ValueError("ppo_minibatch_size must be at least 1")
         if self.ppo_update_interval_slots < 1:
             raise ValueError("ppo_update_interval_slots must be at least 1")
+        if self.ppo_transaction_history_slots < self.ppo_update_interval_slots:
+            raise ValueError(
+                "ppo transaction history must cover at least one update interval"
+            )
+        if self.ppo_transaction_max_reuse < 1:
+            raise ValueError("ppo_transaction_max_reuse must be at least 1")
         if self.ppo_pretrain_cycles < 0 or self.ppo_joint_training_cycles < 0:
             raise ValueError("PPO training cycle counts must be nonnegative")
         if self.ppo_pretrain_cycles + self.ppo_joint_training_cycles < 1:

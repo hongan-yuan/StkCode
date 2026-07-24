@@ -117,6 +117,32 @@ class BanditTests(unittest.TestCase):
         self.assertEqual(adapter.requests_in_window, 0)
         self.assertEqual(adapter.window_start_slot, 5)
 
+    def test_candidate_replay_is_shared_by_relocate_and_scale_out(self):
+        config = self.make_config()
+        adapter = BanditReplicaAdapter(config)
+        services = {0: Microservice(0, 1.0e9, [0], 2.0, 0.2)}
+        records = [record(0, 2.0), record(0, 3.0)]
+        for item in records:
+            adapter.observe_stage(item)
+        route_calls = 0
+
+        def route_cost(source, target, data, time):
+            nonlocal route_calls
+            route_calls += 1
+            return 0.1 + target * 0.01
+
+        adapter.close_request(
+            services,
+            self.resources(),
+            current_time=1.0,
+            route_cost=route_cost,
+            compute_load=lambda node, time: node * 0.01,
+        )
+
+        # One representative node per plane and one route replay per trace.
+        # Relocate and scale out read the same cached replay values.
+        self.assertEqual(route_calls, config.num_planes * len(records))
+
 
 if __name__ == "__main__":
     unittest.main()

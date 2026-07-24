@@ -75,8 +75,8 @@ def parse_args(argv: list[str] | None = None):
         type=int,
         help="compatibility override that sets both training and testing concurrency",
     )
-    parser.add_argument("--train-tasks", type=int, default=4)
-    parser.add_argument("--test-tasks", type=int, default=4)
+    parser.add_argument("--train-tasks", type=int, default=10)
+    parser.add_argument("--test-tasks", type=int, default=10)
     parser.add_argument("--device", choices=("auto", "cuda", "mps", "cpu"), default="auto")
     parser.add_argument("--output-root", type=Path)
     parser.add_argument("--request-template-file", type=Path, default=DEFAULT_TEMPLATE_FILE)

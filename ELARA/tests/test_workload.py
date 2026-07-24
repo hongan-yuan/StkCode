@@ -77,11 +77,30 @@ class WorkloadTests(unittest.TestCase):
         self.assertTrue(all(request.arrival_time_s < cycle_end for request in admitted))
         self.assertGreaterEqual(first_outside.arrival_time_s, cycle_end)
 
-    def test_inter_request_reservations_are_preserved(self):
+    def test_inter_request_reservations_are_cleared(self):
         environment = self.make_environment()
         environment.compute_available_at[0] = 123.0
-        environment.reset()
-        self.assertEqual(environment.compute_available_at[0], 123.0)
+        environment.link_available_at[(0, 1)] = 123.0
+        request = environment.sample_request()
+        environment.reset(request)
+        self.assertEqual(
+            environment.compute_available_at[0], request.arrival_time_s
+        )
+        self.assertEqual(environment.link_available_at, {})
+
+    def test_poisson_requests_are_batched_in_slot_order(self):
+        environment = self.make_environment()
+        batches = list(environment.iter_request_batches(slot_count=4))
+        self.assertEqual([slot for slot, _ in batches], [0, 1, 2, 3])
+        arrivals = []
+        for slot, requests in batches:
+            for request in requests:
+                self.assertEqual(
+                    int(request.arrival_time_s // environment.topology.slot_duration_s),
+                    slot,
+                )
+                arrivals.append(request.arrival_time_s)
+        self.assertEqual(arrivals, sorted(arrivals))
 
     def test_request_stream_is_exogenous_to_replica_adaptation(self):
         first = self.make_environment()

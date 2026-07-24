@@ -25,11 +25,13 @@ class SparseGraph:
     def __init__(self, nodes=()):
         self.nodes: set[int] = {int(node) for node in nodes}
         self.adj: dict[int, dict[int, ISLEdge]] = {int(node): {} for node in self.nodes}
+        self._edges_by_key: dict[tuple[int, int], ISLEdge] = {}
 
     def add_edge(self, edge: ISLEdge) -> None:
         self.nodes.update((edge.u, edge.v))
         self.adj.setdefault(edge.u, {})[edge.v] = edge
         self.adj.setdefault(edge.v, {})[edge.u] = edge
+        self._edges_by_key[edge.key] = edge
 
     def neighbors(self, node: int):
         return self.adj.get(int(node), {}).keys()
@@ -38,18 +40,14 @@ class SparseGraph:
         return self.adj.get(int(u), {}).get(int(v))
 
     def edges(self):
-        seen: set[tuple[int, int]] = set()
-        for u, neighbors in self.adj.items():
-            for v, edge in neighbors.items():
-                if edge.key not in seen:
-                    seen.add(edge.key)
-                    yield edge
+        return iter(self._edges_by_key.values())
 
     def induced(self, selected_nodes: set[int]) -> "SparseGraph":
         result = SparseGraph(selected_nodes)
-        for edge in self.edges():
-            if edge.u in selected_nodes and edge.v in selected_nodes:
-                result.add_edge(edge)
+        for u in selected_nodes:
+            for v, edge in self.adj.get(u, {}).items():
+                if v in selected_nodes and u < v:
+                    result.add_edge(edge)
         return result
 
     def connected(self, required: set[int] | None = None) -> bool:
@@ -172,4 +170,3 @@ class TemporalTopology:
 
     def graph_at_time(self, time_s: float) -> SparseGraph:
         return self.graph_at_slot(self.absolute_slot(time_s))
-

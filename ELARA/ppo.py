@@ -6,7 +6,14 @@ from dataclasses import dataclass
 import numpy as np
 
 from .device import resolve_torch_device_name
-from .model import ELARANetwork, F, require_torch, state_to_tensors, torch
+from .model import (
+    ELARANetwork,
+    F,
+    batch_states_to_tensors,
+    require_torch,
+    state_to_tensors,
+    torch,
+)
 from .state import ServingSelectionState
 
 
@@ -18,6 +25,8 @@ class PPOTransition:
     value: float
     reward: float
     done: bool
+    collection_slot: int = 0
+    update_uses: int = 0
 
 
 class PPOAgent:
@@ -38,16 +47,54 @@ class PPOAgent:
         self.buffer: list[PPOTransition] = []
 
     def act(self, state: ServingSelectionState, deterministic: bool = False):
-        observation = state_to_tensors(state, self.device)
+        result = self.act_batch([state], deterministic=deterministic)
+        return result[0]
+
+    def act_batch(
+        self,
+        states: list[ServingSelectionState],
+        deterministic: bool = False,
+    ) -> list[tuple[int, float, float]]:
+        observation = batch_states_to_tensors(states, self.device)
         with torch.no_grad():
-            logits, value = self.network(observation)
+            logits, values = self.network.forward_batch(observation)
             distribution = torch.distributions.Categorical(logits=logits)
-            action = torch.argmax(logits) if deterministic else distribution.sample()
-            log_prob = distribution.log_prob(action)
-        return int(action.item()), float(log_prob.item()), float(value.item())
+            actions = (
+                torch.argmax(logits, dim=-1)
+                if deterministic
+                else distribution.sample()
+            )
+            log_probs = distribution.log_prob(actions)
+            packed = torch.stack(
+                (actions.to(values.dtype), log_probs, values), dim=-1
+            ).cpu().numpy()
+        return [
+            (int(row[0]), float(row[1]), float(row[2]))
+            for row in packed
+        ]
 
     def remember(self, transition: PPOTransition) -> None:
         self.buffer.append(transition)
+
+    def clear_transactions(self) -> None:
+        self.buffer.clear()
+
+    def _eligible_transitions(
+        self, current_slot: int | None
+    ) -> list[PPOTransition]:
+        if current_slot is None:
+            return list(self.buffer)
+        oldest_slot = current_slot - self.config.ppo_transaction_history_slots
+        self.buffer = [
+            transition
+            for transition in self.buffer
+            if transition.collection_slot >= oldest_slot
+            and transition.update_uses < self.config.ppo_transaction_max_reuse
+        ]
+        return list(self.buffer)
+
+    def eligible_transition_count(self, current_slot: int | None) -> int:
+        return len(self._eligible_transitions(current_slot))
 
     def _bootstrap_value(self, next_state: ServingSelectionState | None) -> float:
         if next_state is None:
@@ -57,16 +104,22 @@ class PPOAgent:
             _, value = self.network(observation)
         return float(value.item())
 
-    def update(self, next_state: ServingSelectionState | None = None) -> dict[str, float]:
-        if not self.buffer:
+    def update(
+        self,
+        next_state: ServingSelectionState | None = None,
+        *,
+        current_slot: int | None = None,
+    ) -> dict[str, float]:
+        transitions = self._eligible_transitions(current_slot)
+        if not transitions:
             return {}
         bootstrap = self._bootstrap_value(next_state)
-        advantages = np.zeros(len(self.buffer), dtype=np.float32)
-        returns = np.zeros(len(self.buffer), dtype=np.float32)
+        advantages = np.zeros(len(transitions), dtype=np.float32)
+        returns = np.zeros(len(transitions), dtype=np.float32)
         gae = 0.0
         next_value = bootstrap
-        for index in reversed(range(len(self.buffer))):
-            transition = self.buffer[index]
+        for index in reversed(range(len(transitions))):
+            transition = transitions[index]
             continuation = 0.0 if transition.done else 1.0
             delta = transition.reward + self.config.ppo_gamma * next_value * continuation - transition.value
             gae = delta + self.config.ppo_gamma * self.config.ppo_gae_lambda * continuation * gae
@@ -75,48 +128,53 @@ class PPOAgent:
             next_value = transition.value
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1.0e-8)
 
-        indices = list(range(len(self.buffer)))
+        indices = list(range(len(transitions)))
         totals = {"policy_loss": 0.0, "value_loss": 0.0, "entropy": 0.0, "samples": 0}
         minibatch_size = min(self.config.ppo_minibatch_size, len(indices))
         for _ in range(self.config.ppo_epochs):
             random.shuffle(indices)
             for start in range(0, len(indices), minibatch_size):
                 batch_indices = indices[start:start + minibatch_size]
-                policy_losses = []
-                value_losses = []
-                entropies = []
-                for index in batch_indices:
-                    transition = self.buffer[index]
-                    observation = state_to_tensors(transition.state, self.device)
-                    logits, value = self.network(observation)
-                    distribution = torch.distributions.Categorical(logits=logits)
-                    action = torch.as_tensor(
-                        transition.action, dtype=torch.long, device=self.device
-                    )
-                    new_log_prob = distribution.log_prob(action)
-                    ratio = torch.exp(new_log_prob - transition.old_log_prob)
-                    advantage = torch.as_tensor(
-                        advantages[index], dtype=torch.float32, device=self.device
-                    )
-                    unclipped = ratio * advantage
-                    clipped = torch.clamp(
-                        ratio,
-                        1.0 - self.config.ppo_clip_epsilon,
-                        1.0 + self.config.ppo_clip_epsilon,
-                    ) * advantage
-                    policy_losses.append(-torch.min(unclipped, clipped))
-                    target = torch.as_tensor(
-                        returns[index], dtype=torch.float32, device=self.device
-                    )
-                    value_losses.append(F.mse_loss(value, target))
-                    entropies.append(distribution.entropy())
-
-                policy_loss = torch.stack(policy_losses).mean()
-                value_loss = torch.stack(value_losses).mean()
-                entropy = torch.stack(entropies).mean()
+                batch = [transitions[index] for index in batch_indices]
+                observation = batch_states_to_tensors(
+                    [transition.state for transition in batch], self.device
+                )
+                logits, values = self.network.forward_batch(observation)
+                distribution = torch.distributions.Categorical(logits=logits)
+                actions = torch.as_tensor(
+                    [transition.action for transition in batch],
+                    dtype=torch.long,
+                    device=self.device,
+                )
+                new_log_probs = distribution.log_prob(actions)
+                old_log_probs = torch.as_tensor(
+                    [transition.old_log_prob for transition in batch],
+                    dtype=torch.float32,
+                    device=self.device,
+                )
+                batch_advantages = torch.as_tensor(
+                    advantages[batch_indices],
+                    dtype=torch.float32,
+                    device=self.device,
+                )
+                ratio = torch.exp(new_log_probs - old_log_probs)
+                unclipped = ratio * batch_advantages
+                clipped = torch.clamp(
+                    ratio,
+                    1.0 - self.config.ppo_clip_epsilon,
+                    1.0 + self.config.ppo_clip_epsilon,
+                ) * batch_advantages
+                policy_loss = -torch.min(unclipped, clipped).mean()
+                targets = torch.as_tensor(
+                    returns[batch_indices],
+                    dtype=torch.float32,
+                    device=self.device,
+                )
+                value_loss = F.mse_loss(values, targets)
+                entropy = distribution.entropy().mean()
                 loss = policy_loss + self.config.ppo_value_coef * value_loss
                 loss = loss - self.config.ppo_entropy_coef * entropy
-                self.optimizer.zero_grad()
+                self.optimizer.zero_grad(set_to_none=True)
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.network.parameters(), self.config.max_grad_norm)
                 self.optimizer.step()
@@ -126,7 +184,12 @@ class PPOAgent:
                 totals["entropy"] += float(entropy.item()) * sample_count
                 totals["samples"] += sample_count
         count = max(1, totals.pop("samples"))
-        self.buffer.clear()
+        if current_slot is None:
+            self.buffer.clear()
+        else:
+            for transition in transitions:
+                transition.update_uses += 1
+            self._eligible_transitions(current_slot)
         return {key: value / count for key, value in totals.items()}
 
     def save(self, path, control_state: dict | None = None) -> None:

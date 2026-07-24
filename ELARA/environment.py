@@ -7,7 +7,11 @@ from dataclasses import asdict, dataclass, replace
 import numpy as np
 
 from .config import ELARAConfig
-from .background import MarkovBackgroundProcess
+from .background import (
+    ComputeBackground,
+    LinkBackground,
+    MarkovBackgroundProcess,
+)
 from .bandit import BanditReplicaAdapter, StageExecutionRecord
 from .connector import ConnectorBuilder, RequestSubgraph
 from .domain import (
@@ -42,12 +46,32 @@ class EpisodeRuntime:
     done: bool = False
 
 
+@dataclass
+class RequestSession:
+    """Mutable state owned by one independent target request."""
+
+    runtime: EpisodeRuntime
+    last_state: ServingSelectionState | None
+    compute_available_at: dict[int, float]
+    link_available_at: dict[tuple[int, int], float]
+    graph_cache: dict[tuple[int, tuple[int, ...]], SparseGraph]
+    edge_cache: dict[
+        tuple[int, tuple[int, ...]],
+        tuple[np.ndarray, list[ISLEdge]],
+    ]
+    compute_background_cache: dict[tuple[int, int], ComputeBackground]
+    link_background_cache: dict[
+        tuple[int, tuple[int, int]], LinkBackground
+    ]
+
+
 class ELARAEnvironment:
     """Independent request-level environment for serving-satellite PPO.
 
     A full request is one episode and every microservice choice is one action.
-    Routing and computation update link/compute availability before the next
-    observation is built.
+    Routing and computation reservations persist only inside that request.
+    Other concurrent work is represented exclusively by the slot-correlated
+    Markov background communication and computation processes.
     """
 
     def __init__(self, config: ELARAConfig | None = None, topology: TemporalTopology | None = None):
@@ -81,6 +105,22 @@ class ELARAEnvironment:
         self.request_counter = 0
         self.last_state: ServingSelectionState | None = None
         self.last_migration_actions = []
+        self._request_graph_cache: dict[
+            tuple[int, tuple[int, ...]], SparseGraph
+        ] = {}
+        self._request_edge_cache: dict[
+            tuple[int, tuple[int, ...]],
+            tuple[np.ndarray, list[ISLEdge]],
+        ] = {}
+        self._request_compute_background_cache: dict[
+            tuple[int, int], ComputeBackground
+        ] = {}
+        self._request_link_background_cache: dict[
+            tuple[int, tuple[int, int]], LinkBackground
+        ] = {}
+        self._session_trace_start = 0
+        self._session_request_order: dict[int, int] = {}
+        self.replica_adapter.start_fresh_window(0.0)
 
     def _generate_resources(self) -> dict[int, SatelliteResource]:
         resources = {}
@@ -222,13 +262,60 @@ class ELARAEnvironment:
         self.request_counter += 1
         return request
 
+    def iter_request_batches(
+        self,
+        *,
+        slot_count: int | None = None,
+        request_count: int | None = None,
+    ):
+        """Yield Poisson arrivals grouped by absolute time slot.
+
+        Exactly one limit must be supplied.  A slot limit admits every request
+        whose arrival falls in ``[0, slot_count * slot_duration)`` and also
+        yields empty slots.  A request limit samples exactly that many requests
+        and groups them without changing their continuous arrival times.
+        """
+        if (slot_count is None) == (request_count is None):
+            raise ValueError("supply exactly one of slot_count or request_count")
+        if slot_count is not None:
+            if slot_count < 0:
+                raise ValueError("slot_count must be nonnegative")
+            pending = self.sample_request()
+            for absolute_slot in range(slot_count):
+                slot_end = (absolute_slot + 1) * self.topology.slot_duration_s
+                batch = []
+                while pending.arrival_time_s < slot_end:
+                    batch.append(pending)
+                    pending = self.sample_request()
+                yield absolute_slot, tuple(batch)
+            return
+
+        if request_count is None or request_count < 0:
+            raise ValueError("request_count must be nonnegative")
+        grouped: dict[int, list[ServiceRequest]] = {}
+        for _ in range(request_count):
+            request = self.sample_request()
+            slot = self.topology.absolute_slot(request.arrival_time_s)
+            grouped.setdefault(slot, []).append(request)
+        for absolute_slot in range(max(grouped, default=-1) + 1):
+            yield absolute_slot, tuple(grouped.get(absolute_slot, ()))
+
+    def _clear_request_reservations(self, reference_time_s: float) -> None:
+        self.compute_available_at = {
+            node: reference_time_s for node in range(self.config.total_satellites)
+        }
+        self.link_available_at.clear()
+
     def reset(self, request: ServiceRequest | None = None) -> ServingSelectionState:
         request = request or self.sample_request()
-        if not self.config.preserve_inter_request_reservations:
-            self.compute_available_at = {
-                node: request.arrival_time_s for node in range(self.config.total_satellites)
-            }
-            self.link_available_at.clear()
+        # A target request is an independent episode. Reservations from every
+        # preceding target request, including requests in the same slot, must
+        # never enter this request's queues.
+        self._clear_request_reservations(request.arrival_time_s)
+        self._request_graph_cache.clear()
+        self._request_edge_cache.clear()
+        self._request_compute_background_cache.clear()
+        self._request_link_background_cache.clear()
         terminals = {request.source, request.destination}
         for service_id in request.services:
             terminals.update(self.services[service_id].replicas)
@@ -250,21 +337,107 @@ class ELARAEnvironment:
         self.last_state.validate()
         return self.last_state
 
+    def capture_request_session(self) -> RequestSession:
+        if self.runtime is None:
+            raise RuntimeError("no active request to capture")
+        return RequestSession(
+            runtime=self.runtime,
+            last_state=self.last_state,
+            compute_available_at=dict(self.compute_available_at),
+            link_available_at=dict(self.link_available_at),
+            graph_cache=dict(self._request_graph_cache),
+            edge_cache=dict(self._request_edge_cache),
+            compute_background_cache=dict(
+                self._request_compute_background_cache
+            ),
+            link_background_cache=dict(self._request_link_background_cache),
+        )
+
+    def restore_request_session(self, session: RequestSession) -> None:
+        self.runtime = session.runtime
+        self.last_state = session.last_state
+        self.compute_available_at = session.compute_available_at
+        self.link_available_at = session.link_available_at
+        self._request_graph_cache = session.graph_cache
+        self._request_edge_cache = session.edge_cache
+        self._request_compute_background_cache = (
+            session.compute_background_cache
+        )
+        self._request_link_background_cache = session.link_background_cache
+
+    def start_request_sessions(
+        self, requests
+    ) -> list[RequestSession]:
+        requests = list(requests)
+        self._session_trace_start = len(
+            self.replica_adapter.window_records
+        )
+        self._session_request_order = {
+            int(request.request_id): index
+            for index, request in enumerate(requests)
+        }
+        sessions = []
+        for request in requests:
+            self.reset(request)
+            sessions.append(self.capture_request_session())
+        return sessions
+
+    def finalize_request_sessions(self) -> None:
+        """Restore sequential trace order before window sampling by Bandit."""
+        records = self.replica_adapter.window_records
+        start = min(self._session_trace_start, len(records))
+        if start < len(records):
+            records[start:] = sorted(
+                records[start:],
+                key=lambda record: (
+                    self._session_request_order.get(
+                        int(record.request_id), len(self._session_request_order)
+                    ),
+                    int(record.stage_index),
+                ),
+            )
+        self._session_trace_start = len(records)
+        self._session_request_order = {}
+
+    def _compute_background(
+        self, node: int, slot: int
+    ) -> ComputeBackground:
+        key = (int(slot), int(node))
+        cached = self._request_compute_background_cache.get(key)
+        if cached is None:
+            cached = self.background.compute(node, slot)
+            self._request_compute_background_cache[key] = cached
+        return cached
+
+    def _link_background(
+        self, edge: ISLEdge, slot: int
+    ) -> LinkBackground:
+        key = (int(slot), edge.key)
+        cached = self._request_link_background_cache.get(key)
+        if cached is None:
+            cached = self.background.link(edge, slot)
+            self._request_link_background_cache[key] = cached
+        return cached
+
     def _compute_efficiency(self, node: int, slot: int) -> float:
-        return self.background.compute(node, slot).discount
+        return self._compute_background(node, slot).discount
 
     def _compute_queue(self, node: int, time_s: float) -> float:
         slot = self.topology.absolute_slot(time_s)
         reserved = max(0.0, self.compute_available_at.get(node, 0.0) - time_s)
-        return reserved + self.background.compute(node, slot).queue_delay_s
+        return reserved + self._compute_background(
+            node, slot
+        ).queue_delay_s
 
     def _link_efficiency(self, edge: ISLEdge, slot: int) -> float:
-        return self.background.link(edge, slot).efficiency
+        return self._link_background(edge, slot).efficiency
 
     def _link_queue(self, edge: ISLEdge, time_s: float) -> float:
         slot = self.topology.absolute_slot(time_s)
         reserved = max(0.0, self.link_available_at.get(edge.key, 0.0) - time_s)
-        return reserved + self.background.link(edge, slot).queue_delay_s
+        return reserved + self._link_background(
+            edge, slot
+        ).queue_delay_s
 
     def _ensure_connector_at(self, time_s: float) -> SparseGraph:
         assert self.runtime is not None
@@ -281,7 +454,34 @@ class ELARAEnvironment:
                 # Record that this slot was checked so ordinary stages in the
                 # same slot only refresh measurements and do no graph rebuild.
                 self.runtime.subgraph = replace(self.runtime.subgraph, built_slot=slot)
-        return graph.induced(set(self.runtime.subgraph.nodes))
+        return self._cached_request_graph(slot, self.runtime.subgraph.nodes)
+
+    def _cached_request_graph(
+        self, absolute_slot: int, nodes
+    ) -> SparseGraph:
+        node_key = tuple(sorted(map(int, nodes)))
+        key = (absolute_slot % self.topology.slot_count, node_key)
+        cached = self._request_graph_cache.get(key)
+        if cached is None:
+            cached = self.topology.graph_at_slot(absolute_slot).induced(
+                set(node_key)
+            )
+            self._request_graph_cache[key] = cached
+        return cached
+
+    def _cached_directed_edges(
+        self,
+        absolute_slot: int,
+        nodes: tuple[int, ...],
+        graph: SparseGraph,
+        node_to_local: dict[int, int],
+    ):
+        key = (absolute_slot % self.topology.slot_count, nodes)
+        cached = self._request_edge_cache.get(key)
+        if cached is None:
+            cached = self._directed_edges(graph, node_to_local)
+            self._request_edge_cache[key] = cached
+        return cached
 
     def _ensure_connector(self) -> SparseGraph:
         assert self.runtime is not None
@@ -332,7 +532,7 @@ class ELARAEnvironment:
         runtime = self.runtime
         request = runtime.request
         current_graph = self._ensure_connector()
-        nodes = sorted(runtime.subgraph.nodes)
+        nodes = tuple(sorted(runtime.subgraph.nodes))
         node_to_local = {node: index for index, node in enumerate(nodes)}
         slot = self.topology.absolute_slot(runtime.current_time_s)
         current_service = request.services[runtime.stage]
@@ -363,6 +563,9 @@ class ELARAEnvironment:
 
         node_features = np.zeros((len(nodes), len(NODE_FEATURES)), dtype=np.float32)
         selected = set(runtime.serving_history)
+        compute_background = {
+            node: self._compute_background(node, slot) for node in nodes
+        }
         for local, node in enumerate(nodes):
             plane = node // self.config.sats_per_plane
             position = node % self.config.sats_per_plane
@@ -377,8 +580,19 @@ class ELARAEnvironment:
                     self.config.compute_capacity_gflops_max
                     * self.config.compute_capacity_scale
                 ),
-                self._compute_efficiency(node, slot),
-                min(1.0, self._compute_queue(node, runtime.current_time_s) / self.topology.slot_duration_s),
+                compute_background[node].discount,
+                min(
+                    1.0,
+                    (
+                        max(
+                            0.0,
+                            self.compute_available_at.get(node, 0.0)
+                            - runtime.current_time_s,
+                        )
+                        + compute_background[node].queue_delay_s
+                    )
+                    / self.topology.slot_duration_s,
+                ),
                 resource.compute_power_w / self.config.compute_power_w_max,
                 float(node == request.source),
                 float(node == request.destination),
@@ -388,37 +602,65 @@ class ELARAEnvironment:
                 float(node in selected),
             )
 
-        edge_index, physical_edges = self._directed_edges(current_graph, node_to_local)
+        edge_index, physical_edges = self._cached_directed_edges(
+            slot, nodes, current_graph, node_to_local
+        )
         edge_features = np.zeros((len(physical_edges), len(EDGE_FEATURES)), dtype=np.float32)
+        link_background = {
+            edge.key: self._link_background(edge, slot)
+            for edge in current_graph.edges()
+        }
         for index, edge in enumerate(physical_edges):
-            efficiency = self._link_efficiency(edge, slot)
+            background = link_background[edge.key]
+            efficiency = background.efficiency
             edge_features[index] = (
                 edge.rate_mbps
                 * self.config.link_capacity_scale
                 * efficiency
                 / 10_000.0,
                 efficiency,
-                min(1.0, self._link_queue(edge, runtime.current_time_s) / self.topology.slot_duration_s),
+                min(
+                    1.0,
+                    (
+                        max(
+                            0.0,
+                            self.link_available_at.get(edge.key, 0.0)
+                            - runtime.current_time_s,
+                        )
+                        + background.queue_delay_s
+                    )
+                    / self.topology.slot_duration_s,
+                ),
                 min(1.0, edge.tx_power_w / 5.0),
                 min(1.0, edge.distance_km / 10_000.0),
             )
 
         future = []
         for offset in range(1, self.config.future_topology_horizon + 1):
-            future_graph = self.topology.graph_at_slot(slot + offset).induced(set(nodes))
-            future_edge_index, _ = self._directed_edges(future_graph, node_to_local)
+            future_slot = slot + offset
+            future_graph = self._cached_request_graph(future_slot, nodes)
+            future_edge_index, _ = self._cached_directed_edges(
+                future_slot, nodes, future_graph, node_to_local
+            )
             future.append(SparseTopologyState(future_edge_index, offset))
 
         candidates: list[int] = []
         candidate_features: list[tuple[float, float, float]] = []
+        distances, parents = current_graph.shortest_paths(
+            runtime.current_node, "hop"
+        )
         for node in service.replicas:
             if node not in node_to_local:
                 continue
-            path, bottleneck = self._path_metrics(
-                current_graph, runtime.current_node, node, runtime.current_time_s
-            )
-            if path is None:
+            if node not in distances:
                 continue
+            path = [int(node)]
+            while path[-1] != runtime.current_node:
+                path.append(parents[path[-1]])
+            path.reverse()
+            _, bottleneck = self._path_metrics_from_path(
+                current_graph, path, slot, link_background
+            )
             candidates.append(node_to_local[node])
             candidate_features.append(
                 (
@@ -449,6 +691,37 @@ class ELARAEnvironment:
             action_mask=np.ones(len(candidates), dtype=bool),
         )
         return state
+
+    def _path_metrics_from_path(
+        self,
+        graph: SparseGraph,
+        path: list[int],
+        slot: int,
+        background_by_edge: dict[tuple[int, int], LinkBackground] | None = None,
+    ):
+        if len(path) == 1:
+            return (
+                path,
+                self.config.compute_capacity_gflops_max
+                * self.config.compute_capacity_scale
+                * 1000.0,
+            )
+        bottleneck = math.inf
+        for u, v in zip(path[:-1], path[1:]):
+            edge = graph.edge(u, v)
+            assert edge is not None
+            background = (
+                background_by_edge[edge.key]
+                if background_by_edge is not None
+                else self._link_background(edge, slot)
+            )
+            bottleneck = min(
+                bottleneck,
+                edge.rate_mbps
+                * self.config.link_capacity_scale
+                * background.efficiency,
+            )
+        return path, float(bottleneck)
 
     def _route(self, source: int, target: int, data_gb: float):
         assert self.runtime is not None
@@ -560,16 +833,27 @@ class ELARAEnvironment:
             ),
         }
 
-    def _close_replica_window(self, runtime: EpisodeRuntime):
+    def _record_completed_request(self):
         if not self.config.adaptation_enabled:
+            return
+        self.replica_adapter.record_request()
+
+    def finish_time_slot(self, absolute_slot: int):
+        """Advance control after every arrival in ``absolute_slot`` is done."""
+        boundary_time_s = (absolute_slot + 1) * self.topology.slot_duration_s
+        self._clear_request_reservations(boundary_time_s)
+        if not self.config.adaptation_enabled:
+            self.last_migration_actions = []
             return []
-        return self.replica_adapter.close_request(
+        actions = self.replica_adapter.adapt_if_due(
             self.services,
             self.resources,
-            runtime.request.arrival_time_s,
+            boundary_time_s,
             self._estimate_full_network_cost,
             self._normalized_compute_load,
         )
+        self.last_migration_actions = actions
+        return actions
 
     def _observe_failed_stage(
         self,
@@ -635,8 +919,8 @@ class ELARAEnvironment:
             self._observe_failed_stage(
                 runtime, service_id, stage_index, stage_start, selected_node, reason
             )
-            migration_actions = self._close_replica_window(runtime)
-            self.last_migration_actions = migration_actions
+            self._record_completed_request()
+            migration_actions = []
             self.last_state = None
             reward = -self.config.failure_penalty
             return None, reward, True, False, {
@@ -673,8 +957,8 @@ class ELARAEnvironment:
                 self._observe_failed_stage(
                     runtime, service_id, stage_index, stage_start, selected_node, reason
                 )
-                migration_actions = self._close_replica_window(runtime)
-                self.last_migration_actions = migration_actions
+                self._record_completed_request()
+                migration_actions = []
                 self.last_state = None
                 reward = -self.config.failure_penalty
                 return None, reward, True, False, {
@@ -757,9 +1041,7 @@ class ELARAEnvironment:
         }
         if runtime.done:
             migration_actions = []
-            if terminated:
-                migration_actions = self._close_replica_window(runtime)
-            self.last_migration_actions = migration_actions
+            self._record_completed_request()
             info.update(
                 request_id=runtime.request.request_id,
                 template_id=runtime.request.template_id,

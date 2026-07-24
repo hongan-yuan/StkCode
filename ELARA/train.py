@@ -51,6 +51,8 @@ def parse_args():
         help="legacy checkpoint/config field; PPO updates are scheduled by time slots",
     )
     parser.add_argument("--ppo-update-interval-slots", type=int, default=5)
+    parser.add_argument("--ppo-transaction-history-slots", type=int)
+    parser.add_argument("--ppo-transaction-max-reuse", type=int, default=2)
     parser.add_argument("--pretrain-cycles", type=int, default=1)
     parser.add_argument("--joint-training-cycles", type=int, default=1)
     parser.add_argument("--route-horizon", type=int, default=3)
@@ -102,6 +104,12 @@ def main() -> None:
         ppo_epochs=args.ppo_epochs,
         rollout_steps=args.rollout_steps,
         ppo_update_interval_slots=args.ppo_update_interval_slots,
+        ppo_transaction_history_slots=(
+            args.ppo_transaction_history_slots
+            if args.ppo_transaction_history_slots is not None
+            else 2 * args.ppo_update_interval_slots
+        ),
+        ppo_transaction_max_reuse=args.ppo_transaction_max_reuse,
         ppo_pretrain_cycles=args.pretrain_cycles,
         ppo_joint_training_cycles=args.joint_training_cycles,
         route_horizon_slots=args.route_horizon,
@@ -121,7 +129,6 @@ def main() -> None:
     cycle_duration_s = cycle_slots * environment.topology.slot_duration_s
     total_cycles = config.ppo_pretrain_cycles + config.ppo_joint_training_cycles
     total_training_slots = total_cycles * cycle_slots
-    total_training_duration_s = total_cycles * cycle_duration_s
     joint_adaptation_enabled = config.adaptation_enabled
     config.adaptation_enabled = (
         joint_adaptation_enabled and config.ppo_pretrain_cycles == 0
@@ -148,6 +155,7 @@ def main() -> None:
     processed_requests = 0
     last_arrival_time_s = 0.0
     ppo_update_count = 0
+    last_ppo_update_trigger_slot = -1
     phase_request_counts = {"ppo_pretrain": 0, "joint_training": 0}
     current_cycle_index = 0
     current_phase = (
@@ -166,8 +174,10 @@ def main() -> None:
         update_writer.writeheader()
 
         def update_ppo(trigger_slot: int, phase: str) -> tuple[dict, int]:
-            nonlocal ppo_update_count
-            sample_count = len(agent.buffer)
+            nonlocal ppo_update_count, last_ppo_update_trigger_slot
+            if trigger_slot == last_ppo_update_trigger_slot:
+                return {}, 0
+            sample_count = agent.eligible_transition_count(trigger_slot)
             if sample_count == 0:
                 return {}, 0
             progress.update(
@@ -175,8 +185,9 @@ def main() -> None:
                 item_count=processed_requests,
                 phase="updating PPO",
             )
-            losses = agent.update(None)
+            losses = agent.update(None, current_slot=trigger_slot)
             ppo_update_count += 1
+            last_ppo_update_trigger_slot = trigger_slot
             update_writer.writerow(
                 {
                     "ppo_update": ppo_update_count,
@@ -197,16 +208,15 @@ def main() -> None:
             )
             return losses, sample_count
 
-        while True:
-            request = environment.sample_request()
-            if request.arrival_time_s >= total_training_duration_s:
-                break
+        for absolute_slot, slot_requests in environment.iter_request_batches(
+            slot_count=total_training_slots
+        ):
             request_cycle_index = min(
-                total_cycles - 1, int(request.arrival_time_s // cycle_duration_s)
+                total_cycles - 1, absolute_slot // cycle_slots
             )
             if request_cycle_index != current_cycle_index:
                 previous_cycle_index = current_cycle_index
-                boundary_slot = request_cycle_index * cycle_slots
+                boundary_slot = absolute_slot
                 update_ppo(boundary_slot, current_phase)
                 current_cycle_index = request_cycle_index
                 current_phase = (
@@ -219,6 +229,9 @@ def main() -> None:
                     <= current_cycle_index
                     and config.ppo_pretrain_cycles > 0
                 ):
+                    # Do not carry pretraining trajectories into the changed
+                    # placement distribution used by joint training.
+                    agent.clear_transactions()
                     pretrain_boundary_time = (
                         config.ppo_pretrain_cycles * cycle_duration_s
                     )
@@ -237,37 +250,123 @@ def main() -> None:
                     + config.ppo_update_interval_slots
                 )
 
-            absolute_slot = int(
-                request.arrival_time_s // environment.topology.slot_duration_s
-            )
             cycle_slot = absolute_slot % cycle_slots
-            completed_slots = min(
-                total_training_slots,
-                int(request.arrival_time_s // environment.topology.slot_duration_s) + 1,
-            )
-            episode = processed_requests
-            state = environment.reset(request)
-            episode_return = 0.0
-            steps = 0
-            final_info = {}
-            losses = {}
-            route_slot_crossings = 0
-            route_phase_count = 0
-            while state is not None:
-                action, log_prob, value = agent.act(state)
-                next_state, reward, terminated, truncated, info = environment.step(action)
-                agent.remember(
-                    PPOTransition(state, action, log_prob, value, reward, terminated or truncated)
+            completed_slots = absolute_slot + 1
+            slot_rows = []
+            sessions = environment.start_request_sessions(slot_requests)
+            episode_base = processed_requests
+            trackers = [
+                {
+                    "return": 0.0,
+                    "steps": 0,
+                    "final_info": {},
+                    "route_slot_crossings": 0,
+                    "route_phase_count": 0,
+                    "transitions": [],
+                }
+                for _ in sessions
+            ]
+            active = list(range(len(sessions)))
+            while active:
+                decisions = agent.act_batch(
+                    [sessions[index].last_state for index in active]
                 )
-                episode_return += reward
-                steps += 1
-                total_steps += 1
-                final_info = info
-                for route_key in ("route", "final_route"):
-                    route = info.get(route_key) or {}
-                    route_slot_crossings += int(route.get("slot_crossings", 0))
-                    route_phase_count += len(route.get("slot_phases", []))
-                state = next_state
+                next_active = []
+                for index, (action, log_prob, value) in zip(
+                    active, decisions
+                ):
+                    environment.restore_request_session(sessions[index])
+                    state = sessions[index].last_state
+                    next_state, reward, terminated, truncated, info = (
+                        environment.step(action)
+                    )
+                    transition = (
+                        PPOTransition(
+                            state,
+                            action,
+                            log_prob,
+                            value,
+                            reward,
+                            terminated or truncated,
+                            collection_slot=absolute_slot,
+                        )
+                    )
+                    tracker = trackers[index]
+                    tracker["transitions"].append(transition)
+                    tracker["return"] += reward
+                    tracker["steps"] += 1
+                    total_steps += 1
+                    tracker["final_info"] = info
+                    for route_key in ("route", "final_route"):
+                        route = info.get(route_key) or {}
+                        tracker["route_slot_crossings"] += int(
+                            route.get("slot_crossings", 0)
+                        )
+                        tracker["route_phase_count"] += len(
+                            route.get("slot_phases", [])
+                        )
+                    sessions[index] = environment.capture_request_session()
+                    if next_state is not None:
+                        next_active.append(index)
+                active = next_active
+
+            # Batch inference interleaves stages from independent requests.
+            # Restore the original trajectory-contiguous buffer order before
+            # GAE is computed so one request can never bootstrap from another.
+            for tracker in trackers:
+                for transition in tracker["transitions"]:
+                    agent.remember(transition)
+
+            for local_episode, (request, tracker) in enumerate(
+                zip(slot_requests, trackers)
+            ):
+                episode = episode_base + local_episode
+                final_info = tracker["final_info"]
+                steps = tracker["steps"]
+                row = {
+                    "episode": episode,
+                    "phase": current_phase,
+                    "cycle_index": current_cycle_index,
+                    "absolute_slot": absolute_slot,
+                    "cycle_slot": cycle_slot,
+                    "request_id": final_info.get("request_id", ""),
+                    "template_id": final_info.get("template_id", ""),
+                    "arrival_time_s": final_info.get("arrival_time_s", ""),
+                    "chain_length": final_info.get("chain_length", steps),
+                    "success": int(bool(final_info.get("success"))),
+                    "failure_reason": final_info.get("reason", ""),
+                    "failed_stage": (
+                        "" if final_info.get("success") else max(0, steps - 1)
+                    ),
+                    "return": tracker["return"],
+                    "latency_s": final_info.get("total_latency_s", float("nan")),
+                    "energy_j": final_info.get("total_energy_j", float("nan")),
+                    "steps": steps,
+                    "relay_count": final_info.get("relay_count", 0),
+                    "route_slot_crossings": tracker["route_slot_crossings"],
+                    "route_phase_count": tracker["route_phase_count"],
+                    "migration_action_count": 0,
+                    "no_op_count": 0,
+                    "relocation_count": 0,
+                    "scale_out_count": 0,
+                    "scale_in_count": 0,
+                    "ppo_update": "",
+                    "ppo_update_samples": "",
+                    "policy_loss": "",
+                    "value_loss": "",
+                    "entropy": "",
+                }
+                slot_rows.append(row)
+                processed_requests += 1
+                phase_request_counts[current_phase] += 1
+                last_arrival_time_s = request.arrival_time_s
+
+            # Placement changes occur only after every target request arriving
+            # in this slot has completed. They affect the next slot, never a
+            # peer target request from the current slot.
+            environment.finalize_request_sessions()
+            migration_actions = environment.finish_time_slot(absolute_slot)
+            losses = {}
             update_samples = 0
             if completed_slots >= next_update_slot:
                 losses, update_samples = update_ppo(
@@ -275,53 +374,42 @@ def main() -> None:
                 )
                 while next_update_slot <= completed_slots:
                     next_update_slot += config.ppo_update_interval_slots
-            row = {
-                "episode": episode,
-                "phase": current_phase,
-                "cycle_index": current_cycle_index,
-                "absolute_slot": absolute_slot,
-                "cycle_slot": cycle_slot,
-                "request_id": final_info.get("request_id", ""),
-                "template_id": final_info.get("template_id", ""),
-                "arrival_time_s": final_info.get("arrival_time_s", ""),
-                "chain_length": final_info.get("chain_length", steps),
-                "success": int(bool(final_info.get("success"))),
-                "failure_reason": final_info.get("reason", ""),
-                "failed_stage": (
-                    "" if final_info.get("success") else max(0, steps - 1)
-                ),
-                "return": episode_return,
-                "latency_s": final_info.get("total_latency_s", float("nan")),
-                "energy_j": final_info.get("total_energy_j", float("nan")),
-                "steps": steps,
-                "relay_count": final_info.get("relay_count", 0),
-                "route_slot_crossings": route_slot_crossings,
-                "route_phase_count": route_phase_count,
-                "migration_action_count": len(final_info.get("migration_actions", [])),
-                "no_op_count": sum(item.get("action") == "no_op" for item in final_info.get("migration_actions", [])),
-                "relocation_count": sum(item.get("action") == "relocate" for item in final_info.get("migration_actions", [])),
-                "scale_out_count": sum(item.get("action") == "scale_out" for item in final_info.get("migration_actions", [])),
-                "scale_in_count": sum(item.get("action") == "scale_in" for item in final_info.get("migration_actions", [])),
-                "ppo_update": ppo_update_count if losses else "",
-                "ppo_update_samples": update_samples if losses else "",
-                "policy_loss": losses.get("policy_loss", ""),
-                "value_loss": losses.get("value_loss", ""),
-                "entropy": losses.get("entropy", ""),
-            }
-            writer.writerow(row)
-            handle.flush()
-            processed_requests += 1
-            phase_request_counts[current_phase] += 1
-            last_arrival_time_s = request.arrival_time_s
+
+            if slot_rows:
+                last_row = slot_rows[-1]
+                last_row.update(
+                    migration_action_count=len(migration_actions),
+                    no_op_count=sum(
+                        item.action == "no_op" for item in migration_actions
+                    ),
+                    relocation_count=sum(
+                        item.action == "relocate" for item in migration_actions
+                    ),
+                    scale_out_count=sum(
+                        item.action == "scale_out" for item in migration_actions
+                    ),
+                    scale_in_count=sum(
+                        item.action == "scale_in" for item in migration_actions
+                    ),
+                    ppo_update=ppo_update_count if losses else "",
+                    ppo_update_samples=update_samples if losses else "",
+                    policy_loss=losses.get("policy_loss", ""),
+                    value_loss=losses.get("value_loss", ""),
+                    entropy=losses.get("entropy", ""),
+                )
+                writer.writerows(slot_rows)
+                handle.flush()
+
             progress.update(completed_slots, item_count=processed_requests)
-            if processed_requests % 10 == 0:
+            if slot_rows and processed_requests % 10 == 0:
                 print(
                     f"requests={processed_requests} phase={current_phase} "
                     f"slot={completed_slots}/{total_training_slots} "
                     f"steps={total_steps} "
-                    f"return={episode_return:.4f} latency={row['latency_s']:.4f}s"
+                    f"return={slot_rows[-1]['return']:.4f} "
+                    f"latency={slot_rows[-1]['latency_s']:.4f}s"
                 )
-            if processed_requests % 50 == 0:
+            if slot_rows and processed_requests % 50 == 0:
                 agent.save(
                     args.output_dir / "ppo_latest.pt",
                     environment.control_state_dict(),
@@ -350,6 +438,10 @@ def main() -> None:
                 "joint_adaptation_enabled": joint_adaptation_enabled,
                 "total_training_slots": total_training_slots,
                 "ppo_update_interval_slots": config.ppo_update_interval_slots,
+                "ppo_transaction_history_slots": (
+                    config.ppo_transaction_history_slots
+                ),
+                "ppo_transaction_max_reuse": config.ppo_transaction_max_reuse,
                 "ppo_update_count": ppo_update_count,
                 "processed_request_count": processed_requests,
                 "phase_request_counts": phase_request_counts,

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import unittest
+
+import numpy as np
 
 from ELARA.config import ELARAConfig
 from ELARA.environment import ELARAEnvironment
@@ -52,6 +55,174 @@ class EnvironmentTests(unittest.TestCase):
         environment.reset()
         environment.step(0)
         self.assertEqual(environment.replica_adapter.window_records, [])
+
+    def test_replica_adaptation_waits_until_the_slot_is_finished(self):
+        environment = self.make_environment()
+        environment.config.deployment_window_requests = 1
+        state = environment.reset()
+        arrival_slot = environment.topology.absolute_slot(
+            environment.runtime.request.arrival_time_s
+        )
+        while state is not None:
+            state, *_ = environment.step(0)
+        self.assertEqual(environment.replica_adapter.total_windows, 0)
+        environment.finish_time_slot(arrival_slot)
+        self.assertEqual(environment.replica_adapter.total_windows, 1)
+
+    def test_same_slot_requests_do_not_share_resource_reservations(self):
+        sequential = self.make_environment()
+        isolated = self.make_environment()
+        sequential.config.adaptation_enabled = False
+        isolated.config.adaptation_enabled = False
+
+        first = replace(
+            sequential.sample_request(), request_id=100, arrival_time_s=1.0
+        )
+        second = replace(
+            sequential.sample_request(), request_id=101, arrival_time_s=2.0
+        )
+        self.assertEqual(
+            sequential.topology.absolute_slot(first.arrival_time_s),
+            sequential.topology.absolute_slot(second.arrival_time_s),
+        )
+
+        state = sequential.reset(first)
+        while state is not None:
+            state, *_ = sequential.step(0)
+
+        second_state = sequential.reset(second)
+        isolated_state = isolated.reset(second)
+        np.testing.assert_allclose(
+            second_state.candidate_features,
+            isolated_state.candidate_features,
+            rtol=0.0,
+            atol=0.0,
+        )
+        np.testing.assert_allclose(
+            second_state.node_features,
+            isolated_state.node_features,
+            rtol=0.0,
+            atol=0.0,
+        )
+
+        sequential_info = {}
+        isolated_info = {}
+        while second_state is not None:
+            second_state, _, _, _, sequential_info = sequential.step(0)
+        while isolated_state is not None:
+            isolated_state, _, _, _, isolated_info = isolated.step(0)
+        self.assertAlmostEqual(
+            sequential_info["total_latency_s"],
+            isolated_info["total_latency_s"],
+        )
+        self.assertAlmostEqual(
+            sequential_info["total_energy_j"],
+            isolated_info["total_energy_j"],
+        )
+        self.assertEqual(
+            sequential_info["serving_history"],
+            isolated_info["serving_history"],
+        )
+
+    def test_interleaved_sessions_match_sequential_independent_requests(self):
+        sequential = self.make_environment()
+        interleaved = self.make_environment()
+        sequential.config.adaptation_enabled = False
+        interleaved.config.adaptation_enabled = False
+        requests = [
+            replace(
+                sequential.sample_request(),
+                request_id=200 + index,
+                arrival_time_s=1.0 + index,
+            )
+            for index in range(2)
+        ]
+
+        sequential_results = []
+        for request in requests:
+            state = sequential.reset(request)
+            final_info = {}
+            total_reward = 0.0
+            while state is not None:
+                state, reward, _, _, final_info = sequential.step(0)
+                total_reward += reward
+            sequential_results.append((total_reward, final_info))
+
+        sessions = interleaved.start_request_sessions(requests)
+        active = list(range(len(sessions)))
+        interleaved_rewards = [0.0 for _ in sessions]
+        interleaved_infos = [{} for _ in sessions]
+        while active:
+            next_active = []
+            for index in active:
+                interleaved.restore_request_session(sessions[index])
+                state, reward, _, _, info = interleaved.step(0)
+                interleaved_rewards[index] += reward
+                interleaved_infos[index] = info
+                sessions[index] = interleaved.capture_request_session()
+                if state is not None:
+                    next_active.append(index)
+            active = next_active
+
+        for index, (expected_reward, expected_info) in enumerate(
+            sequential_results
+        ):
+            self.assertAlmostEqual(interleaved_rewards[index], expected_reward)
+            self.assertAlmostEqual(
+                interleaved_infos[index]["total_latency_s"],
+                expected_info["total_latency_s"],
+            )
+            self.assertAlmostEqual(
+                interleaved_infos[index]["total_energy_j"],
+                expected_info["total_energy_j"],
+            )
+            self.assertEqual(
+                interleaved_infos[index]["serving_history"],
+                expected_info["serving_history"],
+            )
+
+    def test_interleaved_sessions_restore_sequential_trace_order(self):
+        sequential = self.make_environment()
+        interleaved = self.make_environment()
+        requests = [
+            replace(
+                sequential.sample_request(),
+                request_id=300 + index,
+                arrival_time_s=1.0 + index,
+            )
+            for index in range(2)
+        ]
+        for request in requests:
+            state = sequential.reset(request)
+            while state is not None:
+                state, *_ = sequential.step(0)
+
+        sessions = interleaved.start_request_sessions(requests)
+        active = list(range(len(sessions)))
+        while active:
+            next_active = []
+            for index in active:
+                interleaved.restore_request_session(sessions[index])
+                state, *_ = interleaved.step(0)
+                sessions[index] = interleaved.capture_request_session()
+                if state is not None:
+                    next_active.append(index)
+            active = next_active
+        interleaved.finalize_request_sessions()
+
+        def signature(environment):
+            return [
+                (
+                    item.request_id,
+                    item.stage_index,
+                    item.service_id,
+                    item.serving_node,
+                    item.normalized_cost,
+                )
+                for item in environment.replica_adapter.window_records
+            ]
+
+        self.assertEqual(signature(interleaved), signature(sequential))
 
     def test_full_random_episode(self):
         environment = self.make_environment()
