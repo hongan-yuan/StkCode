@@ -10,6 +10,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 @dataclass
 class ELARAConfig:
     seed: int = 42
+    # Static resources, service workloads, and initial placements continue to
+    # use ``seed`` so a trained checkpoint is evaluated in its training
+    # environment.  Request arrivals and Markov background load can use
+    # independent seeds during out-of-sample evaluation.
+    request_seed: int | None = None
+    background_seed: int | None = None
     num_planes: int = 10
     sats_per_plane: int = 18
     num_services: int = 30
@@ -19,6 +25,7 @@ class ELARAConfig:
     replicas_per_service: int | None = None
     replica_count_range: tuple[int, int] = (5, 10)
     chain_length: int | None = None
+    request_chain_length_filter: int | None = None
     request_template_chain_lengths: tuple[int, ...] = (5, 10, 15)
     request_template_file: Path | None = None
     request_data_scale: float = 1.0
@@ -56,6 +63,7 @@ class ELARAConfig:
     request_data_mean_gb: float = 0.08
     request_data_variance_gb: float = 0.0016
     request_arrival_lambda_per_template_per_slot: float = 0.35
+    request_arrival_lambda_total_per_slot: float | None = None
     request_endpoint_near_hops: int = 2
 
     compute_load_states: tuple[str, ...] = ("Idle", "Light", "Medium", "Heavy")
@@ -128,6 +136,7 @@ class ELARAConfig:
     speed_of_light_km_s: float = 299_792.458
     route_horizon_slots: int = 3
     route_max_paths_per_slot: int = 3
+    route_strategy: str = "min_cost_flow"
     route_switch_delay_s: float = 0.001
     route_failure_risk_weight: float = 0.0
 
@@ -172,6 +181,25 @@ class ELARAConfig:
             raise ValueError("at least one request template chain length is required")
         if self.request_arrival_lambda_per_template_per_slot <= 0.0:
             raise ValueError("request arrival lambda must be positive")
+        if (
+            self.request_arrival_lambda_total_per_slot is not None
+            and self.request_arrival_lambda_total_per_slot <= 0.0
+        ):
+            raise ValueError("total request arrival lambda must be positive")
+        if (
+            self.request_chain_length_filter is not None
+            and self.request_chain_length_filter < 1
+        ):
+            raise ValueError("request chain length filter must be positive")
+        if self.route_strategy not in {
+            "min_cost_flow",
+            "shortest_hop",
+            "service_pressure",
+        }:
+            raise ValueError(
+                "route strategy must be min_cost_flow, shortest_hop, "
+                "or service_pressure"
+            )
         if self.delay_weight < 0.0 or self.energy_weight < 0.0:
             raise ValueError("delay and energy weights must be nonnegative")
         if abs(self.delay_weight + self.energy_weight - 1.0) > 1.0e-9:

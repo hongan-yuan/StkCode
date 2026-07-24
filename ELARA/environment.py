@@ -77,7 +77,17 @@ class ELARAEnvironment:
     def __init__(self, config: ELARAConfig | None = None, topology: TemporalTopology | None = None):
         self.config = config or ELARAConfig()
         self.rng = random.Random(self.config.seed)
-        self.request_rng = random.Random(self.config.seed + 10_000)
+        request_seed = (
+            self.config.request_seed
+            if self.config.request_seed is not None
+            else self.config.seed + 10_000
+        )
+        background_seed = (
+            self.config.background_seed
+            if self.config.background_seed is not None
+            else self.config.seed + 20_000
+        )
+        self.request_rng = random.Random(request_seed)
         self.topology = topology or TemporalTopology.from_csv(
             self.config.trace_csv,
             self.config.sats_per_plane,
@@ -95,7 +105,7 @@ class ELARAEnvironment:
             for service_id, service in self.services.items()
         }
         self.background = MarkovBackgroundProcess(
-            self.topology, self.resources, self.config, self.config.seed + 20_000
+            self.topology, self.resources, self.config, background_seed
         )
         self.request_templates = self._generate_request_templates()
         self.arrival_time_s = 0.0
@@ -194,26 +204,41 @@ class ELARAEnvironment:
 
     def _generate_request_templates(self) -> tuple[ServiceRequestTemplate, ...]:
         if self.config.request_template_file is not None:
-            return load_templates(
+            templates = load_templates(
                 self.config.request_template_file,
                 num_services=self.config.num_services,
                 data_scale=self.config.request_data_scale,
             )
-        lengths = (
-            (self.config.chain_length,)
-            if self.config.chain_length is not None
-            else self.config.request_template_chain_lengths
-        )
-        templates = []
-        service_ids = list(self.services)
-        for template_id, requested_length in enumerate(lengths, start=1):
-            length = max(1, int(requested_length))
-            services = tuple(self.rng.choices(service_ids, k=length))
-            volumes = tuple(
-                self._sample_data_gb() * self.config.request_data_scale
-                for _ in range(length + 1)
+        else:
+            lengths = (
+                (self.config.chain_length,)
+                if self.config.chain_length is not None
+                else self.config.request_template_chain_lengths
             )
-            templates.append(ServiceRequestTemplate(template_id, services, volumes))
+            generated = []
+            service_ids = list(self.services)
+            for template_id, requested_length in enumerate(lengths, start=1):
+                length = max(1, int(requested_length))
+                services = tuple(self.rng.choices(service_ids, k=length))
+                volumes = tuple(
+                    self._sample_data_gb() * self.config.request_data_scale
+                    for _ in range(length + 1)
+                )
+                generated.append(
+                    ServiceRequestTemplate(template_id, services, volumes)
+                )
+            templates = tuple(generated)
+        if self.config.request_chain_length_filter is not None:
+            templates = tuple(
+                template
+                for template in templates
+                if len(template.services)
+                == self.config.request_chain_length_filter
+            )
+        if not templates:
+            raise ValueError(
+                "no request template matches the configured chain length"
+            )
         return tuple(templates)
 
     def _nearby_nodes(self, anchors: list[int], graph: SparseGraph) -> list[int]:
@@ -230,8 +255,12 @@ class ELARAEnvironment:
 
     def sample_request(self) -> ServiceRequest:
         total_lambda = (
-            self.config.request_arrival_lambda_per_template_per_slot
-            * len(self.request_templates)
+            self.config.request_arrival_lambda_total_per_slot
+            if self.config.request_arrival_lambda_total_per_slot is not None
+            else (
+                self.config.request_arrival_lambda_per_template_per_slot
+                * len(self.request_templates)
+            )
         )
         rate_per_second = total_lambda / self.topology.slot_duration_s
         if rate_per_second > 0.0:

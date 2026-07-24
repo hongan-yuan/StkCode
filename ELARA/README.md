@@ -177,35 +177,46 @@ ELARA/scripts/evaluate.sh \
 
 ## All-baseline testing
 
-The cross-platform baseline runner evaluates `ELARA`, `ELARA-NB`, `ELARA-NR`,
-`ELARA-SH`, `SECO`, `SP-Routing`, and `SC-NFV` through the common Simulation
-evaluation environment. Each baseline and seed pair is an independent task.
-The default concurrency is four, and CUDA tasks are assigned round robin over
-all visible GPUs. CPU and MPS are also supported. All metrics, logs, manifests,
-and merged CSV files are written below `ELARA`.
+The current comparison runner evaluates `ELARA`, `ELARA-NB`, `ELARA-NR`,
+`ELARA-SH`, `SECO`, `SP-Routing`, and `SC-NFV` inside the common ELARA
+environment. It automatically selects the latest complete
+`latency:energy=0.5:0.5`, `route-max-paths=3` model set unless `--model-root` is
+specified.
+
+By default, model seeds `42,43,44,45` are paired with independent request seeds
+`142,143,144,145`. Markov background seeds are independently set to
+`100142,100143,100144,100145`. For every model seed, test seed, background seed,
+and chain length, all seven methods receive the same request stream and
+background process. The runner verifies the request-stream hashes before
+aggregating the results. Chain lengths 5, 10, and 15 are evaluated separately,
+while the total Poisson arrival rate is held at the training value so the
+offered request load does not change with the number of templates in a chain
+length group.
 
 ```bash
-ELARA/scripts/test_baselines.sh \
+ELARA/scripts/run_baseline_comparison.sh \
   --device auto \
-  --tasks 4 \
-  --seeds 42,43,44,45 \
-  --model-root Simulation/multi_seed_runs
+  --tasks 2
 ```
 
 On Windows:
 
 ```powershell
-ELARA\scripts\test_baselines.ps1 `
+ELARA\scripts\run_baseline_comparison.ps1 `
   --device auto `
-  --tasks 4 `
-  --seeds 42,43,44,45 `
-  --model-root Simulation\multi_seed_runs
+  --tasks 2
 ```
 
-Use `--max-slots 5` for a short smoke test. The default output directory is
-`ELARA/outputs/baseline-tests/<timestamp>`. PPO checkpoints are required for
-`ELARA`, `ELARA-NB`, and `ELARA-SH`; an intentionally untrained smoke test must
-explicitly pass `--no-load-checkpoint`.
+Use `--max-slots 5 --model-seeds 42 --test-seeds 142 --chain-lengths 5` for a
+short smoke test. CUDA jobs are distributed round robin over all visible GPUs.
+CPU and MPS are also supported. The default output directory is
+`ELARA/outputs/baseline-tests/<timestamp>` and contains per-request metrics,
+per-slot metrics, a task manifest, logs, a raw comparison summary, and a
+chain-length summary with standard deviations and 95% confidence intervals.
+
+The older `test_baselines.sh` and `test_baselines.ps1` scripts remain available
+for reproducing legacy tests that use the Simulation environment and its old
+PPO checkpoints.
 
 ## Baseline contribution plots
 

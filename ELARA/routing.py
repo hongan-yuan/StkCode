@@ -53,6 +53,14 @@ class CrossSlotMinCostRouter:
         queue = (
             queue_provider(edge, current_time) if queue is None else queue
         )
+        if self.config.route_strategy == "shortest_hop":
+            return 1.0
+        if self.config.route_strategy == "service_pressure":
+            queue_pressure = queue / max(
+                self.topology.slot_duration_s, 1.0e-9
+            )
+            rate_pressure = 1_000.0 / rate
+            return 1.0 + queue_pressure + rate_pressure
         energy_per_gb = edge.tx_power_w * tx_per_gb
         risk_cost = 0.0
         if self.config.route_failure_risk_weight > 0.0:
@@ -153,7 +161,12 @@ class CrossSlotMinCostRouter:
         paths: list[dict] = []
         edge_loads: dict[tuple[int, int], float] = defaultdict(float)
         delivered = 0.0
-        for _ in range(self.config.route_max_paths_per_slot):
+        max_paths = (
+            1
+            if self.config.route_strategy in {"shortest_hop", "service_pressure"}
+            else self.config.route_max_paths_per_slot
+        )
+        for _ in range(max_paths):
             demand = remaining_data_gb - delivered
             if demand <= 1.0e-12:
                 break

@@ -9,8 +9,8 @@ from ELARA.topology import TemporalTopology
 
 
 class WorkloadTests(unittest.TestCase):
-    def make_environment(self):
-        config = ELARAConfig(
+    def make_environment(self, **overrides):
+        values = dict(
             seed=19,
             num_planes=2,
             sats_per_plane=6,
@@ -21,6 +21,10 @@ class WorkloadTests(unittest.TestCase):
             service_memory_gb_max=1.0,
             satellite_memory_capacity_gb=8.0,
             max_trace_slots=4,
+        )
+        values.update(overrides)
+        config = ELARAConfig(
+            **values,
         )
         return ELARAEnvironment(config, TemporalTopology.synthetic_ring(12, 4))
 
@@ -110,6 +114,30 @@ class WorkloadTests(unittest.TestCase):
         first_requests = [first.sample_request() for _ in range(20)]
         second_requests = [second.sample_request() for _ in range(20)]
         self.assertEqual(first_requests, second_requests)
+
+    def test_request_and_background_seeds_are_independent(self):
+        first = self.make_environment(request_seed=123, background_seed=456)
+        second = self.make_environment(request_seed=123, background_seed=789)
+        self.assertEqual(
+            [first.sample_request() for _ in range(20)],
+            [second.sample_request() for _ in range(20)],
+        )
+        first_background = first.background.compute(0, 0)
+        second_background = second.background.compute(0, 0)
+        self.assertNotEqual(first_background, second_background)
+
+    def test_chain_filter_and_total_arrival_rate(self):
+        environment = self.make_environment(
+            request_chain_length_filter=3,
+            request_arrival_lambda_total_per_slot=1.25,
+        )
+        self.assertEqual(
+            [len(template.services) for template in environment.request_templates],
+            [3],
+        )
+        self.assertEqual(
+            environment.config.request_arrival_lambda_total_per_slot, 1.25
+        )
 
     def test_markov_background_is_reproducible_and_slot_correlated(self):
         environment = self.make_environment()

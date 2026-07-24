@@ -97,6 +97,38 @@ class RoutingTests(unittest.TestCase):
         self.assertAlmostEqual(result["phase_delay_s"], max(path_delays))
         self.assertLess(result["phase_delay_s"], sum(path_delays))
 
+    def test_shortest_hop_baseline_uses_one_path(self):
+        graph = SparseGraph(range(4))
+        for u, v in ((0, 1), (1, 3), (0, 2), (2, 3)):
+            graph.add_edge(
+                ISLEdge(
+                    u, v, rate_mbps=10.0, distance_km=0.0, tx_power_w=1.0
+                )
+            )
+        topology = TemporalTopology({0: graph}, slot_duration_s=20.0)
+        config = ELARAConfig(
+            num_planes=1,
+            sats_per_plane=4,
+            route_max_paths_per_slot=3,
+            route_strategy="shortest_hop",
+            route_switch_delay_s=0.0,
+        )
+        router = CrossSlotMinCostRouter(topology, config)
+        result = router._slot_flow(
+            graph=graph,
+            source=0,
+            target=3,
+            remaining_data_gb=0.001,
+            current_time=0.0,
+            slot_end=20.0,
+            absolute_slot=0,
+            rate_provider=lambda edge, slot: edge.rate_mbps,
+            queue_provider=lambda edge, time_s: 0.0,
+            reserve=None,
+            commit=False,
+        )
+        self.assertEqual(len(result["paths"]), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
