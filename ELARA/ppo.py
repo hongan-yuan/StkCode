@@ -208,3 +208,8 @@ class PPOAgent:
         if load_optimizer and "optimizer" in payload:
             self.optimizer.load_state_dict(payload["optimizer"])
         return payload.get("control_state")
+
+    def load_control_state(self, path) -> dict | None:
+        """Load only the saved environment state without changing the policy."""
+        payload = torch.load(path, map_location=self.device)
+        return payload.get("control_state")

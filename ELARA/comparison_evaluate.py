@@ -45,6 +45,13 @@ def parse_args(argv: list[str] | None = None):
     parser.add_argument("--chain-length", type=int, choices=(5, 10, 15), required=True)
     parser.add_argument("--model-dir", type=Path, required=True)
     parser.add_argument("--checkpoint-name", default="ppo_final.pt")
+    parser.add_argument(
+        "--control-state-checkpoint-name",
+        help=(
+            "checkpoint whose placement and Bandit state initialize the "
+            "environment; defaults to --checkpoint-name"
+        ),
+    )
     parser.add_argument("--config-name", default="config.json")
     parser.add_argument("--request-template-file", type=Path)
     parser.add_argument("--total-arrival-lambda", type=float, default=4.9)
@@ -170,21 +177,49 @@ def _finite_percentile(values, percentile: float) -> float | None:
     return float(np.percentile(finite, percentile)) if finite else None
 
 
+def _state_hash(value) -> str:
+    payload = json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
 def run(args) -> dict:
     config = build_evaluation_config(args)
-    checkpoint = args.model_dir / args.checkpoint_name
-    if not checkpoint.is_file():
-        raise FileNotFoundError(f"trained checkpoint is missing: {checkpoint}")
+    policy_checkpoint = args.model_dir / args.checkpoint_name
+    control_state_checkpoint = args.model_dir / (
+        args.control_state_checkpoint_name or args.checkpoint_name
+    )
+    if not policy_checkpoint.is_file():
+        raise FileNotFoundError(
+            f"trained policy checkpoint is missing: {policy_checkpoint}"
+        )
+    if not control_state_checkpoint.is_file():
+        raise FileNotFoundError(
+            "initial control-state checkpoint is missing: "
+            f"{control_state_checkpoint}"
+        )
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     environment = ELARAEnvironment(config)
     from .ppo import PPOAgent
 
     trained_agent = PPOAgent(config, args.device)
-    control_state = trained_agent.load(checkpoint)
+    control_state = trained_agent.load(policy_checkpoint)
+    if control_state_checkpoint != policy_checkpoint:
+        control_state = trained_agent.load_control_state(
+            control_state_checkpoint
+        )
     if control_state:
         environment.load_control_state_dict(control_state)
     environment.replica_adapter.start_fresh_window(0.0)
+    initial_control_state = environment.control_state_dict()
+    initial_control_state_hash = _state_hash(initial_control_state)
+    initial_placement_hash = _state_hash(
+        initial_control_state["service_replicas"]
+    )
     policy = BaselineServingPolicy(
         args.baseline,
         config,
@@ -396,7 +431,11 @@ def run(args) -> dict:
             config.request_arrival_lambda_total_per_slot
         ),
         "constellation_slots": args.max_slots,
-        "checkpoint": str(checkpoint),
+        "checkpoint": str(policy_checkpoint),
+        "policy_checkpoint": str(policy_checkpoint),
+        "control_state_checkpoint": str(control_state_checkpoint),
+        "initial_control_state_hash": initial_control_state_hash,
+        "initial_placement_hash": initial_placement_hash,
     }
     _write_csv(args.output_dir / "request_metrics.csv", request_rows)
     _write_csv(args.output_dir / "slot_metrics.csv", slot_rows)

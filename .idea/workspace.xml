@@ -4,10 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1c9e062a-4b7b-438f-a78d-a5c39eefaaa7" name="Changes" comment="paper">
+    <list default="true" id="1c9e062a-4b7b-438f-a78d-a5c39eefaaa7" name="Changes" comment="elara">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ELARA/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/ELARA/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ELARA/comparison_evaluate.py" beforeDir="false" afterPath="$PROJECT_DIR$/ELARA/comparison_evaluate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ELARA/comparison_runner.py" beforeDir="false" afterPath="$PROJECT_DIR$/ELARA/comparison_runner.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ELARA/ppo.py" beforeDir="false" afterPath="$PROJECT_DIR$/ELARA/ppo.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MyPaper/main.tex" beforeDir="false" afterPath="$PROJECT_DIR$/MyPaper/main.tex" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Simulation/train.sh" beforeDir="false" afterPath="$PROJECT_DIR$/Simulation/train.sh" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,6 +69,7 @@
       <recent name="$PROJECT_DIR$/Simulation" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/ELARA" />
       <recent name="$PROJECT_DIR$/MyPaper" />
     </key>
   </component>
@@ -192,143 +196,8 @@
       <workItem from="1781100528009" duration="73105000" />
       <workItem from="1781853990715" duration="42814000" />
       <workItem from="1782821681122" duration="27062000" />
-      <workItem from="1782969998174" duration="55554000" />
-    </task>
-    <task id="LOCAL-00028" summary="papers">
-      <option name="closed" value="true" />
-      <created>1781360597617</created>
-      <option name="number" value="00028" />
-      <option name="presentableId" value="LOCAL-00028" />
-      <option name="project" value="LOCAL" />
-      <updated>1781360597617</updated>
-    </task>
-    <task id="LOCAL-00029" summary="papers">
-      <option name="closed" value="true" />
-      <created>1781443838287</created>
-      <option name="number" value="00029" />
-      <option name="presentableId" value="LOCAL-00029" />
-      <option name="project" value="LOCAL" />
-      <updated>1781443838287</updated>
-    </task>
-    <task id="LOCAL-00030" summary="paper writing">
-      <option name="closed" value="true" />
-      <created>1781513538670</created>
-      <option name="number" value="00030" />
-      <option name="presentableId" value="LOCAL-00030" />
-      <option name="project" value="LOCAL" />
-      <updated>1781513538670</updated>
-    </task>
-    <task id="LOCAL-00031" summary="/">
-      <option name="closed" value="true" />
-      <created>1781612454301</created>
-      <option name="number" value="00031" />
-      <option name="presentableId" value="LOCAL-00031" />
-      <option name="project" value="LOCAL" />
-      <updated>1781612454301</updated>
-    </task>
-    <task id="LOCAL-00032" summary="/">
-      <option name="closed" value="true" />
-      <created>1781613418408</created>
-      <option name="number" value="00032" />
-      <option name="presentableId" value="LOCAL-00032" />
-      <option name="project" value="LOCAL" />
-      <updated>1781613418408</updated>
-    </task>
-    <task id="LOCAL-00033" summary="/">
-      <option name="closed" value="true" />
-      <created>1781613558543</created>
-      <option name="number" value="00033" />
-      <option name="presentableId" value="LOCAL-00033" />
-      <option name="project" value="LOCAL" />
-      <updated>1781613558544</updated>
-    </task>
-    <task id="LOCAL-00034" summary="/">
-      <option name="closed" value="true" />
-      <created>1781613625488</created>
-      <option name="number" value="00034" />
-      <option name="presentableId" value="LOCAL-00034" />
-      <option name="project" value="LOCAL" />
-      <updated>1781613625488</updated>
-    </task>
-    <task id="LOCAL-00035" summary="arxiv results">
-      <option name="closed" value="true" />
-      <created>1781613720310</created>
-      <option name="number" value="00035" />
-      <option name="presentableId" value="LOCAL-00035" />
-      <option name="project" value="LOCAL" />
-      <updated>1781613720310</updated>
-    </task>
-    <task id="LOCAL-00036" summary="arxiv results">
-      <option name="closed" value="true" />
-      <created>1781613941035</created>
-      <option name="number" value="00036" />
-      <option name="presentableId" value="LOCAL-00036" />
-      <option name="project" value="LOCAL" />
-      <updated>1781613941035</updated>
-    </task>
-    <task id="LOCAL-00037" summary="arxiv results">
-      <option name="closed" value="true" />
-      <created>1781618270909</created>
-      <option name="number" value="00037" />
-      <option name="presentableId" value="LOCAL-00037" />
-      <option name="project" value="LOCAL" />
-      <updated>1781618270909</updated>
-    </task>
-    <task id="LOCAL-00038" summary="new results">
-      <option name="closed" value="true" />
-      <created>1781619489400</created>
-      <option name="number" value="00038" />
-      <option name="presentableId" value="LOCAL-00038" />
-      <option name="project" value="LOCAL" />
-      <updated>1781619489400</updated>
-    </task>
-    <task id="LOCAL-00039" summary="del large files">
-      <option name="closed" value="true" />
-      <created>1781624432435</created>
-      <option name="number" value="00039" />
-      <option name="presentableId" value="LOCAL-00039" />
-      <option name="project" value="LOCAL" />
-      <updated>1781624432435</updated>
-    </task>
-    <task id="LOCAL-00040" summary="bandit ablation">
-      <option name="closed" value="true" />
-      <created>1781629610793</created>
-      <option name="number" value="00040" />
-      <option name="presentableId" value="LOCAL-00040" />
-      <option name="project" value="LOCAL" />
-      <updated>1781629610793</updated>
-    </task>
-    <task id="LOCAL-00041" summary="bandit ablation">
-      <option name="closed" value="true" />
-      <created>1781629775269</created>
-      <option name="number" value="00041" />
-      <option name="presentableId" value="LOCAL-00041" />
-      <option name="project" value="LOCAL" />
-      <updated>1781629775269</updated>
-    </task>
-    <task id="LOCAL-00042" summary="paper">
-      <option name="closed" value="true" />
-      <created>1781884293317</created>
-      <option name="number" value="00042" />
-      <option name="presentableId" value="LOCAL-00042" />
-      <option name="project" value="LOCAL" />
-      <updated>1781884293317</updated>
-    </task>
-    <task id="LOCAL-00043" summary="paper">
-      <option name="closed" value="true" />
-      <created>1781960965863</created>
-      <option name="number" value="00043" />
-      <option name="presentableId" value="LOCAL-00043" />
-      <option name="project" value="LOCAL" />
-      <updated>1781960965863</updated>
-    </task>
-    <task id="LOCAL-00044" summary="paper">
-      <option name="closed" value="true" />
-      <created>1782095759290</created>
-      <option name="number" value="00044" />
-      <option name="presentableId" value="LOCAL-00044" />
-      <option name="project" value="LOCAL" />
-      <updated>1782095759290</updated>
+      <workItem from="1782969998174" duration="105421000" />
+      <workItem from="1784957247790" duration="7838000" />
     </task>
     <task id="LOCAL-00045" summary="paper">
       <option name="closed" value="true" />
@@ -586,7 +455,143 @@
       <option name="project" value="LOCAL" />
       <updated>1784460774531</updated>
     </task>
-    <option name="localTasksCounter" value="77" />
+    <task id="LOCAL-00077" summary="paper">
+      <option name="closed" value="true" />
+      <created>1784528410352</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1784528410352</updated>
+    </task>
+    <task id="LOCAL-00078" summary="paper">
+      <option name="closed" value="true" />
+      <created>1784642312268</created>
+      <option name="number" value="00078" />
+      <option name="presentableId" value="LOCAL-00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1784642312268</updated>
+    </task>
+    <task id="LOCAL-00079" summary="paper">
+      <option name="closed" value="true" />
+      <created>1784642657644</created>
+      <option name="number" value="00079" />
+      <option name="presentableId" value="LOCAL-00079" />
+      <option name="project" value="LOCAL" />
+      <updated>1784642657644</updated>
+    </task>
+    <task id="LOCAL-00080" summary="state space">
+      <option name="closed" value="true" />
+      <created>1784728970168</created>
+      <option name="number" value="00080" />
+      <option name="presentableId" value="LOCAL-00080" />
+      <option name="project" value="LOCAL" />
+      <updated>1784728970168</updated>
+    </task>
+    <task id="LOCAL-00081" summary="state space">
+      <option name="closed" value="true" />
+      <created>1784737431144</created>
+      <option name="number" value="00081" />
+      <option name="presentableId" value="LOCAL-00081" />
+      <option name="project" value="LOCAL" />
+      <updated>1784737431145</updated>
+    </task>
+    <task id="LOCAL-00082" summary="elara">
+      <option name="closed" value="true" />
+      <created>1784743816635</created>
+      <option name="number" value="00082" />
+      <option name="presentableId" value="LOCAL-00082" />
+      <option name="project" value="LOCAL" />
+      <updated>1784743816635</updated>
+    </task>
+    <task id="LOCAL-00083" summary="elara">
+      <option name="closed" value="true" />
+      <created>1784744432424</created>
+      <option name="number" value="00083" />
+      <option name="presentableId" value="LOCAL-00083" />
+      <option name="project" value="LOCAL" />
+      <updated>1784744432424</updated>
+    </task>
+    <task id="LOCAL-00084" summary="elara">
+      <option name="closed" value="true" />
+      <created>1784761317349</created>
+      <option name="number" value="00084" />
+      <option name="presentableId" value="LOCAL-00084" />
+      <option name="project" value="LOCAL" />
+      <updated>1784761317349</updated>
+    </task>
+    <task id="LOCAL-00085" summary="elara">
+      <option name="closed" value="true" />
+      <created>1784761373827</created>
+      <option name="number" value="00085" />
+      <option name="presentableId" value="LOCAL-00085" />
+      <option name="project" value="LOCAL" />
+      <updated>1784761373827</updated>
+    </task>
+    <task id="LOCAL-00086" summary="elara">
+      <option name="closed" value="true" />
+      <created>1784792700628</created>
+      <option name="number" value="00086" />
+      <option name="presentableId" value="LOCAL-00086" />
+      <option name="project" value="LOCAL" />
+      <updated>1784792700628</updated>
+    </task>
+    <task id="LOCAL-00087" summary="elara">
+      <option name="closed" value="true" />
+      <created>1784792798157</created>
+      <option name="number" value="00087" />
+      <option name="presentableId" value="LOCAL-00087" />
+      <option name="project" value="LOCAL" />
+      <updated>1784792798158</updated>
+    </task>
+    <task id="LOCAL-00088" summary="elara">
+      <option name="closed" value="true" />
+      <created>1784792860721</created>
+      <option name="number" value="00088" />
+      <option name="presentableId" value="LOCAL-00088" />
+      <option name="project" value="LOCAL" />
+      <updated>1784792860721</updated>
+    </task>
+    <task id="LOCAL-00089" summary="elara">
+      <option name="closed" value="true" />
+      <created>1784792881621</created>
+      <option name="number" value="00089" />
+      <option name="presentableId" value="LOCAL-00089" />
+      <option name="project" value="LOCAL" />
+      <updated>1784792881621</updated>
+    </task>
+    <task id="LOCAL-00090" summary="elara">
+      <option name="closed" value="true" />
+      <created>1784794407988</created>
+      <option name="number" value="00090" />
+      <option name="presentableId" value="LOCAL-00090" />
+      <option name="project" value="LOCAL" />
+      <updated>1784794407988</updated>
+    </task>
+    <task id="LOCAL-00091" summary="elara">
+      <option name="closed" value="true" />
+      <created>1784894782970</created>
+      <option name="number" value="00091" />
+      <option name="presentableId" value="LOCAL-00091" />
+      <option name="project" value="LOCAL" />
+      <updated>1784894782970</updated>
+    </task>
+    <task id="LOCAL-00092" summary="elara">
+      <option name="closed" value="true" />
+      <created>1784918602071</created>
+      <option name="number" value="00092" />
+      <option name="presentableId" value="LOCAL-00092" />
+      <option name="project" value="LOCAL" />
+      <updated>1784918602071</updated>
+    </task>
+    <task id="LOCAL-00093" summary="elara">
+      <option name="closed" value="true" />
+      <created>1784930002200</created>
+      <option name="number" value="00093" />
+      <option name="presentableId" value="LOCAL-00093" />
+      <option name="project" value="LOCAL" />
+      <updated>1784930002200</updated>
+    </task>
+    <option name="localTasksCounter" value="94" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -596,8 +601,6 @@
     <option featureType="com.intellij.fileTypeFactory" implementationName="*.tex" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="train codes updates" />
-    <MESSAGE value="training files" />
     <MESSAGE value="training and plotting" />
     <MESSAGE value="training and testing" />
     <MESSAGE value="training and testing codes" />
@@ -621,7 +624,9 @@
     <MESSAGE value="paper figs" />
     <MESSAGE value="paper references" />
     <MESSAGE value="paper" />
-    <option name="LAST_COMMIT_MESSAGE" value="paper" />
+    <MESSAGE value="state space" />
+    <MESSAGE value="elara" />
+    <option name="LAST_COMMIT_MESSAGE" value="elara" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/StkCode$plot_elara_experiment_section_figures.coverage" NAME="plot_elara_experiment_section_figures Coverage Results" MODIFIED="1782898729085" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Simulation/pics" />

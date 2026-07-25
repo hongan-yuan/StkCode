@@ -143,6 +143,13 @@ def parse_args(argv: list[str] | None = None):
     )
     parser.add_argument("--max-slots", type=int, default=606)
     parser.add_argument("--checkpoint-name", default="ppo_final.pt")
+    parser.add_argument(
+        "--control-state-checkpoint-name",
+        help=(
+            "checkpoint used only to initialize placement and Bandit state; "
+            "defaults to --checkpoint-name"
+        ),
+    )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
     if len(args.model_seeds) != len(args.test_seeds):
@@ -190,9 +197,17 @@ def _validate_models(args) -> None:
         train_dir = args.model_root / f"seed_{seed}" / "train"
         config_path = train_dir / "config.json"
         checkpoint = train_dir / args.checkpoint_name
-        if not config_path.is_file() or not checkpoint.is_file():
+        control_checkpoint = train_dir / (
+            args.control_state_checkpoint_name or args.checkpoint_name
+        )
+        if (
+            not config_path.is_file()
+            or not checkpoint.is_file()
+            or not control_checkpoint.is_file()
+        ):
             raise FileNotFoundError(
-                f"missing config or checkpoint for model seed {seed}: {train_dir}"
+                "missing config, policy checkpoint, or control-state "
+                f"checkpoint for model seed {seed}: {train_dir}"
             )
         config = json.loads(config_path.read_text(encoding="utf-8"))
         if (
@@ -284,6 +299,13 @@ def _job_specs(args, accelerator: str, gpu_ids: list[str]) -> list[dict]:
                     "--progress-file",
                     str(progress_file),
                 ]
+                if args.control_state_checkpoint_name:
+                    command.extend(
+                        [
+                            "--control-state-checkpoint-name",
+                            args.control_state_checkpoint_name,
+                        ]
+                    )
                 jobs.append(
                     {
                         "index": index,
@@ -409,6 +431,21 @@ def _verify_shared_scenarios(jobs: list[dict]) -> list[dict]:
         if len(hashes) != 1 or len(counts) != 1:
             raise RuntimeError(
                 "baselines did not receive the same request stream for "
+                f"scenario {key}"
+            )
+        control_hashes = {
+            row.get("initial_control_state_hash")
+            for row in rows
+            if row.get("initial_control_state_hash")
+        }
+        placement_hashes = {
+            row.get("initial_placement_hash")
+            for row in rows
+            if row.get("initial_placement_hash")
+        }
+        if len(control_hashes) > 1 or len(placement_hashes) > 1:
+            raise RuntimeError(
+                "baselines did not start from the same control state for "
                 f"scenario {key}"
             )
     return summaries
@@ -538,6 +575,10 @@ def main(argv: list[str] | None = None) -> int:
         "request_template_file": str(args.request_template_file),
         "total_arrival_lambda_per_slot": args.total_arrival_lambda,
         "model_root": str(args.model_root),
+        "policy_checkpoint_name": args.checkpoint_name,
+        "control_state_checkpoint_name": (
+            args.control_state_checkpoint_name or args.checkpoint_name
+        ),
         "output_root": str(args.output_root),
         "accelerator": accelerator,
         "gpu_ids": gpu_ids,

@@ -218,6 +218,68 @@ The older `test_baselines.sh` and `test_baselines.ps1` scripts remain available
 for reproducing legacy tests that use the Simulation environment and its old
 PPO checkpoints.
 
+### Strict shared-state seven-baseline comparison
+
+For the final paper comparison, use the dedicated fair runner. It fixes the
+model root to the complete `20260725-040404` `latency:energy=0.5:0.5`,
+`paths=3` batch. Within each model-seed scenario, all seven methods load the
+same PPO weights from `ppo_final.pt` and initialize service placement and
+Bandit state from `ppo_pretrained.pt`. They also share the request seed,
+background seed, request template file, chain length, and 606-slot period.
+
+```bash
+ELARA/scripts/run_fair_baseline_comparison.sh \
+  --device auto \
+  --tasks 2
+```
+
+On Windows:
+
+```powershell
+ELARA\scripts\run_fair_baseline_comparison.ps1 `
+  --device auto `
+  --tasks 2
+```
+
+The default matrix contains 84 tasks: seven methods, four seed pairs, and three
+service chain lengths. After aggregation, `fairness_verification.json` records
+and verifies the shared request stream, PPO checkpoint, initial control state,
+and initial placement hashes for every scenario. A dry run can be performed by
+adding `--dry-run`.
+
+## ELARA versus ELARA-NB Bandit ablation
+
+The dedicated Bandit ablation uses only `ELARA` and `ELARA-NB`. By default, it
+uses the four `0.5:0.5`, `paths=3` models in sensitivity batch
+`20260725-040404`. Both methods load PPO weights from `ppo_final.pt`, while
+their service placement and Bandit state are initialized from the same
+`ppo_pretrained.pt` checkpoint. Thus, the only test-time difference is that
+ELARA continues replica adaptation and ELARA-NB keeps the shared initial
+placement fixed.
+
+```bash
+ELARA/scripts/run_bandit_ablation.sh \
+  --device auto \
+  --tasks 2
+```
+
+On Windows:
+
+```powershell
+ELARA\scripts\run_bandit_ablation.ps1 `
+  --device auto `
+  --tasks 2
+```
+
+The default matrix contains 24 paired tasks, covering two methods, four seeds,
+and chain lengths 5, 10, and 15. Outputs are written below
+`ELARA/outputs/bandit-ablation/<timestamp>`. The runner verifies both the
+request-stream hash and the initial control-state hash for every pair. In
+addition to raw request and slot records, it writes
+`bandit_ablation_paired.csv` and `bandit_ablation_summary.json`. Positive
+delta or reduction values in the latter files mean that ELARA performs better
+than ELARA-NB.
+
 ## Baseline contribution plots
 
 The contribution plotter automatically selects the latest complete baseline
