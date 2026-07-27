@@ -22,7 +22,7 @@ DEFAULT_MODEL_ROOT = (
     / "latency_energy_weights"
     / "d50_e50"
 )
-DEFAULT_OUTPUT_PARENT = ELARA_ROOT / "outputs" / "baseline-tests"
+DEFAULT_OUTPUT_PARENT = ELARA_ROOT / "outputs" / "baseline-tests4"
 
 
 def _split_ints(value: str) -> list[int]:
@@ -64,7 +64,7 @@ def parse_args(argv: list[str] | None = None):
     parser.add_argument(
         "--chain-lengths", type=_split_ints, default=[5, 10, 15]
     )
-    parser.add_argument("--tasks", type=int, default=4)
+    parser.add_argument("--tasks", type=int, default=8)
     parser.add_argument(
         "--device",
         choices=("auto", "cuda", "mps", "cpu"),

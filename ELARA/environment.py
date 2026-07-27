@@ -954,12 +954,44 @@ class ELARAEnvironment:
             reward = -self.config.failure_penalty
             return None, reward, True, False, {
                 "success": False,
+                "stage": stage_index,
                 "request_id": runtime.request.request_id,
                 "template_id": runtime.request.template_id,
                 "arrival_time_s": runtime.request.arrival_time_s,
                 "chain_length": len(runtime.request.services),
                 "reason": reason,
                 "route": route,
+                "hop_metrics": {
+                    "hop_index": stage_index + 1,
+                    "stage_index": stage_index,
+                    "service_id": service_id,
+                    "source_node": runtime.current_node,
+                    "serving_node": selected_node,
+                    "includes_egress": 0,
+                    "hop_completed": 0,
+                    "hop_failure_reason": reason,
+                    "communication_delay_s": None,
+                    "communication_transmission_delay_s": None,
+                    "communication_propagation_delay_s": None,
+                    "communication_queue_delay_s": None,
+                    "computation_queue_delay_s": None,
+                    "execution_delay_s": None,
+                    "computation_delay_s": None,
+                    "communication_energy_j": None,
+                    "computation_energy_j": None,
+                    "hop_total_delay_s": None,
+                    "hop_total_energy_j": None,
+                    "route_slot_crossings": int(
+                        route.get("slot_crossings", 0)
+                    ),
+                    "route_phase_count": len(
+                        route.get("slot_phases", ())
+                    ),
+                    "route_used_path_count": sum(
+                        len(phase.get("paths", ()))
+                        for phase in route.get("slot_phases", ())
+                    ),
+                },
                 "total_latency_s": runtime.accumulated_latency_s,
                 "total_energy_j": runtime.accumulated_energy_j,
                 "migration_actions": [asdict(item) for item in migration_actions],
@@ -992,12 +1024,50 @@ class ELARAEnvironment:
                 reward = -self.config.failure_penalty
                 return None, reward, True, False, {
                     "success": False,
+                    "stage": stage_index,
                     "request_id": runtime.request.request_id,
                     "template_id": runtime.request.template_id,
                     "arrival_time_s": runtime.request.arrival_time_s,
                     "chain_length": len(runtime.request.services),
                     "reason": reason,
                     "final_route": final_route,
+                    "hop_metrics": {
+                        "hop_index": stage_index + 1,
+                        "stage_index": stage_index,
+                        "service_id": service_id,
+                        "source_node": int(route["source"]),
+                        "serving_node": selected_node,
+                        "includes_egress": 1,
+                        "hop_completed": 0,
+                        "hop_failure_reason": reason,
+                        "communication_delay_s": None,
+                        "communication_transmission_delay_s": None,
+                        "communication_propagation_delay_s": None,
+                        "communication_queue_delay_s": None,
+                        "computation_queue_delay_s": computation["queue_s"],
+                        "execution_delay_s": computation["compute_s"],
+                        "computation_delay_s": (
+                            computation["queue_s"]
+                            + computation["compute_s"]
+                        ),
+                        "communication_energy_j": None,
+                        "computation_energy_j": computation["energy_j"],
+                        "hop_total_delay_s": None,
+                        "hop_total_energy_j": None,
+                        "route_slot_crossings": int(
+                            route.get("slot_crossings", 0)
+                        )
+                        + int(final_route.get("slot_crossings", 0)),
+                        "route_phase_count": len(
+                            route.get("slot_phases", ())
+                        )
+                        + len(final_route.get("slot_phases", ())),
+                        "route_used_path_count": sum(
+                            len(phase.get("paths", ()))
+                            for item in (route, final_route)
+                            for phase in item.get("slot_phases", ())
+                        ),
+                    },
                     "total_latency_s": runtime.accumulated_latency_s,
                     "total_energy_j": runtime.accumulated_energy_j,
                     "migration_actions": [asdict(item) for item in migration_actions],
@@ -1015,6 +1085,67 @@ class ELARAEnvironment:
         observed_route_energy = route["energy_j"] + (
             final_route["energy_j"] if final_route is not None else 0.0
         )
+        completed_routes = (
+            (route, final_route) if final_route is not None else (route,)
+        )
+        communication_transmission_delay = sum(
+            float(item.get("transmission_delay_s", 0.0))
+            for item in completed_routes
+        )
+        communication_propagation_delay = sum(
+            float(item.get("propagation_delay_s", 0.0))
+            for item in completed_routes
+        )
+        communication_queue_delay = sum(
+            float(item.get("queue_delay_s", 0.0))
+            for item in completed_routes
+        )
+        hop_metrics = {
+            "hop_index": stage_index + 1,
+            "stage_index": stage_index,
+            "service_id": service_id,
+            "source_node": int(route["source"]),
+            "serving_node": selected_node,
+            "includes_egress": int(final_route is not None),
+            "hop_completed": 1,
+            "hop_failure_reason": "",
+            "communication_delay_s": observed_route_delay,
+            "communication_transmission_delay_s": (
+                communication_transmission_delay
+            ),
+            "communication_propagation_delay_s": (
+                communication_propagation_delay
+            ),
+            "communication_queue_delay_s": communication_queue_delay,
+            "computation_queue_delay_s": computation["queue_s"],
+            "execution_delay_s": computation["compute_s"],
+            "computation_delay_s": (
+                computation["queue_s"] + computation["compute_s"]
+            ),
+            "communication_energy_j": observed_route_energy,
+            "computation_energy_j": computation["energy_j"],
+            "hop_total_delay_s": (
+                observed_route_delay
+                + computation["queue_s"]
+                + computation["compute_s"]
+            ),
+            "hop_total_energy_j": (
+                observed_route_energy + computation["energy_j"]
+            ),
+            "route_slot_crossings": sum(
+                int(item.get("slot_crossings", 0))
+                for item in completed_routes
+            ),
+            "route_phase_count": sum(
+                len(item.get("slot_phases", ()))
+                for item in completed_routes
+            ),
+            "route_used_path_count": sum(
+                len(phase.get("paths", ()))
+                for item in completed_routes
+                for phase in item.get("slot_phases", ())
+            ),
+        }
         normalized_stage_cost = (
             self.config.delay_weight
             * (observed_route_delay + computation["queue_s"] + computation["compute_s"])
@@ -1065,6 +1196,7 @@ class ELARAEnvironment:
             "route": route,
             "compute": computation,
             "final_route": final_route,
+            "hop_metrics": hop_metrics,
             "relay_count": len(runtime.subgraph.relay_nodes),
             "subgraph_node_count": len(runtime.subgraph.nodes),
         }

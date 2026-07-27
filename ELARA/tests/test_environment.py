@@ -49,6 +49,29 @@ class EnvironmentTests(unittest.TestCase):
         self.assertEqual(len(trace.candidate_hop_distances), len(trace.candidate_nodes))
         self.assertGreaterEqual(trace.stage_finish_time_s, trace.stage_start_time_s)
 
+    def test_step_reports_per_hop_delay_and_energy_decomposition(self):
+        environment = self.make_environment()
+        environment.reset()
+        _, _, _, _, info = environment.step(0)
+        hop = info["hop_metrics"]
+        self.assertEqual(hop["hop_index"], 1)
+        self.assertEqual(hop["stage_index"], 0)
+        self.assertEqual(hop["hop_completed"], 1)
+        self.assertAlmostEqual(
+            hop["computation_delay_s"],
+            hop["computation_queue_delay_s"] + hop["execution_delay_s"],
+        )
+        self.assertAlmostEqual(
+            hop["hop_total_delay_s"],
+            hop["communication_delay_s"] + hop["computation_delay_s"],
+        )
+        self.assertAlmostEqual(
+            hop["hop_total_energy_j"],
+            hop["communication_energy_j"] + hop["computation_energy_j"],
+        )
+        self.assertGreaterEqual(hop["route_phase_count"], 0)
+        self.assertGreaterEqual(hop["route_used_path_count"], 0)
+
     def test_ppo_pretraining_does_not_collect_replica_adaptation_traces(self):
         environment = self.make_environment()
         environment.config.adaptation_enabled = False

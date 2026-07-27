@@ -26,7 +26,7 @@ from .request_templates import DEFAULT_TEMPLATE_PATH, load_templates
 
 
 ELARA_ROOT = PROJECT_ROOT / "ELARA"
-DEFAULT_OUTPUT_PARENT = ELARA_ROOT / "outputs" / "baseline-tests"
+DEFAULT_OUTPUT_PARENT = ELARA_ROOT / "outputs" / "baseline-tests4"
 
 
 def _split_strings(value: str) -> list[str]:
@@ -122,7 +122,7 @@ def parse_args(argv: list[str] | None = None):
     parser.add_argument(
         "--chain-lengths", type=_split_ints, default=[5, 10, 15]
     )
-    parser.add_argument("--tasks", type=int, default=2)
+    parser.add_argument("--tasks", type=int, default=8)
     parser.add_argument(
         "--device", choices=("auto", "cuda", "mps", "cpu"), default="auto"
     )
@@ -487,6 +487,12 @@ def _aggregate_summary(rows: list[dict]) -> list[dict]:
         "mean_route_slot_crossings",
         "mean_route_phase_count",
         "mean_route_used_path_count",
+        "mean_communication_delay_per_hop_s",
+        "mean_computation_queue_delay_per_hop_s",
+        "mean_execution_delay_per_hop_s",
+        "mean_computation_delay_per_hop_s",
+        "mean_communication_energy_per_hop_j",
+        "mean_computation_energy_per_hop_j",
     )
     groups: dict[tuple[str, int], list[dict]] = {}
     for row in rows:
@@ -625,6 +631,11 @@ def main(argv: list[str] | None = None) -> int:
             jobs,
             "request_metrics.csv",
             args.output_root / "all_request_metrics.csv",
+        )
+        _merge_job_csvs(
+            jobs,
+            "request_hop_metrics.csv",
+            args.output_root / "all_request_hop_metrics.csv",
         )
         _merge_job_csvs(
             jobs,

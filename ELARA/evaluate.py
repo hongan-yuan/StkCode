@@ -124,6 +124,7 @@ def main() -> None:
             environment.replica_adapter.start_fresh_window(0.0)
 
     records = []
+    hop_records = []
     episode = 0
     batches = environment.iter_request_batches(
         slot_count=cycle_slots if args.full_cycle else None,
@@ -139,6 +140,7 @@ def main() -> None:
                 "route_slot_crossings": 0,
                 "route_phase_count": 0,
                 "route_augmentation_count": 0,
+                "hop_metrics": [],
             }
             for _ in sessions
         ]
@@ -166,6 +168,8 @@ def main() -> None:
                 tracker = trackers[index]
                 tracker["return"] += reward
                 tracker["final_info"] = info
+                if info.get("hop_metrics"):
+                    tracker["hop_metrics"].append(dict(info["hop_metrics"]))
                 for route_key in ("route", "final_route"):
                     route = info.get(route_key) or {}
                     tracker["route_slot_crossings"] += int(
@@ -184,6 +188,7 @@ def main() -> None:
 
         for request, tracker in zip(slot_requests, trackers):
             final_info = tracker["final_info"]
+            request_success = int(bool(final_info.get("success")))
             slot_records.append(
                 {
                     "episode": episode,
@@ -191,7 +196,7 @@ def main() -> None:
                     "template_id": final_info.get("template_id", ""),
                     "arrival_time_s": final_info.get("arrival_time_s", ""),
                     "chain_length": final_info.get("chain_length", ""),
-                    "success": int(bool(final_info.get("success"))),
+                    "success": request_success,
                     "return": tracker["return"],
                     "latency_s": final_info.get("total_latency_s", float("nan")),
                     "energy_j": final_info.get("total_energy_j", float("nan")),
@@ -209,6 +214,27 @@ def main() -> None:
                     "scale_in_count": 0,
                 }
             )
+            for hop in tracker["hop_metrics"]:
+                hop_records.append(
+                    {
+                        "policy": args.policy,
+                        "seed": args.seed,
+                        "absolute_slot": absolute_slot,
+                        "request_id": request.request_id,
+                        "template_id": request.template_id,
+                        "arrival_time_s": request.arrival_time_s,
+                        "chain_length": len(request.services),
+                        "request_source_node": request.source,
+                        "request_destination_node": request.destination,
+                        "request_success": request_success,
+                        "request_failure_reason": (
+                            ""
+                            if request_success
+                            else final_info.get("reason", "")
+                        ),
+                        **hop,
+                    }
+                )
             episode += 1
 
         environment.finalize_request_sessions()
@@ -240,6 +266,15 @@ def main() -> None:
         writer = csv.DictWriter(handle, fieldnames=records[0].keys())
         writer.writeheader()
         writer.writerows(records)
+    if hop_records:
+        with (
+            args.output_dir / "request_hop_metrics.csv"
+        ).open("w", encoding="utf-8-sig", newline="") as handle:
+            writer = csv.DictWriter(
+                handle, fieldnames=hop_records[0].keys()
+            )
+            writer.writeheader()
+            writer.writerows(hop_records)
     success = [row for row in records if row["success"]]
     summary = {
         "policy": args.policy,
@@ -259,6 +294,71 @@ def main() -> None:
         ),
         "mean_route_augmentation_count": float(
             np.mean([row["route_augmentation_count"] for row in records])
+        ),
+        "mean_communication_delay_per_hop_s": (
+            float(
+                np.mean(
+                    [
+                        row["communication_delay_s"]
+                        for row in hop_records
+                        if row["request_success"]
+                    ]
+                )
+            )
+            if any(row["request_success"] for row in hop_records)
+            else None
+        ),
+        "mean_computation_queue_delay_per_hop_s": (
+            float(
+                np.mean(
+                    [
+                        row["computation_queue_delay_s"]
+                        for row in hop_records
+                        if row["request_success"]
+                    ]
+                )
+            )
+            if any(row["request_success"] for row in hop_records)
+            else None
+        ),
+        "mean_execution_delay_per_hop_s": (
+            float(
+                np.mean(
+                    [
+                        row["execution_delay_s"]
+                        for row in hop_records
+                        if row["request_success"]
+                    ]
+                )
+            )
+            if any(row["request_success"] for row in hop_records)
+            else None
+        ),
+        "mean_communication_energy_per_hop_j": (
+            float(
+                np.mean(
+                    [
+                        row["communication_energy_j"]
+                        for row in hop_records
+                        if row["request_success"]
+                    ]
+                )
+            )
+            if any(row["request_success"] for row in hop_records)
+            else None
+        ),
+        "mean_computation_energy_per_hop_j": (
+            float(
+                np.mean(
+                    [
+                        row["computation_energy_j"]
+                        for row in hop_records
+                        if row["request_success"]
+                    ]
+                )
+            )
+            if any(row["request_success"] for row in hop_records)
+            else None
         ),
         "migration_action_count": int(
             sum(row["migration_action_count"] for row in records)

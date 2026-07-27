@@ -231,6 +231,7 @@ def run(args) -> dict:
     )
     progress.update(0, item_count=0)
     request_rows: list[dict] = []
+    request_hop_rows: list[dict] = []
     slot_rows: list[dict] = []
     request_stream = hashlib.sha256()
     migration_totals = {
@@ -268,6 +269,7 @@ def run(args) -> dict:
                 "slot_crossings": 0,
                 "route_phases": 0,
                 "used_paths": 0,
+                "hop_metrics": [],
             }
             for _ in sessions
         ]
@@ -284,6 +286,8 @@ def run(args) -> dict:
                 tracker = trackers[index]
                 tracker["return"] += reward
                 tracker["final_info"] = info
+                if info.get("hop_metrics"):
+                    tracker["hop_metrics"].append(dict(info["hop_metrics"]))
                 for route_key in ("route", "final_route"):
                     route = info.get(route_key) or {}
                     tracker["slot_crossings"] += int(
@@ -343,6 +347,29 @@ def run(args) -> dict:
                     ),
                 }
             )
+            for hop in tracker["hop_metrics"]:
+                request_hop_rows.append(
+                    {
+                        "ablation": args.baseline,
+                        "seed": args.test_seed,
+                        "model_seed": args.model_seed,
+                        "test_seed": args.test_seed,
+                        "background_seed": args.background_seed,
+                        "chain_length": args.chain_length,
+                        "chain_length_filter": args.chain_length,
+                        "absolute_slot": absolute_slot,
+                        "request_id": request.request_id,
+                        "template_id": request.template_id,
+                        "arrival_time_s": request.arrival_time_s,
+                        "request_source_node": request.source,
+                        "request_destination_node": request.destination,
+                        "request_feasible": int(success),
+                        "request_failure_reason": (
+                            "" if success else info.get("reason", "")
+                        ),
+                        **hop,
+                    }
+                )
 
         actions = environment.finish_time_slot(absolute_slot)
         policy.finish_time_slot()
@@ -386,6 +413,9 @@ def run(args) -> dict:
         progress.update(absolute_slot + 1, item_count=len(request_rows))
 
     successful = [row for row in request_rows if row["feasible"]]
+    successful_hops = [
+        row for row in request_hop_rows if row["request_feasible"]
+    ]
     summary = {
         "ablation": args.baseline,
         "method_definition": BASELINE_DESCRIPTIONS[args.baseline],
@@ -420,6 +450,24 @@ def run(args) -> dict:
         "mean_route_used_path_count": _finite_mean(
             row["route_used_path_count"] for row in request_rows
         ),
+        "mean_communication_delay_per_hop_s": _finite_mean(
+            row["communication_delay_s"] for row in successful_hops
+        ),
+        "mean_computation_queue_delay_per_hop_s": _finite_mean(
+            row["computation_queue_delay_s"] for row in successful_hops
+        ),
+        "mean_execution_delay_per_hop_s": _finite_mean(
+            row["execution_delay_s"] for row in successful_hops
+        ),
+        "mean_computation_delay_per_hop_s": _finite_mean(
+            row["computation_delay_s"] for row in successful_hops
+        ),
+        "mean_communication_energy_per_hop_j": _finite_mean(
+            row["communication_energy_j"] for row in successful_hops
+        ),
+        "mean_computation_energy_per_hop_j": _finite_mean(
+            row["computation_energy_j"] for row in successful_hops
+        ),
         "migration_actions": migration_totals,
         "bandit": environment.replica_adapter.summary(),
         "route_strategy": config.route_strategy,
@@ -438,6 +486,9 @@ def run(args) -> dict:
         "initial_placement_hash": initial_placement_hash,
     }
     _write_csv(args.output_dir / "request_metrics.csv", request_rows)
+    _write_csv(
+        args.output_dir / "request_hop_metrics.csv", request_hop_rows
+    )
     _write_csv(args.output_dir / "slot_metrics.csv", slot_rows)
     (args.output_dir / "summary.json").write_text(
         json.dumps(summary, indent=2), encoding="utf-8"

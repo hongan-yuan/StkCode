@@ -147,6 +147,12 @@ def parse_args(argv: list[str] | None = None):
     parser.add_argument("--minimum-seeds", type=int, default=3)
     parser.add_argument("--formats", default="png,pdf")
     parser.add_argument("--dpi", type=int, default=320)
+    parser.add_argument(
+        "--font-scale",
+        type=float,
+        default=1.0,
+        help="multiply all figure font sizes by this factor",
+    )
     args = parser.parse_args(argv)
     if args.temporal_bin_slots < 1:
         parser.error("--temporal-bin-slots must be at least 1")
@@ -156,6 +162,8 @@ def parse_args(argv: list[str] | None = None):
         parser.error("--minimum-seeds must be at least 2")
     if args.dpi < 72:
         parser.error("--dpi must be at least 72")
+    if args.font_scale <= 0:
+        parser.error("--font-scale must be positive")
     args.formats = tuple(
         dict.fromkeys(
             item.strip().lower()
@@ -395,7 +403,7 @@ def resolve_bandit_run(
     )
 
 
-def _style() -> None:
+def _style(font_scale: float = 1.0) -> None:
     plt.rcParams.update(
         {
             "font.family": "serif",
@@ -405,12 +413,12 @@ def _style() -> None:
                 "Liberation Serif",
                 "DejaVu Serif",
             ],
-            "font.size": 10.0,
-            "axes.labelsize": 10.5,
-            "axes.titlesize": 10.5,
-            "legend.fontsize": 10.0,
-            "xtick.labelsize": 10.0,
-            "ytick.labelsize": 10.0,
+            "font.size": 10.0 * font_scale,
+            "axes.labelsize": 10.5 * font_scale,
+            "axes.titlesize": 10.5 * font_scale,
+            "legend.fontsize": 10.0 * font_scale,
+            "xtick.labelsize": 10.0 * font_scale,
+            "ytick.labelsize": 10.0 * font_scale,
             "axes.linewidth": 0.75,
             "lines.linewidth": 1.6,
             "savefig.bbox": "tight",
@@ -693,7 +701,7 @@ def _grouped_bar_panel(
             means,
             width=width,
             yerr=errors,
-            capsize=2.5,
+            capsize=0,
             color=METHOD_COLORS[method],
             edgecolor="black",
             linewidth=0.45,
@@ -775,7 +783,7 @@ def _phase_count_decomposition_panel(
             fmt="none",
             ecolor="black",
             elinewidth=0.7,
-            capsize=2.2,
+            capsize=0,
             zorder=4,
         )
     method_handles = tuple(
@@ -877,7 +885,7 @@ def _per_hop_cost_decomposition_panel(
             fmt="none",
             ecolor="black",
             elinewidth=0.7,
-            capsize=2.2,
+            capsize=0,
             zorder=4,
         )
     from matplotlib.patches import Patch
@@ -1141,7 +1149,7 @@ def _plot_ablation_metric(
             means,
             width=width,
             yerr=errors,
-            capsize=2.5,
+            capsize=0,
             color=METHOD_COLORS[method],
             edgecolor="black",
             linewidth=0.45,
@@ -1226,7 +1234,7 @@ def _plot_ablation_per_hop_cost_decomposition(
             yerr=total_errors,
             fmt="none",
             ecolor="black",
-            capsize=3,
+            capsize=0,
             linewidth=0.8,
             zorder=4,
         )
@@ -1489,7 +1497,7 @@ def plot_figure4(
     )
 
     fig, left_axis = plt.subplots(
-        figsize=(7.2, 4.25),
+        figsize=FIGURE_1_3_SIZE,
         constrained_layout=True,
     )
     right_axis = left_axis.twinx()
@@ -1534,16 +1542,7 @@ def plot_figure4(
         linewidth=1.0,
         linestyle="--",
     )
-    left_axis.text(
-        first_adaptation_slot + 7,
-        0.96,
-        "First adaptation",
-        transform=left_axis.get_xaxis_transform(),
-        va="top",
-        fontsize=10.0,
-    )
     left_axis.set_xlim(0, 605)
-    left_axis.set_xlabel("Constellation time slot")
     left_axis.set_ylabel(
         "Mean return improvement",
         color=return_color,
@@ -1558,7 +1557,7 @@ def plot_figure4(
     left_axis.legend(
         handles=(return_line, latency_line),
         loc="upper center",
-        ncol=2,
+        ncol=1,
         **LEGEND_STYLE,
     )
     generated = save_figure(
@@ -1662,7 +1661,7 @@ def plot_figure5(
         )
 
     fig, pareto_axis = plt.subplots(
-        figsize=(4.75, 3.85),
+        figsize=FIGURE_1_3_SIZE,
         constrained_layout=True,
     )
     colors = {
@@ -1701,7 +1700,7 @@ def plot_figure5(
             (latency, energy),
             xytext=(7, 7),
             textcoords="offset points",
-            fontsize=10.0,
+            fontsize=plt.rcParams["font.size"],
         )
     if len(available) > 1:
         ordered = sorted(
@@ -1727,23 +1726,7 @@ def plot_figure5(
             linestyle="--",
             zorder=0,
         )
-    pareto_axis.annotate(
-        "Lower is preferred",
-        xy=(0.05, 0.06),
-        xytext=(0.15, 0.12),
-        xycoords="axes fraction",
-        textcoords="axes fraction",
-        arrowprops={
-            "arrowstyle": "->",
-            "color": "#555555",
-            "linewidth": 1.0,
-        },
-        fontsize=10.0,
-        color="#444444",
-    )
-    pareto_axis.set_xlabel("Mean latency (s)")
     pareto_axis.set_ylabel("Mean energy (J)")
-    pareto_axis.set_title("Latency-energy weight sensitivity")
     pareto_axis.grid(True, linewidth=0.45, alpha=0.28)
     pareto_axis.legend(
         title="Latency:Energy",
@@ -1783,6 +1766,7 @@ def write_temporal_statistics(
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    _style(args.font_scale)
     try:
         baseline_run = resolve_baseline_run(
             args.baseline_root,
@@ -1816,7 +1800,7 @@ def main(argv: list[str] | None = None) -> int:
         )
     output_dir = args.output_dir.expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-    _style()
+    _style(args.font_scale)
     for obsolete_stem in (
         "fig1_baseline_cost_comparison",
         "fig1d_execution_phase_decomposition",
@@ -1947,6 +1931,7 @@ def main(argv: list[str] | None = None) -> int:
                 "chain length before aggregation."
             ),
         },
+        "font_scale": args.font_scale,
         "baseline_run": str(baseline_run),
         "bandit_run": str(bandit_run),
         "sensitivity_sources": weight_sources,
