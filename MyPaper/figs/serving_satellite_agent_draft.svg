@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="930" viewBox="0 0 1600 930">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#263238"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#2878b5"/>
+    </marker>
+    <style>
+      .title { font: 700 24px Arial, Helvetica, sans-serif; fill: #17202a; }
+      .section { font: 700 20px Arial, Helvetica, sans-serif; fill: #17202a; }
+      .label { font: 600 17px Arial, Helvetica, sans-serif; fill: #17202a; }
+      .small { font: 15px Arial, Helvetica, sans-serif; fill: #263238; }
+      .tiny { font: 13px Arial, Helvetica, sans-serif; fill: #455a64; }
+      .math { font: italic 18px Georgia, "Times New Roman", serif; fill: #17202a; }
+      .mathSmall { font: italic 15px Georgia, "Times New Roman", serif; fill: #17202a; }
+      .box { stroke: #263238; stroke-width: 1.8; rx: 12; ry: 12; }
+      .module { stroke: #263238; stroke-width: 1.8; rx: 9; ry: 9; }
+      .flow { fill: none; stroke: #263238; stroke-width: 2.1; marker-end: url(#arrow); }
+      .flowBlue { fill: none; stroke: #2878b5; stroke-width: 2.2; marker-end: url(#arrowBlue); }
+      .dash { fill: none; stroke: #607d8b; stroke-width: 1.6; stroke-dasharray: 7 5; }
+    </style>
+  </defs>
+
+  <rect x="18" y="18" width="1564" height="894" rx="18" fill="#ffffff" stroke="#263238" stroke-width="2"/>
+  <text x="800" y="54" text-anchor="middle" class="title">Serving Satellite Selection Agent</text>
+
+  <!-- Input column -->
+  <rect x="42" y="82" width="330" height="752" rx="15" fill="#eef5fb" stroke="#5b8db8" stroke-width="2"/>
+  <text x="207" y="115" text-anchor="middle" class="section">State and Candidate Inputs</text>
+
+  <rect x="66" y="138" width="282" height="184" class="box" fill="#dcecf7"/>
+  <text x="207" y="169" text-anchor="middle" class="label">Current Attributed Graph</text>
+  <text x="207" y="201" text-anchor="middle" class="math">𝒢ᵃᵣ(t) = (𝒱ᵣ, 𝓔ᵣ(t))</text>
+  <text x="84" y="235" class="mathSmall">hᵥ ∈ ℝ¹⁴</text>
+  <text x="167" y="235" class="tiny">node attributes</text>
+  <text x="84" y="263" class="mathSmall">qᵤᵥ ∈ ℝ⁵</text>
+  <text x="167" y="263" class="tiny">current ISL attributes</text>
+  <text x="84" y="291" class="mathSmall">𝓔ᵣ(t)</text>
+  <text x="167" y="291" class="tiny">sparse directed edge index</text>
+
+  <rect x="66" y="342" width="282" height="118" class="box" fill="#e8e4d7"/>
+  <text x="207" y="373" text-anchor="middle" class="label">Future Connectivity</text>
+  <text x="207" y="407" text-anchor="middle" class="math">{𝓔ᵣ(t+k)}ᴴₖ₌₁</text>
+  <text x="207" y="435" text-anchor="middle" class="tiny">connectivity only, with offset k</text>
+
+  <rect x="66" y="480" width="282" height="174" class="box" fill="#f3e0de"/>
+  <text x="207" y="511" text-anchor="middle" class="label">Request Context</text>
+  <text x="84" y="545" class="mathSmall">cᵣ,ᵢ ∈ ℝ⁷</text>
+  <text x="177" y="545" class="tiny">timing, progress, data, cost</text>
+  <text x="84" y="575" class="mathSmall">mᵣ</text>
+  <text x="177" y="575" class="tiny">requested service sequence</text>
+  <text x="84" y="605" class="mathSmall">bᵣ</text>
+  <text x="177" y="605" class="tiny">stored; current bᵢ enters cᵣ,ᵢ</text>
+  <text x="84" y="635" class="mathSmall">yᵣ,₁:ᵢ₋₁</text>
+  <text x="177" y="635" class="tiny">stored; history enters node flags</text>
+
+  <rect x="66" y="674" width="282" height="134" class="box" fill="#e3f1e6"/>
+  <text x="207" y="705" text-anchor="middle" class="label">Feasible Candidates</text>
+  <text x="207" y="738" text-anchor="middle" class="math">v ∈ 𝒜(sᵣ,ᵢ)</text>
+  <text x="207" y="768" text-anchor="middle" class="mathSmall">xᵥ = [dʰᵒᵖᵥ, Rᵇᵗˡᵥ, Qᶜᵖᵥ] ∈ ℝ³</text>
+  <text x="207" y="792" text-anchor="middle" class="tiny">reachable replicas of current service mᵢ</text>
+
+  <!-- Representation column -->
+  <rect x="402" y="82" width="706" height="752" rx="15" fill="#f7f7f7" stroke="#78828a" stroke-width="2"/>
+  <text x="755" y="115" text-anchor="middle" class="section">Spatio Temporal State Encoder</text>
+
+  <!-- Current graph path -->
+  <rect x="438" y="144" width="144" height="76" class="module" fill="#dcecf7"/>
+  <text x="510" y="174" text-anchor="middle" class="label">Node Encoder fₙ</text>
+  <text x="510" y="199" text-anchor="middle" class="mathSmall">hᵥ⁽⁰⁾ = fₙ(hᵥ; Wₙ)</text>
+  <text x="510" y="216" text-anchor="middle" class="tiny">14 → dₕ, ReLU, LN</text>
+
+  <rect x="438" y="242" width="144" height="76" class="module" fill="#dcecf7"/>
+  <text x="510" y="272" text-anchor="middle" class="label">Edge Encoder fₑ</text>
+  <text x="510" y="297" text-anchor="middle" class="mathSmall">q̄ᵤᵥ = fₑ(qᵤᵥ; Wₑⁿᶜ)</text>
+  <text x="510" y="314" text-anchor="middle" class="tiny">5 → dₕ/2 → 5</text>
+
+  <rect x="630" y="164" width="206" height="134" class="module" fill="#ead7dc"/>
+  <text x="733" y="190" text-anchor="middle" class="label">Sparse GAT f_G</text>
+  <text x="733" y="216" text-anchor="middle" class="tiny">W_G={W_q,W_k,W_z,W_e,W_o}</text>
+  <text x="733" y="241" text-anchor="middle" class="tiny">L edge aware attention layers</text>
+  <text x="733" y="270" text-anchor="middle" class="mathSmall">hᵥ(t)=f_G(𝒢ᵃᵣ(t);W_G)</text>
+
+  <!-- Future path -->
+  <rect x="438" y="356" width="144" height="88" class="module" fill="#e8e4d7"/>
+  <text x="510" y="384" text-anchor="middle" class="label">Offset Parameters</text>
+  <text x="510" y="412" text-anchor="middle" class="mathSmall">eₖ = W_t[k] ∈ ℝᵈʰ</text>
+
+  <rect x="630" y="338" width="206" height="124" class="module" fill="#ead7dc"/>
+  <text x="733" y="368" text-anchor="middle" class="label">Shared Sparse GAT f_G</text>
+  <text x="733" y="397" text-anchor="middle" class="mathSmall">hᵥ(t+k)=f_G(hᵥ⁽⁰⁾+eₖ,𝓔ᵣ(t+k);W_G)</text>
+  <text x="733" y="425" text-anchor="middle" class="tiny">shared W_G; connectivity only</text>
+
+  <rect x="882" y="220" width="184" height="170" class="module" fill="#dff0e2"/>
+  <text x="974" y="248" text-anchor="middle" class="label">Temporal Attention f_t</text>
+  <text x="974" y="276" text-anchor="middle" class="mathSmall">W_t={W_Qᵗ,W_Kᵗ,W_Vᵗ}</text>
+  <text x="974" y="304" text-anchor="middle" class="tiny">Q: hᵥ(t); K,V: {hᵥ(t+k)}ᴴₖ₌₀</text>
+  <text x="974" y="345" text-anchor="middle" class="math">zᵥ=f_t(Q,K,V;W_t)</text>
+
+  <!-- Request encoding -->
+  <rect x="438" y="506" width="178" height="112" class="module" fill="#f3e0de"/>
+  <text x="527" y="534" text-anchor="middle" class="label">Service Function fₘ</text>
+  <text x="527" y="562" text-anchor="middle" class="mathSmall">eₘ=fₘ(mᵣ; Wₘ)</text>
+  <text x="527" y="591" text-anchor="middle" class="tiny">embedding and masked mean pool</text>
+
+  <rect x="660" y="506" width="176" height="112" class="module" fill="#f3e0de"/>
+  <text x="748" y="534" text-anchor="middle" class="label">Request Function fᵣ</text>
+  <text x="748" y="562" text-anchor="middle" class="mathSmall">zᵣ,ᵢ=fᵣ([cᵣ,ᵢ,eₘ]; Wᵣ)</text>
+  <text x="748" y="591" text-anchor="middle" class="tiny">7+dₘ → dₕ, ReLU, LN</text>
+
+  <!-- Global pooling -->
+  <rect x="882" y="478" width="184" height="156" class="module" fill="#f0e6c9"/>
+  <text x="974" y="507" text-anchor="middle" class="label">Graph Pooling f_g</text>
+  <text x="974" y="535" text-anchor="middle" class="mathSmall">q_g=W_p[zᵣ,ᵢ,zᵤ,zᵥd]</text>
+  <text x="974" y="562" text-anchor="middle" class="mathSmall">aᵥ=q_gᵀW_kᵍzᵥ</text>
+  <text x="974" y="589" text-anchor="middle" class="mathSmall">h_g=Σᵥ ηᵥW_gzᵥ</text>
+
+  <!-- Extraction/fusion -->
+  <rect x="650" y="674" width="416" height="112" class="module" fill="#e9ecef"/>
+  <text x="858" y="703" text-anchor="middle" class="label">Actor and Critic Inputs</text>
+  <text x="676" y="737" class="mathSmall">Actor:</text>
+  <text x="738" y="737" class="mathSmall">[zᵥ, zᵤᵣ,ᵢ, zᵥd, zᵣ,ᵢ, h_g, xᵥ] ∈ ℝ⁵ᵈʰ⁺³</text>
+  <text x="676" y="768" class="mathSmall">Critic:</text>
+  <text x="738" y="768" class="mathSmall">[zᵤᵣ,ᵢ, zᵥd, zᵣ,ᵢ, h_g] ∈ ℝ⁴ᵈʰ</text>
+
+  <!-- Output column -->
+  <rect x="1138" y="82" width="420" height="752" rx="15" fill="#fff7ed" stroke="#c68c4b" stroke-width="2"/>
+  <text x="1348" y="115" text-anchor="middle" class="section">Shared Actor and Critic</text>
+
+  <rect x="1176" y="160" width="344" height="106" class="module" fill="#f6d9c8"/>
+  <text x="1348" y="190" text-anchor="middle" class="label">Actor Scorer fθ</text>
+  <text x="1348" y="220" text-anchor="middle" class="math">gᵥ = fθ([zᵥ,zᵤᵣ,ᵢ,zᵥd,zᵣ,ᵢ,h_g,xᵥ]; Wθ)</text>
+  <text x="1348" y="250" text-anchor="middle" class="tiny">(5dₕ+3) → dₕ → 1, shared by all candidates</text>
+
+  <rect x="1176" y="304" width="344" height="110" class="module" fill="#e3f1e6"/>
+  <text x="1348" y="337" text-anchor="middle" class="label">Masked Softmax f_mask</text>
+  <text x="1348" y="367" text-anchor="middle" class="math">πθ(v|sᵣ,ᵢ)=f_mask({gᵤ},𝒜(sᵣ,ᵢ))</text>
+  <text x="1348" y="396" text-anchor="middle" class="tiny">variable number of reachable replicas</text>
+
+  <rect x="1226" y="452" width="244" height="96" class="module" fill="#b7ddc7"/>
+  <text x="1348" y="487" text-anchor="middle" class="label">Serving Satellite</text>
+  <text x="1348" y="522" text-anchor="middle" class="math">v* ∼ πθ(· | sᵣ,ᵢ)</text>
+
+  <rect x="1176" y="620" width="344" height="110" class="module" fill="#ddd8ee"/>
+  <text x="1348" y="653" text-anchor="middle" class="label">Critic fφ</text>
+  <text x="1348" y="686" text-anchor="middle" class="math">Vφ(sᵣ,ᵢ)=fφ([zᵤᵣ,ᵢ,zᵥd,zᵣ,ᵢ,h_g]; Wφ)</text>
+  <text x="1348" y="714" text-anchor="middle" class="tiny">4dₕ → dₕ → 1, PPO critic during training</text>
+
+  <!-- Main flows -->
+  <path d="M348 216 H438" class="flow"/>
+  <path d="M348 270 H438" class="flow"/>
+  <path d="M582 182 H630" class="flow"/>
+  <path d="M582 280 H630" class="flow"/>
+  <path d="M582 182 H606 V350 H630" class="flow"/>
+  <path d="M348 400 H438" class="flow"/>
+  <path d="M582 400 H630" class="flow"/>
+  <path d="M836 230 H882" class="flow"/>
+  <path d="M836 400 C858 400 858 346 882 346" class="flow"/>
+  <path d="M348 575 H438" class="flow"/>
+  <path d="M348 525 H394 V478 H748 V506" class="flow"/>
+  <path d="M616 562 H660" class="flow"/>
+  <path d="M836 562 H882" class="flow"/>
+  <path d="M974 390 V478" class="flow"/>
+  <path d="M974 634 V674" class="flow"/>
+  <path d="M748 618 V674" class="flow"/>
+  <path d="M1066 345 H1082 V648 H1040 V674" class="flow"/>
+  <path d="M348 741 H650" class="flow"/>
+  <path d="M1066 733 C1100 733 1100 213 1176 213" class="flowBlue"/>
+  <path d="M1348 266 V304" class="flow"/>
+  <path d="M1348 414 V452" class="flow"/>
+  <path d="M1066 768 C1110 768 1110 675 1176 675" class="flow"/>
+
+  <!-- Data labels on arrows -->
+  <text x="390" y="205" class="tiny">hᵥ</text>
+  <text x="382" y="260" class="tiny">qᵤᵥ, 𝓔ᵣ(t)</text>
+  <text x="378" y="390" class="tiny">𝓔ᵣ(t+k), k</text>
+  <text x="392" y="515" class="tiny">cᵣ,ᵢ</text>
+  <text x="384" y="565" class="tiny">mᵣ</text>
+  <text x="632" y="551" class="tiny">eₘ</text>
+  <text x="590" y="336" class="tiny">hᵥ⁽⁰⁾</text>
+  <text x="986" y="444" class="tiny">zᵥ</text>
+  <text x="845" y="552" class="tiny">zᵣ,ᵢ</text>
+  <text x="932" y="657" class="tiny">h_g</text>
+  <text x="1004" y="644" class="tiny">{zᵥ}, zᵤ, zᵥd</text>
+  <text x="390" y="730" class="tiny">𝒜(sᵣ,ᵢ), xᵥ</text>
+  <text x="1090" y="706" class="tiny">actor input</text>
+  <text x="1104" y="783" class="tiny">critic input</text>
+  <text x="1360" y="289" class="tiny">scores {gᵥ}</text>
+  <text x="1360" y="438" class="tiny">πθ(·|sᵣ,ᵢ)</text>
+
+  <!-- Cross connections for pooling -->
+  <path d="M882 305 C850 305 856 520 882 556" class="dash"/>
+  <path d="M836 580 C860 580 858 556 882 556" class="dash"/>
+
+  <!-- Implementation note -->
+  <rect x="402" y="852" width="1156" height="42" rx="8" fill="#f3f5f7" stroke="#90a4ae" stroke-width="1.4"/>
+  <text x="980" y="879" text-anchor="middle" class="small">
+    Default implementation: H = 3, dₕ = 128, L = 2 graph layers, 4 temporal attention heads, and service embedding dimension dₘ = 32
+  </text>
+</svg>
